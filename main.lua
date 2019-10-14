@@ -9,6 +9,10 @@ COLOR_BLACK = {0,0,0}
 COLOR_ALLOVERSE_ORANGE = {0.91,0.43,0.29}
 COLOR_ALLOVERSE_BLUE = {0.27,0.55,1}
 
+function lovr.conf(t)
+  t.headset.drivers = {"desktop"}
+end
+
 function lovr.load()
   skybox = lovr.graphics.newTexture('assets/tron-skybox.jpg')
 end
@@ -35,32 +39,21 @@ function lovr.draw()
 
   lovr.graphics.skybox(skybox)
 
+  for i, hand in ipairs(lovr.headset.getHands()) do
+    local handPos = lovr.math.vec3(lovr.headset.getPosition(hand))
 
-    local hx, hy, hz = lovr.headset.getPosition()
-    local angle, hax, hay, haz = lovr.headset.getOrientation()
+    lovr.graphics.setColor(COLOR_WHITE)
+    lovr.graphics.box('fill', handPos, .03, .04, .06, lovr.headset.getOrientation(hand))
 
+    local straightAhead = lovr.math.vec3(0, 0, -1)
+    local handRotation = lovr.math.mat4():rotate(lovr.headset.getOrientation(hand))
+    local pointedDirection = handRotation:mul(straightAhead)
+    local distantPoint = lovr.math.vec3(pointedDirection):mul(10):add(handPos)
 
-    for i, controller in ipairs(lovr.headset.getControllers()) do
-      
-      local cx, cy, cz = controller:getPosition()
-      local angle, cax, cay, caz = controller:getOrientation()
+    lovr.graphics.setColor(COLOR_ALLOVERSE_ORANGE)
+    lovr.graphics.line(handPos,distantPoint)
 
-      lovr.graphics.cube('fill', cx, cy, cz, .05, angle, cax, cay, caz)
-
-      lovr.graphics.setColor(COLOR_WHITE)
-      
-
-
-      local controllerPosVector = lovr.math.vec3(cx, cy, cz)
-      local unitVector = lovr.math.vec3(hax, hay, haz)
-      final = controllerPosVector:add(unitVector)
-      print(unitVector:unpack())
-
-      fx, fy, fz = final:unpack()
-
-      lovr.graphics.line(cx+0.1, cy, cz, fx, fy, fz )
-
-    end
+  end
 
     
   
@@ -80,10 +73,10 @@ end
 
 function lovr.update(dt)
   
-  for i, controller in ipairs(lovr.headset.getControllers()) do
-    if controller:isDown("trigger") then
+  for name, hand in ipairs(lovr.headset.getHands()) do
+    if lovr.headset.isDown(hand, "trigger") then
       --controller:vibrate(.004)
-      print(controller:getPosition())
+      --print(controller:getPosition())
     end
   end
 end
