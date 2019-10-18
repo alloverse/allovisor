@@ -10,7 +10,7 @@ COLOR_ALLOVERSE_ORANGE = {0.91,0.43,0.29}
 COLOR_ALLOVERSE_BLUE = {0.27,0.55,1}
 
 function lovr.conf(t)
-  t.headset.drivers = {"desktop"}
+  --t.headset.drivers = {"desktop"}
 end
 
 function lovr.load()
