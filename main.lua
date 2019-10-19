@@ -6,7 +6,7 @@ MENU_ITEM_VERTICAL_PADDING = .1
 
 COLOR_WHITE = {1,1,1}
 COLOR_BLACK = {0,0,0}
-COLOR_ALLOVERSE_GRAY = {0.40, 0.45, 0,50}
+COLOR_ALLOVERSE_GRAY = {0.40, 0.45, 0.50}
 COLOR_ALLOVERSE_ORANGE = {0.91, 0.43, 0.29}
 COLOR_ALLOVERSE_ORANGE_DARK = {0.7,0.37,0.47}
 COLOR_ALLOVERSE_BLUE = {0.27,0.55,1}
@@ -65,7 +65,8 @@ end
 
 function lovr.load()
   world = lovr.physics.newWorld()
-  skybox = lovr.graphics.newTexture('assets/tron-skybox.jpg')
+  --skybox = lovr.graphics.newTexture('assets/tron-skybox.jpg')
+  skybox = lovr.graphics.newTexture('assets/cloudy-skybox.jpg')
 end
 
 function lovr.draw()
@@ -76,8 +77,10 @@ function lovr.draw()
   for i, hand in ipairs(lovr.headset.getHands()) do
     local handPos = lovr.math.vec3(lovr.headset.getPosition(hand))
 
-    lovr.graphics.setColor(COLOR_WHITE)
+    lovr.graphics.setColor(COLOR_ALLOVERSE_GRAY)
     lovr.graphics.box('fill', handPos, .03, .04, .06, lovr.headset.getOrientation(hand))
+    
+    lovr.graphics.setColor(COLOR_WHITE)
 
     local straightAhead = lovr.math.vec3(0, 0, -1)
     local handRotation = lovr.math.mat4():rotate(lovr.headset.getOrientation(hand))
