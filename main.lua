@@ -20,7 +20,7 @@ collidedMenuItemIndex = nil
 
 
 function lovr.conf(t)
-  t.headset.drivers = {"desktop"}
+  --t.headset.drivers = {"desktop"}
 end
 
 
