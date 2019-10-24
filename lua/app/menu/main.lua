@@ -50,9 +50,11 @@ local function drawMenuItem(label, index)
   --print(colliderArray[index])
 end
 
+local menuFont = lovr.graphics.newFont(16)
 
 local function drawMenu()
   lovr.graphics.setColor(COLOR_WHITE)
+  lovr.graphics.setFont(menuFont)
   lovr.graphics.plane('fill', x, y-0.6, z-0.1, 1.2, 1)
 
   for menuItemCount = 1, table.getn(menuItemArray) do
