@@ -22,20 +22,16 @@ do
 	end
 end
 
---[[
--- Suggest you create a namespace for your game here, like:
-namespace.prepare("gamename", "standard", function(space)
-	require "engine.gamename.types"
-	require "engine.gamename.level"
+namespace.prepare("alloverse", "standard", function(space)
+	
 end)
---]]
 
 -- Ent driver
 -- Pass an app load point or a list of them as cmdline args or defaultApp will run
 
 namespace "standard"
 
-local defaultApp = "app/test/cube"
+local defaultApp = "app/menu/menu"
 
 function lovr.load()
 	ent.root = LoaderEnt(#arg > 0 and arg or {defaultApp})

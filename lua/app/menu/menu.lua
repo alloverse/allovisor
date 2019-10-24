@@ -1,3 +1,6 @@
+namespace("menu", "alloverse")
+
+local Menu = classNamed("Menu", Ent)
 
 x, y, z = 0, 2.5, -1.5
 MENU_ITEM_HEIGHT = .2
@@ -17,11 +20,6 @@ menuItemArray = {"Menu item 1", "Menu item 2", "Menu item 3"}
 colliderArray = {}
 
 collidedMenuItemIndex = nil
-
-
-function lovr.conf(t)
-  --t.headset.drivers = {"desktop"}
-end
 
 
 local function drawLabel(str, x, y, z)
@@ -63,13 +61,13 @@ local function drawMenu()
 
 end
 
-function lovr.load()
+function Menu:onLoad()
   world = lovr.physics.newWorld()
   --skybox = lovr.graphics.newTexture('assets/tron-skybox.jpg')
   skybox = lovr.graphics.newTexture('assets/cloudy-skybox.jpg')
 end
 
-function lovr.draw()
+function Menu:onDraw()
 
   lovr.graphics.setColor(COLOR_WHITE)
   lovr.graphics.skybox(skybox)
@@ -132,7 +130,7 @@ end
 
 
 
-function lovr.update(dt)
+function Menu:onUpdate(dt)
   
   -- for name, hand in ipairs(lovr.headset.getHands()) do
   --   if lovr.headset.isDown(hand, "trigger") then
@@ -144,3 +142,5 @@ function lovr.update(dt)
   --   end
   -- end
 end
+
+return Menu
