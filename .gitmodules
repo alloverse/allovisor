@@ -1,0 +1,3 @@
+[submodule "lodr"]
+	path = deps/lodr
+	url = git@github.com:mcclure/lodr.git
