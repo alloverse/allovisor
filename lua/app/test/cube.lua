@@ -13,7 +13,7 @@ function CubeTest:onUpdate(dt)
 end
 
 function CubeTest:onDraw(dt)
-	lovr.graphics.clear(1,1,1) lovr.graphics.setShader(shader)
+	lovr.graphics.setShader(shader)
 
 	local count, width, spacing = 5, 0.4, 2
 	local function toColor(i) return (i-1)/(count-1) end

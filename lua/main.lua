@@ -1,4 +1,3 @@
-
 namespace = require "engine.namespace"
 
 -- Load namespace basics
@@ -27,16 +26,15 @@ namespace.prepare("alloverse", "standard", function(space)
 end)
 
 -- Ent driver
--- Pass an app load point or a list of them as cmdline args or defaultApp will run
-
+-- Route all the Lovr callbacks to the ent subsystem
 namespace "standard"
 
-local defaultApp = "app/menu/menu"
-
 function lovr.load()
-	ent.root = LoaderEnt(#arg > 0 and arg or {defaultApp})
+	ent.root = LoaderEnt(#arg > 0 and arg or {"app/menu/main"})
 	ent.root:route("onBoot") -- This will only be sent once
 	ent.root:insert()
+
+	LoaderEnt({"app/test/cube"}):insert()
 end
 
 function lovr.update(dt)
