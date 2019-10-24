@@ -44,7 +44,7 @@ local function drawMenuItem(label, index)
   lovr.graphics.setColor(COLOR_BLACK)
   lovr.graphics.plane('fill', x, menuItemY, z-0.05, MENU_ITEM_WIDTH, MENU_ITEM_HEIGHT)
   
-  drawLabel(label, x, menuItemY, z)
+  drawLabel(label, x, menuItemY, z+0.01)
 
   colliderArray[index] = world:newBoxCollider(x, menuItemY, z, MENU_ITEM_WIDTH, MENU_ITEM_HEIGHT, 0.1 )
   --print(colliderArray[index])
