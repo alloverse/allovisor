@@ -5,11 +5,14 @@ local allonet = require "liballonet"
 
 local NetworkScene = classNamed("NetworkScene", Ent)
 
-local client = allonet.connect(
-    "alloplace://nevyn.places.alloverse.com",
-    json.encode({display_name = "lua-sample"}),
-    json.encode({a = "b"})
-)
+local client = nil
+
+function NetworkScene:_init(displayName, url)
+  client = allonet.connect(
+    url,
+    json.encode({display_name = displayName}),
+    json.encode({a = "b"}))
+end
 
 function NetworkScene:onLoad()
   --world = lovr.physics.newWorld()
@@ -24,7 +27,6 @@ function NetworkScene:onDraw()
   for _, entity in ipairs(client:get_state().entities) do
 
     print("entity.id: " .. entity.id)
-    
 
     local entityTransform = entity.components.transform
 
@@ -34,7 +36,6 @@ function NetworkScene:onDraw()
       lovr.graphics.cube('fill', entityTransform.position.x, entityTransform.position.y, entityTransform.position.z, 1, 0, 0, 0, 0)
     end
   end
-
 
 end
 
