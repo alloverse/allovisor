@@ -5,26 +5,29 @@ local allonet = require "liballonet"
 
 local NetworkScene = classNamed("NetworkScene", Ent)
 
-local client = allonet.connect(
-    "alloplace://nevyn.places.alloverse.com",
-    json.encode({display_name = "lua-sample"}),
+function NetworkScene:_init(displayName, url)
+  self.client = allonet.connect(
+    url,
+    json.encode({display_name = displayName}),
     json.encode({a = "b"})
-)
+  )
+  self:super()
+end
 
 function NetworkScene:onLoad()
   --world = lovr.physics.newWorld()
-  
+  self.skybox = lovr.graphics.newTexture('assets/cloudy-skybox.jpg')  
 end
 
-function NetworkScene:onDraw()
 
+function NetworkScene:onDraw()  
+  lovr.graphics.skybox(self.skybox)
   -- iterera igenom client.get_state().entities
   -- rita ut varje entity som en kub
 
-  for _, entity in ipairs(client:get_state().entities) do
+  for _, entity in ipairs(self.client:get_state().entities) do
 
     print("entity.id: " .. entity.id)
-    
 
     local entityTransform = entity.components.transform
 
@@ -35,12 +38,11 @@ function NetworkScene:onDraw()
     end
   end
 
-
 end
 
 
 function NetworkScene:onUpdate(dt)
-  client:poll()
+  self.client:poll()
 end
 
 return NetworkScene

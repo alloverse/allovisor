@@ -32,9 +32,7 @@ namespace "standard"
 function lovr.load()
 	ent.root = LoaderEnt({
 		"app/menu/main",
-		--"app/test/cube",
-		"app/debug/fps",
-		"app/network/main"
+		"app/debug/fps"
 	})
 	ent.root:route("onBoot") -- This will only be sent once
 	ent.root:insert()

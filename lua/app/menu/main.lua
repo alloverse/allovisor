@@ -1,6 +1,7 @@
 namespace("menu", "alloverse")
 
 local Menu = classNamed("Menu", Ent)
+local NetworkScene = require("app.network.main")
 
 x, y, z = 0, 2.5, -1.5
 MENU_ITEM_HEIGHT = .2
@@ -16,7 +17,7 @@ COLOR_ALLOVERSE_BLUE = {0.27,0.55,1}
 
 rayColor = COLOR_ALLOVERSE_ORANGE
 
-menuItemArray = {"Menu item 1", "Menu item 2", "Menu item 3"}
+menuItemArray = {"Nevyn's Place", "Localhost", "Quit"}
 colliderArray = {}
 
 collidedMenuItemIndex = nil
@@ -111,6 +112,14 @@ function Menu:onDraw()
         print(collidedMenuItemIndex)
         print("-----------------------")
 
+        if (collidedMenuItemIndex == 1) then
+          self:openPlace("alloplace://nevyn.places.alloverse.com")
+        elseif(collidedMenuItemIndex == 2) then
+          self:openPlace("alloplace://localhost")
+        elseif(collidedMenuItemIndex == 3) then
+          lovr.event.quit(0)
+        end
+
         --controller:vibrate(.004)
         --print(controller:getPosition())
       end
@@ -143,6 +152,14 @@ function Menu:onUpdate(dt)
   --     --print(controller:getPosition())
   --   end
   -- end
+end
+
+function Menu:openPlace(url)
+  local displayName = "Mario"
+  local scene = NetworkScene(displayName, url)
+  scene:insert()
+  queueDoom(self)
+
 end
 
 return Menu
