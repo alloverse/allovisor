@@ -113,7 +113,11 @@ function Menu:onDraw()
         print("-----------------------")
 
         if (collidedMenuItemIndex == 1) then
-          openNevynsPlace()
+          self:openPlace("alloplace://nevyn.places.alloverse.com")
+        elseif(collidedMenuItemIndex == 2) then
+          self:openPlace("alloplace://localhost")
+        elseif(collidedMenuItemIndex == 3) then
+          lovr.event.quit(0)
         end
 
         --controller:vibrate(.004)
@@ -150,12 +154,11 @@ function Menu:onUpdate(dt)
   -- end
 end
 
-function openNevynsPlace()
+function Menu:openPlace(url)
   local displayName = "Mario"
-  local nevynsPlaceUrl = "alloplace://nevyn.places.alloverse.com"
-
-  local scene = NetworkScene(displayName, nevynsPlaceUrl)
+  local scene = NetworkScene(displayName, url)
   scene:insert()
+  queueDoom(self)
 
 end
 
