@@ -32,7 +32,7 @@ namespace "standard"
 function lovr.load()
 	ent.root = LoaderEnt({
 		"app/menu/main",
-		"app/test/cube",
+		--"app/test/cube",
 		"app/debug/fps",
 		"app/network/main"
 	})
