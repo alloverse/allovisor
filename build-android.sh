@@ -10,11 +10,11 @@ export GRADLE=$APPSRC/gradlew
 pushd $APPSRC
 
 pushd cmakelib
-$GRADLE build
+$GRADLE $1
 popd
 
 pushd LovrApp/Projects/Android
-$GRADLE build
+$GRADLE $1
 popd
 
 popd

@@ -8,7 +8,7 @@ if(WIN32) # windows unsupported atm
 
 elseif(APPLE)
     add_custom_command(
-        OUTPUT Alloverse.app
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Alloverse.app
         COMMAND cp -r ${CMAKE_CURRENT_BINARY_DIR}/deps/lovr/lovr.app ${CMAKE_CURRENT_BINARY_DIR}/Alloverse.app
         COMMAND cp -r ${CMAKE_CURRENT_SOURCE_DIR}/lua Alloverse.app/Contents/Resources/.lovr
         COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/src/mac/Info.plist Alloverse.app/Contents/Info.plist
@@ -22,8 +22,8 @@ elseif(APPLE)
     )
 elseif(ANDROID)
     add_custom_command(
-        OUTPUT alloverse-release.apk
-        COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/build-android.sh
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/alloverse-release.apk
+        COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/build-android.sh build
         COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/deps/lovr-android/LovrApp/Projects/Android/build/outputs/apk/debug/alloverse-debug.apk .
         COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/deps/lovr-android/LovrApp/Projects/Android/build/outputs/apk/release/alloverse-release.apk .
     )
