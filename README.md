@@ -62,8 +62,9 @@ for Mac, Windows or Android.
 
 ### Windows
 
-todo
+TBD
 
 ## Quest/Android
 
-todo
+1. `mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=~/Library/Android/sdk/ndk-bundle/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a ..`
+2. `make alloverse-dist`

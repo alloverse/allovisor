@@ -7,3 +7,6 @@
 [submodule "deps/allonet"]
 	path = deps/allonet
 	url = git@github.com:alloverse/allonet.git
+[submodule "deps/lovr-android"]
+	path = deps/lovr-android
+	url = git@github.com:alloverse/lovr-oculus-mobile-alloverse.git

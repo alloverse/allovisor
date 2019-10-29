@@ -4,7 +4,7 @@ project(allovisor VERSION 0.2.0)
 SET(LOVR_BUILD_BUNDLE ON CACHE BOOL "Always build lovr bundle on mac")
 add_subdirectory (deps/lovr)
 
-if(WIN32)
+if(WIN32) # windows unsupported atm
 
 elseif(APPLE)
     add_custom_command(
@@ -21,6 +21,16 @@ elseif(APPLE)
         DEPENDS Alloverse.app
     )
 elseif(ANDROID)
+    add_custom_command(
+        OUTPUT alloverse-release.apk
+        COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/build-android.sh
+        COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/deps/lovr-android/LovrApp/Projects/Android/build/outputs/apk/debug/alloverse-debug.apk .
+        COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/deps/lovr-android/LovrApp/Projects/Android/build/outputs/apk/release/alloverse-release.apk .
+    )
+    add_custom_target(
+        alloverse-dist ALL
+        DEPENDS alloverse-release.apk
+    )
 
 elseif(UNIX) # linux unsupported atm
 
