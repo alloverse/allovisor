@@ -14,6 +14,7 @@ elseif(APPLE)
         COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/src/mac/Info.plist Alloverse.app/Contents/Info.plist
         COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/src/mac/alloverse.icns Alloverse.app/Contents/Resources/alloverse.icns
         COMMAND rm ${CMAKE_CURRENT_BINARY_DIR}/Alloverse.app/Contents/Resources/lovr.icns
+        COMMAND echo Built ${CMAKE_CURRENT_BINARY_DIR}/Alloverse.app
         DEPENDS lovr
     )
     add_custom_target(
