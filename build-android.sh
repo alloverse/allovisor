@@ -1,6 +1,8 @@
 #!/bin/bash
 set -xe
 
+echo ANDROID_HOME is $ANDROID_HOME
+
 export PATH="/Applications/Android Studio.app/Contents/jre/jdk/Contents/Home/bin":~/Library/Android/sdk/platform-tools:$PATH 
 export ANDROID_HOME=${ANDROID_HOME:-~/Library/Android/sdk}
 export VISORSRC="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
