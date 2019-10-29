@@ -19,7 +19,7 @@ jobs:
     displayName: "Stage artifacts"
     inputs:
       contents: |
-        build/*.app
+        build/**/*
       targetFolder: $(Build.ArtifactStagingDirectory)
   - task: PublishBuildArtifacts@1
     displayName: "Publish artifacts"
