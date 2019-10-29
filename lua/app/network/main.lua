@@ -1,11 +1,11 @@
 namespace("networkscene", "alloverse")
 
 local json = require "json"
-local allonet = require "liballonet"
 
 local NetworkScene = classNamed("NetworkScene", Ent)
 
 function NetworkScene:_init(displayName, url)
+  local allonet = require "liballonet"
   self.client = allonet.connect(
     url,
     json.encode({display_name = displayName}),
