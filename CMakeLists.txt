@@ -9,12 +9,12 @@ if(WIN32) # windows unsupported atm
 elseif(APPLE)
     add_custom_command(
         OUTPUT Alloverse.app
-        COMMAND cp -r deps/lovr/lovr.app Alloverse.app
+        COMMAND cp -r ${CMAKE_CURRENT_BINARY_DIR}/deps/lovr/lovr.app ${CMAKE_CURRENT_BINARY_DIR}/Alloverse.app
         COMMAND cp -r ${CMAKE_CURRENT_SOURCE_DIR}/lua Alloverse.app/Contents/Resources/.lovr
         COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/src/mac/Info.plist Alloverse.app/Contents/Info.plist
         COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/src/mac/alloverse.icns Alloverse.app/Contents/Resources/alloverse.icns
-        COMMAND rm Alloverse.app/Contents/Resources/lovr.icns
-        MAIN_DEPENDENCY deps/lovr/lovr.app
+        COMMAND rm ${CMAKE_CURRENT_BINARY_DIR}/Alloverse.app/Contents/Resources/lovr.icns
+        DEPENDS lovr
     )
     add_custom_target(
         alloverse-dist ALL
