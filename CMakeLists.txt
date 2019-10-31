@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1.0)
+cmake_minimum_required(VERSION 3.13.0) # 3.13 minimum for CMP0079
 project(allovisor VERSION 0.2.0)
 cmake_policy(SET CMP0079 NEW)
 
@@ -9,12 +9,12 @@ add_subdirectory (deps/lovr)
 
 add_subdirectory (deps/allonet)
 
-target_link_libraries(lovr allonet)
-target_link_options(lovr PRIVATE "LINKER:-all_load")
-
 if(WIN32) # windows unsupported atm
 
 elseif(APPLE)
+    # Force-load allonet into lovr exe
+    target_link_libraries(lovr "-Wl,-all_load" allonet )
+
     add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Alloverse.app
         COMMAND cp -r ${CMAKE_CURRENT_BINARY_DIR}/deps/lovr/lovr.app ${CMAKE_CURRENT_BINARY_DIR}/Alloverse.app
@@ -30,6 +30,9 @@ elseif(APPLE)
         DEPENDS Alloverse.app
     )
 elseif(ANDROID)
+    # Force-load allonet into lovr exe
+    target_link_libraries(lovr "-Wl,--whole-archive" allonet "-Wl,--no-whole-archive")
+
     add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/alloverse-release.apk
         COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/build-android.sh build
