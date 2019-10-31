@@ -4,8 +4,13 @@ local json = require "json"
 
 local NetworkScene = classNamed("NetworkScene", Ent)
 
+local success, allonet = pcall(require, "allonet")
+if success == false then
+  allonet = package.loadlib("lovr", "luaopen_liballonet")()
+end
+
+
 function NetworkScene:_init(displayName, url)
-  local allonet = require "liballonet"
   self.client = allonet.connect(
     url,
     json.encode({display_name = displayName}),
