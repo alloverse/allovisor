@@ -25,6 +25,7 @@ function NetworkScene:_init(displayName, url)
       type = "hardcoded-model"
     }})
   )
+  self.yaw = 0.0
   self:super()
 end
 
@@ -46,8 +47,12 @@ function NetworkScene:onDraw()
     local geom = entity.components.geometry
 
     if trans ~= nil and geom ~= nil then
-      lovr.graphics.setColor(0, 0, 0)
-      lovr.graphics.cube('fill', trans.position.x, trans.position.y, trans.position.z, 1, 0, 0, 0, 0)
+      if geom.type == "hardcoded-model" then
+        lovr.graphics.setColor(0, 0, 0)
+        lovr.graphics.cube('fill', trans.position.x, trans.position.y, trans.position.z, 1, 0, 0, 0, 0)
+      elseif geom.type == "inline" then
+        
+      end
     end
   end
 
@@ -55,6 +60,16 @@ end
 
 
 function NetworkScene:onUpdate(dt)
+  local mx, my = lovr.headset.getAxis("hand/left", "thumbstick")
+  local tx, ty = lovr.headset.getAxis("hand/right", "thumbstick")
+  self.yaw = self.yaw - (tx/30.0)
+  local intent = {
+    xmovement = mx,
+    zmovement = -my,
+    yaw = self.yaw,
+    pitch = 0.0
+  }
+  self.client:set_intent(intent)
   self.client:poll()
 end
 
