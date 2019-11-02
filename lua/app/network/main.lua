@@ -21,7 +21,9 @@ function NetworkScene:_init(displayName, url)
   self.client = allonet.connect(
     url,
     json.encode({display_name = displayName}),
-    json.encode({a = "b"})
+    json.encode({geometry = {
+      type = "hardcoded-model"
+    }})
   )
   self:super()
 end
@@ -40,11 +42,12 @@ function NetworkScene:onDraw()
 
   for _, entity in ipairs(self.client:get_state().entities) do
 
-    local entityTransform = entity.components.transform
+    local trans = entity.components.transform
+    local geom = entity.components.geometry
 
-    if (entityTransform ~= nil) then
+    if trans ~= nil and geom ~= nil then
       lovr.graphics.setColor(0, 0, 0)
-      lovr.graphics.cube('fill', entityTransform.position.x, entityTransform.position.y, entityTransform.position.z, 1, 0, 0, 0, 0)
+      lovr.graphics.cube('fill', trans.position.x, trans.position.y, trans.position.z, 1, 0, 0, 0, 0)
     end
   end
 
