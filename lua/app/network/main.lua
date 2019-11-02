@@ -5,7 +5,6 @@ local json = require "json"
 local NetworkScene = classNamed("NetworkScene", Ent)
 
 --  If ran from lovr.app/lodr/testapp, liballonet.so is in project root
-require("liballonet")
 local success, allonet = pcall(require, "liballonet")
 if success == false then
   -- If ran from mac, allonet.a is linked into lovr exe
@@ -44,7 +43,6 @@ function NetworkScene:onDraw()
     local entityTransform = entity.components.transform
 
     if (entityTransform ~= nil) then
-      print(entityTransform.position.x)
       lovr.graphics.setColor(0, 0, 0)
       lovr.graphics.cube('fill', entityTransform.position.x, entityTransform.position.y, entityTransform.position.z, 1, 0, 0, 0, 0)
     end
