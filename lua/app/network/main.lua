@@ -34,13 +34,12 @@ end
 
 
 function NetworkScene:onDraw()  
+  lovr.graphics.setColor({1,1,1})
   lovr.graphics.skybox(self.skybox)
   -- iterera igenom client.get_state().entities
   -- rita ut varje entity som en kub
 
   for _, entity in ipairs(self.client:get_state().entities) do
-
-    print("entity.id: " .. entity.id)
 
     local entityTransform = entity.components.transform
 
