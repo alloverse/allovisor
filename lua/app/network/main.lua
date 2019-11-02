@@ -5,7 +5,8 @@ local json = require "json"
 local NetworkScene = classNamed("NetworkScene", Ent)
 
 --  If ran from lovr.app/lodr/testapp, liballonet.so is in project root
-local success, allonet = pcall(require, "allonet")
+require("liballonet")
+local success, allonet = pcall(require, "liballonet")
 if success == false then
   -- If ran from mac, allonet.a is linked into lovr exe
   local pkg = package.loadlib("lovr", "luaopen_liballonet")

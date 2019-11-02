@@ -13,13 +13,12 @@ with, and easier to extend with low level functionality.
 1. Install CMake 3.13.0 or newer
 2. Install Lövr 0.13 or later (or follow the distribution instructions to use the embedded version)
 3. `mkdir build && cd build && cmake ..` to prepare to build liballonet
-4. In build, `make allonet && cp allonet/liballonet.dylib ../lua/liballonet.so` to build liballonet
-   and put it in place to be used from lua
-5. Start Lövr with the `lua` folder as the Lövr app, and optionally add `deps/lodr` too for auto-reload.
+4. In build, `make allonet` to build liballonet. `cpath` will be set up to find it from the lua folder.
+5. Start Lövr with the `lua` folder as the Lövr app, and optionally add `deps/lodr` before it
+   too for auto-reload.
 
 fish: `/Applications/LÖVR.app/Contents/MacOS/lovr (pwd)/deps/lodr (pwd)/lua`
 bash: `/Applications/LÖVR.app/Contents/MacOS/lovr $(pwd)/deps/lodr $(pwd)/lua`
-
 
 ### Windows
 

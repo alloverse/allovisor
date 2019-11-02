@@ -1,3 +1,12 @@
+local path, cpath = lovr.filesystem.getRequirePath()
+cpath = cpath .. 
+	";?.so;?.dll;" ..
+	lovr.filesystem.getSource() .. "/../build/deps/allonet/?.dylib;" ..
+	lovr.filesystem.getSource() .. "/../../build/deps/allonet/?.dylib"
+
+lovr.filesystem.setRequirePath(path, cpath)
+package.cpath = cpath
+
 namespace = require "engine.namespace"
 
 -- Load namespace basics
