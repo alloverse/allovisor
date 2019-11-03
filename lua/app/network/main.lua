@@ -13,6 +13,9 @@ if success == false then
     -- if ran from android, liblovr.so contains allonet.a
     pkg = package.loadlib("liblovr.so", "luaopen_liballonet")
   end
+  if pkg == nil then
+    error("Allonet missing from so, lovr and liblovr. Giving up.")
+  end
   allonet = pkg()
 end
 
