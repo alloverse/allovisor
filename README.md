@@ -12,7 +12,7 @@ with, and easier to extend with low level functionality.
 
 1. Install CMake 3.13.0 or newer
 2. Install Lövr 0.13 or later (or follow the distribution instructions to use the embedded version)
-3. `mkdir build && cd build && cmake ..` to prepare to build liballonet
+3. `mkdir build && cd build && cmake ..` to prepare to build
 4. In build, `make allonet` to build liballonet. `cpath` will be set up to find it from the lua folder.
 5. Start Lövr with the `lua` folder as the Lövr app, and optionally add `deps/lodr` before it
    too for auto-reload.
@@ -92,3 +92,4 @@ TBD
 
 1. `mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=~/Library/Android/sdk/ndk-bundle/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a ..`
 2. `make alloverse-dist`
+3. You now have an `alloverse-debug.apk` and `alloverse-release.apk` in your build folder
