@@ -13,18 +13,23 @@ with, and easier to extend with low level functionality.
 1. Install CMake 3.13.0 or newer
 2. Install Lövr 0.13 or later (or follow the distribution instructions to use the embedded version)
 3. `mkdir build && cd build && cmake ..` to prepare to build
-4. In build, `make allonet` to build liballonet. `cpath` will be set up to find it from the lua folder.
-5. Start Lövr with the `lua` folder as the Lövr app, and optionally add `deps/lodr` before it
-   too for auto-reload.
+4. In build, `make alloverse-dist` to build `Alloverse.app`.
+5. You could now just double-click Alloverse.app, but then you'd need to recompile
+   for each change. Instead, you can start it from the command line together with
+   lodr to auto-reload whenever you change any lua source file. From `build`:
 
-fish: `/Applications/LÖVR.app/Contents/MacOS/lovr (pwd)/deps/lodr (pwd)/lua`
-bash: `/Applications/LÖVR.app/Contents/MacOS/lovr $(pwd)/deps/lodr $(pwd)/lua`
+`./Alloverse.app/Contents/MacOS/lovr ../deps/lodr ../lua`
+
+You could also `make allonet` and use the regular Lovr visor like below. cpath is set up to find
+`liballonet.so` in `build` next to `lua`. Run it from the project root like so:
+
+`/Applications/LÖVR.app/Contents/MacOS/lovr deps/lodr lua`
 
 ### Windows
 
 TBD
 
-### Oculus Quest, with hard-linked allonet
+### Oculus Quest, with hard-linked allonet, from a Mac
 
 1. Install Android Studio if you haven't already.
 2. [Enable developer mode on your Quest](https://developer.oculus.com/documentation/quest/latest/concepts/mobile-device-setup-quest/).
@@ -42,36 +47,18 @@ Note that this command deletes apks on disk (because the cmake integration is if
 to rebuild unless the apk is missing), and deletes from device (because I haven't worked out keychain yet
 so each build gets a new signature).
 
-If you are iterating on the lua code parts, you can override the uploaded lua files and use lodr instead
-(I think) from the project root:
+If you are iterating on the lua code parts, it would be nice to upload just the lua files and
+lodr could override the bundled sources to give the changes to you immediately, without even
+having to restart the app on your Quest. If that had worked, you'd sync your source files like so:
 
 `adb push --sync lua /sdcard/Android/data/com.alloverse.visor/files/.lodr`
 
-### Oculus Quest, if .so loading had worked
-
-Note: This method doesn't work. android lovr can't require() .so files.
-
-To acquire `liballonet.so` for Android, either
-[download it from Azure Pipelines](https://github.com/alloverse/allonet#download-allonet), or build
-it as per [the instructions in the allonet readme](https://github.com/alloverse/allonet#developing-for-android).
-Then copy it into the root of the `lua` folder.
-
-Then, you can [sideload the Lövr test app](https://lovr.org/docs/Getting_Started_(Android))
-and run Alloverse visor inside it:
-
-1. Install Android Studio if you haven't already.
-2. [Enable developer mode on your Quest](https://developer.oculus.com/documentation/quest/latest/concepts/mobile-device-setup-quest/).
-3. Connect it to your computer, and ensure it shows up when you run `adb devices` in your terminal.
-4. Download `test-debug.apk` from [the lovr-oculus-mobile repo](https://github.com/mcclure/lovr-oculus-mobile/releases)
-5. Install it: `adb install ~/Downloads/test-debug.apk`
-6. `cd` to the root of this project (to the folder of this readme)
-7. Sync the Alloverse visor app onto your quest to be used by test-debug.apk:
-   `adb push --sync lua /sdcard/Android/data/org.lovr.test/files/.lodr`
-
-Whenever you make changes to any part of the app, you can re-run step 7 to sync the changes
-over, and they'll reload immediately.
+... but that's waiting [for a card on clubhouse](https://app.clubhouse.io/alloverse/story/168/get-lodr-to-work-on-android-for-custom-alloverse-debug-apk)
+to finish before it's possible.
 
 ## Building Allovisor for distribution
+
+_Note that builds are available on Azure Pipelines CI and you shouldn't need to make distribution builds from your machine. But if you do..._
 
 This will compile Lovr, Allonet and build a nice little package to be distributed
 for Mac, Windows or Android.
@@ -88,7 +75,7 @@ for Mac, Windows or Android.
 
 TBD
 
-## Quest/Android
+## Quest/Android (from a Mac)
 
 1. `mkdir build && cd build && cmake -DCMAKE_TOOLCHAIN_FILE=~/Library/Android/sdk/ndk-bundle/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a ..`
 2. `make alloverse-dist`
