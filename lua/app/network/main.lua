@@ -7,9 +7,10 @@ local NetworkScene = classNamed("NetworkScene", Ent)
 --  If ran from lovr.app/lodr/testapp, liballonet.so is in project root
 local success, allonet = pcall(require, "liballonet")
 if success == false then
-  -- If ran from mac, allonet.a is linked into lovr exe
+  print("No liballonet, trying in lovr binary as if we're on a Mac...")
   local pkg = package.loadlib("lovr", "luaopen_liballonet")
   if pkg == nil then
+    print("No liballonet, trying in liblovr.so as if we're on Android...")
     -- if ran from android, liblovr.so contains allonet.a
     pkg = package.loadlib("liblovr.so", "luaopen_liballonet")
   end
