@@ -52,7 +52,7 @@ function NetworkScene:onDraw()
 
     if trans ~= nil and geom ~= nil then
       if geom.type == "hardcoded-model" then
-        lovr.graphics.setColor(0, 0, 0)
+        lovr.graphics.setColor(0.3, 0.0, 0.7)
         lovr.graphics.cube('fill', 
           trans.position.x, trans.position.y, trans.position.z, 
           1, 
