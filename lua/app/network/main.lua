@@ -30,18 +30,62 @@ function NetworkScene:_init(displayName, url)
     }})
   )
   self.yaw = 0.0
+
+  
   self:super()
 end
 
 function NetworkScene:onLoad()
   --world = lovr.physics.newWorld()
-  self.skybox = lovr.graphics.newTexture('assets/cloudy-skybox.jpg')  
+  self.helmet = lovr.graphics.newModel('assets/models/DamagedHelmet.glb')
+
+  self.shader = lovr.graphics.newShader('standard', {
+    flags = {
+      normalTexture = false,
+      indirectLighting = true,
+      occlusion = true,
+      emissive = true,
+      skipTonemap = false
+    }
+  })
+
+  self.skybox = lovr.graphics.newTexture({
+    left = 'assets/env/nx.png',
+    right = 'assets/env/px.png',
+    top = 'assets/env/py.png',
+    bottom = 'assets/env/ny.png',
+    back = 'assets/env/pz.png',
+    front = 'assets/env/nz.png'
+  }, { linear = true })
+
+  self.environmentMap = lovr.graphics.newTexture(256, 256, { type = 'cube' })
+  for mipmap = 1, self.environmentMap:getMipmapCount() do
+    for face, dir in ipairs({ 'px', 'nx', 'py', 'ny', 'pz', 'nz' }) do
+      local filename = ('assets/env/m%d_%s.png'):format(mipmap - 1, dir)
+      local image = lovr.data.newTextureData(filename, false)
+      self.environmentMap:replacePixels(image, 0, 0, face, mipmap)
+    end
+  end
+
+
+  self.shader:send('lovrLightDirection', { -1, -1, -1 })
+  self.shader:send('lovrLightColor', { .9, .9, .8, 1.0 })
+  self.shader:send('lovrExposure', 2)
+  --self.shader:send('lovrSphericalHarmonics', require('assets/env/sphericalHarmonics'))
+  self.shader:send('lovrEnvironmentMap', self.environmentMap)
 end
 
 
 function NetworkScene:onDraw()  
-  lovr.graphics.setColor({1,1,1})
   lovr.graphics.skybox(self.skybox)
+  
+  lovr.graphics.setBackgroundColor(.3, .3, .40)
+  lovr.graphics.setCullingEnabled(true)
+  lovr.graphics.setBlendMode()
+  lovr.graphics.setColor({1,1,1})
+  lovr.graphics.setShader(self.shader)
+
+  
   -- iterera igenom client.get_state().entities
   -- rita ut varje entity som en kub
 
@@ -52,8 +96,7 @@ function NetworkScene:onDraw()
 
     if trans ~= nil and geom ~= nil then
       if geom.type == "hardcoded-model" then
-        lovr.graphics.setColor(0.3, 0.0, 0.7)
-        lovr.graphics.cube('fill', 
+        self.helmet:draw(
           trans.position.x, trans.position.y, trans.position.z, 
           1, 
           euler2axisangle(trans.rotation.x, trans.rotation.y, trans.rotation.z)
