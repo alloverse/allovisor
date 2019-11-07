@@ -1,7 +1,6 @@
 namespace("menu", "alloverse")
 
 local Menu = classNamed("Menu", Ent)
-local NetworkScene = require("app.network.network")
 
 x, y, z = 0, 2.5, -1.5
 MENU_ITEM_HEIGHT = .2
@@ -125,17 +124,11 @@ function Menu:onDraw()
       end
     end
 
-
-
-
-
     drawMenu()
-
 
     lovr.graphics.setColor(rayColor)
     lovr.graphics.line(handPos, distantPoint)
     collidedMenuItemIndex = nil
-
   end
 end
 
@@ -156,10 +149,12 @@ end
 
 function Menu:openPlace(url)
   local displayName = "Mario"
-  local scene = NetworkScene(displayName, url)
+  local scene = lovr.scenes.network(displayName, url)
   scene:insert()
   queueDoom(self)
 
 end
+
+lovr.scenes.menu = Menu
 
 return Menu

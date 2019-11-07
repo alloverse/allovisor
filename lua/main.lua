@@ -7,6 +7,8 @@ cpath = cpath ..
 lovr.filesystem.setRequirePath(path, cpath)
 package.cpath = cpath
 
+lovr.scenes = {}
+
 namespace = require "engine.namespace"
 
 -- Load namespace basics
@@ -31,7 +33,8 @@ do
 end
 
 namespace.prepare("alloverse", "standard", function(space)
-	
+	require("app.menu.menu")
+	require("app.network.network")
 end)
 
 -- Ent driver

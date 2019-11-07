@@ -29,8 +29,8 @@ function NetworkScene:_init(displayName, url)
       type = "hardcoded-model"
     }})
   )
+  self.client:set_disconnected_callback(self.onDisconnect)
   self.yaw = 0.0
-
   
   self:super()
 end
@@ -73,6 +73,16 @@ function NetworkScene:onLoad()
   self.shader:send('lovrExposure', 2)
   --self.shader:send('lovrSphericalHarmonics', require('assets/env/sphericalHarmonics'))
   self.shader:send('lovrEnvironmentMap', self.environmentMap)
+end
+
+function NetworkScene:onDisconnect()
+  print("disconnecting...")
+
+  self.client:disconnect(0)
+
+  scene:insert(lovr.scenes.menu)
+
+  queueDoom(self)
 end
 
 
@@ -207,5 +217,7 @@ function NetworkScene:onUpdate(dt)
   self.client:set_intent(intent)
   self.client:poll()
 end
+
+lovr.scenes.network = NetworkScene
 
 return NetworkScene
