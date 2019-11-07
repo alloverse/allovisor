@@ -9,8 +9,25 @@ add_subdirectory (deps/lovr)
 
 add_subdirectory (deps/allonet)
 
-if(WIN32) # windows unsupported atm
+if(WIN32)
+    add_custom_command(
+        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Alloverse-win64.zip
+        #COMMAND ${CMAKE_COMMAND} -E make_directory  ${CMAKE_CURRENT_BINARY_DIR}/Alloverse
+		#COMMAND ${CMAKE_COMMAND} -E copy_directory  ${CMAKE_CURRENT_BINARY_DIR}/deps/lovr/$<CONFIGURATION> ${CMAKE_CURRENT_BINARY_DIR}/Alloverse/
+		COMMAND ${CMAKE_COMMAND} -E tar c ${CMAKE_CURRENT_BINARY_DIR}/lua.zip --format=zip ${CMAKE_CURRENT_SOURCE_DIR}/lua
+		#COMMAND copy /b ${CMAKE_CURRENT_BINARY_DIR}/deps/lovr/lovr.exe+${CMAKE_CURRENT_BINARY_DIR}/lua.zip ${CMAKE_CURRENT_BINARY_DIR}/Alloverse/Alloverse.exe
 
+        #COMMAND cp -r ${CMAKE_CURRENT_SOURCE_DIR}/lua Alloverse.app/Contents/Resources/.lovr
+        #COMMAND cp -r ${CMAKE_CURRENT_BINARY_DIR}/deps/allonet/liballonet.dylib Alloverse.app/Contents/Resources/.lovr/liballonet.so
+        #COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/src/mac/Info.plist Alloverse.app/Contents/Info.plist
+        #COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/src/mac/alloverse.icns Alloverse.app/Contents/Resources/alloverse.icns
+        #COMMAND zip ${CMAKE_CURRENT_BINARY_DIR}/Alloverse.zip -r Alloverse.app
+        DEPENDS lovr allonet
+    )
+    add_custom_target(
+        alloverse-dist ALL
+        DEPENDS Alloverse-win64.zip
+    )
 elseif(APPLE)
     # Force-load allonet into lovr exe
     target_link_libraries(lovr "-Wl,-all_load" allonet )
@@ -22,7 +39,7 @@ elseif(APPLE)
         #COMMAND cp -r ${CMAKE_CURRENT_BINARY_DIR}/deps/allonet/liballonet.dylib Alloverse.app/Contents/Resources/.lovr/liballonet.so
         COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/src/mac/Info.plist Alloverse.app/Contents/Info.plist
         COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/src/mac/alloverse.icns Alloverse.app/Contents/Resources/alloverse.icns
-        COMMAND zip ${CMAKE_CURRENT_BINARY_DIR}/Alloverse.zip -r Alloverse.app
+        COMMAND zip ${CMAKE_CURRENT_BINARY_DIR}/Alloverse-mac.zip -r Alloverse.app
         DEPENDS lovr allonet
     )
     add_custom_target(
