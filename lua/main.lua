@@ -40,7 +40,7 @@ namespace "standard"
 
 function lovr.load()
 	ent.root = LoaderEnt({
-		"app/menu/main",
+		"app/menu/menu",
 		"app/debug/fps"
 	})
 	ent.root:route("onBoot") -- This will only be sent once
