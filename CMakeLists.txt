@@ -4,12 +4,16 @@ cmake_policy(SET CMP0079 NEW)
 
 SET(LOVR_BUILD_BUNDLE ON CACHE BOOL "Always build lovr bundle on mac")
 SET(LOVR_ENABLE_ENET OFF CACHE BOOL "Disable Lovr enet since allonet embeds its own")
-set(ALLONET_BUILD_STATIC ON CACHE BOOL "Always build allonet static")
+set(ALLONET_USE_LUA ON CACHE BOOL "Request Lua bridge")
+
 add_subdirectory (deps/lovr)
 
 add_subdirectory (deps/allonet)
 
 if(WIN32)
+	set(ALLONET_BUILD_STATIC OFF CACHE BOOL "bundle a DLL")
+    target_link_libraries(lovr allonet)
+
     add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Alloverse-win64.zip
         #COMMAND ${CMAKE_COMMAND} -E make_directory  ${CMAKE_CURRENT_BINARY_DIR}/Alloverse
@@ -29,6 +33,7 @@ if(WIN32)
         DEPENDS Alloverse-win64.zip
     )
 elseif(APPLE)
+	set(ALLONET_BUILD_STATIC ON CACHE BOOL "Always build allonet static")
     # Force-load allonet into lovr exe
     target_link_libraries(lovr "-Wl,-all_load" allonet )
 
@@ -47,6 +52,7 @@ elseif(APPLE)
         DEPENDS Alloverse.app
     )
 elseif(ANDROID)
+	set(ALLONET_BUILD_STATIC ON CACHE BOOL "Always build allonet static")
     # Force-load allonet into lovr exe
     target_link_libraries(lovr "-Wl,--whole-archive" allonet "-Wl,--no-whole-archive")
 

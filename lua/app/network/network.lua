@@ -10,12 +10,16 @@ if success == false then
   print("No liballonet, trying in lovr binary as if we're on a Mac...")
   local pkg = package.loadlib("lovr", "luaopen_liballonet")
   if pkg == nil then
-    print("No liballonet, trying in liblovr.so as if we're on Android...")
-    -- if ran from android, liblovr.so contains allonet.a
+    print("No allonet in lovr, trying in liblovr.so as if we're on Android...")
     pkg = package.loadlib("liblovr.so", "luaopen_liballonet")
+
+	if pkg == nil then
+	  print("No liblovr.so, trying in allonet.dll as if we're on Windows...")
+	  pkg = package.loadlib("allonet.dll", "luaopen_liballonet")
+	end
   end
   if pkg == nil then
-    error("Allonet missing from so, lovr and liblovr. Giving up.")
+    error("Allonet missing. Giving up.")
   end
   allonet = pkg()
 end
