@@ -1,3 +1,5 @@
 build
 android-build
 lua/liballonet.so
+.vs
+out
