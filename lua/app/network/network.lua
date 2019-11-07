@@ -109,6 +109,34 @@ function NetworkScene:onDraw()
 
 end
 
+function axisangle2euler(angle, x, y, z)
+  local s = math.sin(angle)
+  local c = math.cos(angle)
+  local t = 1-c
+  local roll, yaw, pitch
+
+  if ((x*y*t + z*s) > 0.998) then -- north pole singularity detected lul
+    roll = 2*math.atan2(x*math.sin(angle/2), math.cos(angle/2))
+		yaw = math.PI/2
+		pitch = 0
+		return
+  end
+
+  if ((x*y*t + z*s) < -0.998) then -- south pole singularity detected
+    roll = -2*math.atan2(x*math.sin(angle/2), math.cos(angle/2))
+    yaw = -math.PI/2
+    pitch = 0
+    return
+  end
+
+  roll = math.atan2(y*s-x*z*t, 1-(y*y+z*z)*t)
+	yaw = math.asin(x*y*t+z*s)
+	pitch = math.atan2(x*s-y*z*t, 1-(x*x+z*z)*t)
+
+  return yaw, pitch, roll
+end
+
+
 -- https://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToAngle/
 function euler2axisangle(pitch, yaw, roll)
 	local c1 = math.cos(yaw/2)
@@ -144,13 +172,38 @@ end
 function NetworkScene:onUpdate(dt)
   local mx, my = lovr.headset.getAxis("hand/left", "thumbstick")
   local tx, ty = lovr.headset.getAxis("hand/right", "thumbstick")
+  
+  local headposition = {lovr.headset.getPosition("head")}
+  local headrotation = {axisangle2euler(lovr.headset.getOrientation("head"))}
+
+  local lefthandposition = {lovr.headset.getPosition("hand/left")}
+  local lefthandrotation = {axisangle2euler(lovr.headset.getOrientation("hand/left"))}
+
+  local righthandposition = {lovr.headset.getPosition("hand/right")}
+  local righthandrotation = {axisangle2euler(lovr.headset.getOrientation("hand/right"))}
+
   self.yaw = self.yaw - (tx/30.0)
   local intent = {
     xmovement = mx,
     zmovement = -my,
     yaw = self.yaw,
-    pitch = 0.0
+    pitch = 0.0,
+    poses = {
+      ["head"] = {
+        headposition,
+        headrotation
+      },
+      ["hand/left"] = {
+        lefthandposition,
+        lefthandrotation
+      },
+      ["hand/right"] = {
+        righthandposition,
+        righthandrotation
+      }
+    }
   }
+
   self.client:set_intent(intent)
   self.client:poll()
 end

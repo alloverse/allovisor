@@ -1,7 +1,7 @@
 namespace("menu", "alloverse")
 
 local Menu = classNamed("Menu", Ent)
-local NetworkScene = require("app.network.main")
+local NetworkScene = require("app.network.network")
 
 x, y, z = 0, 2.5, -1.5
 MENU_ITEM_HEIGHT = .2

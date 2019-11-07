@@ -11,16 +11,17 @@ with, and easier to extend with low level functionality.
 ### Mac
 
 1. Install CMake 3.13.0 or newer
-2. Install Lövr 0.13 or later (or follow the distribution instructions to use the embedded version)
-3. `mkdir build && cd build && cmake ..` to prepare to build
-4. In build, `make alloverse-dist` to build `Alloverse.app`.
-5. You could now just double-click Alloverse.app, but then you'd need to recompile
+2. `mkdir build && cd build && cmake ..` to prepare to build
+3. In build, `make alloverse-dist` to build `Alloverse.app`.
+4. You could now just double-click Alloverse.app, but then you'd need to recompile
    for each change. Instead, you can start it from the command line together with
    lodr to auto-reload whenever you change any lua source file. From `build`:
 
 `./Alloverse.app/Contents/MacOS/lovr ../deps/lodr ../lua`
 
-You could also `make allonet` and use the regular Lovr visor like below. cpath is set up to find
+You could also `make allonet` and use the regular Lovr visor like below. (It's not
+recommended, as you wouldn't get any Alloverse-specific Lovr app patches, and things
+might not work as expected.) cpath is set up to find
 `liballonet.so` in `build` next to `lua`. Run it from the project root like so:
 
 `/Applications/LÖVR.app/Contents/MacOS/lovr deps/lodr lua`
@@ -68,8 +69,8 @@ for Mac, Windows or Android.
 
 ### Mac
 
-* `make alloverse-dist`
-* You now have an `Alloverse.app` in the build folder.
+- `make alloverse-dist`
+- You now have an `Alloverse.app` in the build folder.
 
 ### Windows
 

@@ -4,7 +4,7 @@ cmake_policy(SET CMP0079 NEW)
 
 SET(LOVR_BUILD_BUNDLE ON CACHE BOOL "Always build lovr bundle on mac")
 SET(LOVR_ENABLE_ENET OFF CACHE BOOL "Disable Lovr enet since allonet embeds its own")
-set(ALLONET_BUILD_STATIC ON)
+set(ALLONET_BUILD_STATIC ON CACHE BOOL "Always build allonet static")
 add_subdirectory (deps/lovr)
 
 add_subdirectory (deps/allonet)
