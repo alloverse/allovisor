@@ -5,13 +5,15 @@ cmake_policy(SET CMP0079 NEW)
 SET(LOVR_BUILD_BUNDLE ON CACHE BOOL "Always build lovr bundle on mac")
 SET(LOVR_ENABLE_ENET OFF CACHE BOOL "Disable Lovr enet since allonet embeds its own")
 set(ALLONET_USE_LUA ON CACHE BOOL "Request Lua bridge")
+if(WIN32)
+	set(ALLONET_BUILD_STATIC OFF CACHE BOOL "bundle a DLL")
+	set(LOVR_USE_LUAJIT  OFF CACHE BOOL "Use regular lua to match liballonet's lua.dll dependency")
+endif()
 
 add_subdirectory (deps/lovr)
-
 add_subdirectory (deps/allonet)
 
 if(WIN32)
-	set(ALLONET_BUILD_STATIC OFF CACHE BOOL "bundle a DLL")
     target_link_libraries(lovr allonet)
 
     add_custom_command(
