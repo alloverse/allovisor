@@ -14,19 +14,16 @@ add_subdirectory (deps/allonet)
 
 if(WIN32)
     target_link_libraries(lovr allonet)
-
+	
+	file(GLOB ZIP_FILES "${CMAKE_CURRENT_SOURCE_DIR}/lua/*")
     add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Alloverse-win64.zip
-        #COMMAND ${CMAKE_COMMAND} -E make_directory  ${CMAKE_CURRENT_BINARY_DIR}/Alloverse
-		#COMMAND ${CMAKE_COMMAND} -E copy_directory  ${CMAKE_CURRENT_BINARY_DIR}/deps/lovr/$<CONFIGURATION> ${CMAKE_CURRENT_BINARY_DIR}/Alloverse/
-		COMMAND ${CMAKE_COMMAND} -E tar c ${CMAKE_CURRENT_BINARY_DIR}/lua.zip --format=zip ${CMAKE_CURRENT_SOURCE_DIR}/lua
-		#COMMAND copy /b ${CMAKE_CURRENT_BINARY_DIR}/deps/lovr/lovr.exe+${CMAKE_CURRENT_BINARY_DIR}/lua.zip ${CMAKE_CURRENT_BINARY_DIR}/Alloverse/Alloverse.exe
-
-        #COMMAND cp -r ${CMAKE_CURRENT_SOURCE_DIR}/lua Alloverse.app/Contents/Resources/.lovr
-        #COMMAND cp -r ${CMAKE_CURRENT_BINARY_DIR}/deps/allonet/liballonet.dylib Alloverse.app/Contents/Resources/.lovr/liballonet.so
-        #COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/src/mac/Info.plist Alloverse.app/Contents/Info.plist
-        #COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/src/mac/alloverse.icns Alloverse.app/Contents/Resources/alloverse.icns
-        #COMMAND zip ${CMAKE_CURRENT_BINARY_DIR}/Alloverse.zip -r Alloverse.app
+        COMMAND ${CMAKE_COMMAND} -E make_directory  ${CMAKE_CURRENT_BINARY_DIR}/Alloverse
+		COMMAND copy deps\\lovr\\*.dll Alloverse
+		COMMAND copy deps\\allonet\\allonet.dll Alloverse\\liballonet.dll
+		COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_CURRENT_SOURCE_DIR}/lua ${CMAKE_COMMAND} -E tar c ${CMAKE_CURRENT_BINARY_DIR}/lua.zip --format=zip -- ${ZIP_FILES}
+		COMMAND copy /b deps\\lovr\\lovr.exe+lua.zip Alloverse\\Alloverse.exe
+		COMMAND ${CMAKE_COMMAND} -E tar c ${CMAKE_CURRENT_BINARY_DIR}/Alloverse-win64.zip --format=zip Alloverse
         DEPENDS lovr allonet
     )
     add_custom_target(
