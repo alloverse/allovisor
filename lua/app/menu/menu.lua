@@ -124,12 +124,13 @@ function Menu:onDraw()
       end
     end
 
-    drawMenu()
-
     lovr.graphics.setColor(rayColor)
     lovr.graphics.line(handPos, distantPoint)
-    collidedMenuItemIndex = nil
   end
+
+  
+  drawMenu()
+  collidedMenuItemIndex = nil
 end
 
 
