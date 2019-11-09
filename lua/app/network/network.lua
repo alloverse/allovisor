@@ -5,6 +5,7 @@ local json = require "json"
 local NetworkScene = classNamed("NetworkScene", Ent)
 
 --  If ran from lovr.app/lodr/testapp, liballonet.so is in project root
+
 local success, allonet = pcall(require, "liballonet")
 if success == false then
   print("No liballonet, trying in lovr binary as if we're on a Mac...")
@@ -22,6 +23,7 @@ if success == false then
     error("Allonet missing. Giving up.")
   end
   allonet = pkg()
+  print("allonet loaded")
 end
 
 
@@ -204,20 +206,19 @@ function NetworkScene:onUpdate(dt)
     pitch = 0.0,
     poses = {
       ["head"] = {
-        headposition,
-        headrotation
+        position = headposition,
+        rotation = headrotation
       },
       ["hand/left"] = {
-        lefthandposition,
-        lefthandrotation
+        position = lefthandposition,
+        rotation = lefthandrotation
       },
       ["hand/right"] = {
-        righthandposition,
-        righthandrotation
+        position = righthandposition,
+        rotation = righthandrotation
       }
     }
   }
-
   self.client:set_intent(intent)
   self.client:poll()
 end
