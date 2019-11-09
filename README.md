@@ -28,7 +28,23 @@ might not work as expected.) cpath is set up to find
 
 ### Windows
 
-TBD
+1. Install Visual Studio 2019, including "C++ CMake tools for Windows" which comes with "Desktop development with C++".
+2. Open the project folder in VS2019
+3. In the Solution Explorer, right-click CMakeLists.txt and select "Generate CMake cache for allovisor"
+4. Switch to the [targets view](https://docs.microsoft.com/en-us/cpp/build/cmake-projects-in-visual-studio?view=vs-2019#ide-integration)
+5. Build the target `alloverse-dist`.
+
+To iterate on the lua stuff, from `out/build/x64-debug/Alloverse`, you can run:
+
+`Alloverse.exe ..\..\..\..\deps\lodr ..\..\..\..\lua`
+
+If you want to run from the VS2019 debugger to debug C stuff:
+
+1. choose lovr.exe as the startup item
+2. copy `allonet.dll` from `out/build/x64-Debug/deps/allonet` to `out/build/x64-Debug/deps/lovr/liballonet.dll`
+3. Run in Visual Studio. Copy liballonet again if you make changes.
+
+Not great but _shrug_.
 
 ### Oculus Quest, with hard-linked allonet, from a Mac
 
@@ -74,7 +90,13 @@ for Mac, Windows or Android.
 
 ### Windows
 
-TBD
+1. Install Visual Studio 2019, including "C++ CMake tools for Windows" which comes with "Desktop development with C++".
+2. Open the project folder in VS2019
+3. In the Solution Explorer, right-click CMakeLists.txt and select "Generate CMake cache for allovisor"
+4. Switch to the [targets view](https://docs.microsoft.com/en-us/cpp/build/cmake-projects-in-visual-studio?view=vs-2019#ide-integration)
+5. Build the target `alloverse-dist`.
+
+Tada. You now have an `Alloverse` folder and zip file in `out/build/x64-Debug`.
 
 ## Quest/Android (from a Mac)
 
