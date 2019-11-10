@@ -32,7 +32,8 @@ function NetworkScene:_init(displayName, url)
     url,
     json.encode({display_name = displayName}),
     json.encode({geometry = {
-      type = "hardcoded-model"
+      type = "hardcoded-model",
+      name = "lefthand"
     }})
   )
   self.client:set_disconnected_callback(self.onDisconnect)
@@ -44,6 +45,8 @@ end
 function NetworkScene:onLoad()
   --world = lovr.physics.newWorld()
   self.helmet = lovr.graphics.newModel('assets/models/DamagedHelmet.glb')
+  self.lefthand = lovr.graphics.newModel('assets/models/mask.glb')
+  self.righthand = lovr.graphics.newModel('assets/models/DamagedHelmet.glb')
 
   self.shader = lovr.graphics.newShader('standard', {
     flags = {
@@ -111,14 +114,35 @@ function NetworkScene:onDraw()
     local geom = entity.components.geometry
 
     if trans ~= nil and geom ~= nil then
+
       if geom.type == "hardcoded-model" then
-        self.helmet:draw(
-          trans.position.x, trans.position.y, trans.position.z, 
-          1, 
-          euler2axisangle(trans.rotation.x, trans.rotation.y, trans.rotation.z)
-      )
-      elseif geom.type == "inline" then
+
+        if geom.name == "head" then   
+            self.helmet:draw(
+              trans.position.x, trans.position.y, trans.position.z, 
+              1, 
+              euler2axisangle(trans.rotation.x, trans.rotation.y, trans.rotation.z)
+          )
+        end
+
+        if geom.name == "lefthand" then
+          self.lefthand:draw(
+            trans.position.x, trans.position.y, trans.position.z, 
+            1, 
+            euler2axisangle(trans.rotation.x, trans.rotation.y, trans.rotation.z)
+          )
+        end
         
+        if geom.name == "righthand" then
+          self.righthand:draw(
+            trans.position.x, trans.position.y, trans.position.z, 
+            1, 
+            euler2axisangle(trans.rotation.x, trans.rotation.y, trans.rotation.z)
+          )
+        end
+    
+      elseif geom.type == "inline" then
+          
       end
     end
   end
