@@ -31,10 +31,37 @@ function NetworkScene:_init(displayName, url)
   self.client = allonet.connect(
     url,
     json.encode({display_name = displayName}),
-    json.encode({geometry = {
-      type = "hardcoded-model",
-      name = "lefthand"
-    }})
+    json.encode({
+      children = {
+        {
+          geometry = {
+            type = "hardcoded-model",
+            name = "lefthand"
+          },
+          intent = {
+            actuate_pose = "hand/left"
+          }
+        },
+        {
+          geometry = {
+            type = "hardcoded-model",
+            name = "righthand"
+          },
+          intent = {
+            actuate_pose = "hand/right"
+          }
+        },
+        {
+          geometry = {
+            type = "hardcoded-model",
+            name = "head"
+          },
+          intent = {
+            actuate_pose = "head"
+          }
+        }
+      }
+    })
   )
   self.client:set_disconnected_callback(self.onDisconnect)
   self.yaw = 0.0
