@@ -147,7 +147,7 @@ function NetworkScene:onDraw()
         if geom.name == "head" then   
             self.helmet:draw(
               trans.position.x, trans.position.y, trans.position.z, 
-              1, 
+              0.35, 
               euler2axisangle(trans.rotation.x, trans.rotation.y, trans.rotation.z)
           )
         end
@@ -155,7 +155,7 @@ function NetworkScene:onDraw()
         if geom.name == "lefthand" then
           self.lefthand:draw(
             trans.position.x, trans.position.y, trans.position.z, 
-            1, 
+            0.15, 
             euler2axisangle(trans.rotation.x, trans.rotation.y, trans.rotation.z)
           )
         end
@@ -163,7 +163,7 @@ function NetworkScene:onDraw()
         if geom.name == "righthand" then
           self.righthand:draw(
             trans.position.x, trans.position.y, trans.position.z, 
-            1, 
+            0.15, 
             euler2axisangle(trans.rotation.x, trans.rotation.y, trans.rotation.z)
           )
         end
