@@ -208,41 +208,27 @@ function euler2axisangle(pitch, yaw, roll)
   return angle, x, y, z
 end
 
+function pos2vec(x, y, z)
+  return {x = x, y = y, z = z}
+end
 
 function NetworkScene:onUpdate(dt)
   local mx, my = lovr.headset.getAxis("hand/left", "thumbstick")
   local tx, ty = lovr.headset.getAxis("hand/right", "thumbstick")
-  
-  local headposition = {lovr.headset.getPosition("head")}
-  local headrotation = {axisangle2euler(lovr.headset.getOrientation("head"))}
-
-  local lefthandposition = {lovr.headset.getPosition("hand/left")}
-  local lefthandrotation = {axisangle2euler(lovr.headset.getOrientation("hand/left"))}
-
-  local righthandposition = {lovr.headset.getPosition("hand/right")}
-  local righthandrotation = {axisangle2euler(lovr.headset.getOrientation("hand/right"))}
-
   self.yaw = self.yaw - (tx/30.0)
   local intent = {
     xmovement = mx,
     zmovement = -my,
     yaw = self.yaw,
     pitch = 0.0,
-    poses = {
-      ["head"] = {
-        position = headposition,
-        rotation = headrotation
-      },
-      ["hand/left"] = {
-        position = lefthandposition,
-        rotation = lefthandrotation
-      },
-      ["hand/right"] = {
-        position = righthandposition,
-        rotation = righthandrotation
-      }
-    }
+    poses = {}
   }
+  for i, device in ipairs({"head", "hand/left", "hand/right"}) do
+    intent.poses[device] = {
+      position = pos2vec(lovr.headset.getPosition(device)),
+      rotation = pos2vec(axisangle2euler(lovr.headset.getOrientation(device)))
+    }
+  end
   self.client:set_intent(intent)
   self.client:poll()
 end
