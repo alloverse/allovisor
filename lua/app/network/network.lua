@@ -71,9 +71,9 @@ end
 
 function NetworkScene:onLoad()
   --world = lovr.physics.newWorld()
-  self.helmet = lovr.graphics.newModel('assets/models/DamagedHelmet.glb')
-  self.lefthand = lovr.graphics.newModel('assets/models/mask.glb')
-  self.righthand = lovr.graphics.newModel('assets/models/DamagedHelmet.glb')
+  self.helmet = lovr.graphics.newModel('assets/models/mask.glb')
+  self.lefthand = lovr.graphics.newModel('assets/models/left-hand/LeftHand.gltf', 'assets/models/test-texture.png')
+  self.righthand = lovr.graphics.newModel('assets/models/right-hand/RightHand.gltf', 'assets/models/test-texture.png')
 
   self.shader = lovr.graphics.newShader('standard', {
     flags = {
@@ -113,14 +113,10 @@ end
 
 function NetworkScene:onDisconnect()
   print("disconnecting...")
-
   self.client:disconnect(0)
-
   scene:insert(lovr.scenes.menu)
-
   queueDoom(self)
 end
-
 
 function NetworkScene:onDraw()  
   lovr.graphics.skybox(self.skybox)
@@ -131,7 +127,7 @@ function NetworkScene:onDraw()
   lovr.graphics.setColor({1,1,1})
   lovr.graphics.setShader(self.shader)
 
-  
+
   -- iterera igenom client.get_state().entities
   -- rita ut varje entity som en kub
 
@@ -155,7 +151,7 @@ function NetworkScene:onDraw()
         if geom.name == "lefthand" then
           self.lefthand:draw(
             trans.position.x, trans.position.y, trans.position.z, 
-            0.15, 
+            1, 
             euler2axisangle(trans.rotation.x, trans.rotation.y, trans.rotation.z)
           )
         end
@@ -163,7 +159,7 @@ function NetworkScene:onDraw()
         if geom.name == "righthand" then
           self.righthand:draw(
             trans.position.x, trans.position.y, trans.position.z, 
-            0.15, 
+            1, 
             euler2axisangle(trans.rotation.x, trans.rotation.y, trans.rotation.z)
           )
         end
