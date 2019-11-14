@@ -7,6 +7,8 @@ SET(LOVR_ENABLE_ENET OFF CACHE BOOL "Disable Lovr enet since allonet embeds its 
 set(ALLONET_USE_LUA ON CACHE BOOL "Request Lua bridge")
 if(WIN32)
 	set(ALLONET_BUILD_STATIC OFF CACHE BOOL "bundle a DLL")
+elseif(APPLE OR ANDROID)
+    set(ALLONET_BUILD_STATIC ON CACHE BOOL "Always build allonet static")
 endif()
 
 add_subdirectory (deps/lovr)
@@ -31,7 +33,6 @@ if(WIN32)
         DEPENDS Alloverse-win64.zip
     )
 elseif(APPLE)
-	set(ALLONET_BUILD_STATIC ON CACHE BOOL "Always build allonet static")
     # Force-load allonet into lovr exe
     target_link_libraries(lovr "-Wl,-all_load" allonet )
 
@@ -50,7 +51,6 @@ elseif(APPLE)
         DEPENDS Alloverse.app
     )
 elseif(ANDROID)
-	set(ALLONET_BUILD_STATIC ON CACHE BOOL "Always build allonet static")
     # Force-load allonet into lovr exe
     target_link_libraries(lovr "-Wl,--whole-archive" allonet "-Wl,--no-whole-archive")
 
