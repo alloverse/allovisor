@@ -182,20 +182,15 @@ function axisangle2euler(angle, x, y, z)
     roll = 2*math.atan2(x*math.sin(angle/2), math.cos(angle/2))
 		yaw = math.PI/2
 		pitch = 0
-		return
-  end
-
-  if ((x*y*t + z*s) < -0.998) then -- south pole singularity detected
+  elseif ((x*y*t + z*s) < -0.998) then -- south pole singularity detected
     roll = -2*math.atan2(x*math.sin(angle/2), math.cos(angle/2))
     yaw = -math.PI/2
     pitch = 0
-    return
+  else
+    roll = math.atan2(y*s-x*z*t, 1-(y*y+z*z)*t)
+    yaw = math.asin(x*y*t+z*s)
+    pitch = math.atan2(x*s-y*z*t, 1-(x*x+z*z)*t)
   end
-
-  roll = math.atan2(y*s-x*z*t, 1-(y*y+z*z)*t)
-	yaw = math.asin(x*y*t+z*s)
-	pitch = math.atan2(x*s-y*z*t, 1-(x*x+z*z)*t)
-
   return yaw, pitch, roll
 end
 
@@ -252,6 +247,7 @@ function NetworkScene:onUpdate(dt)
       rotation = pos2vec(axisangle2euler(lovr.headset.getOrientation(device)))
     }
   end
+  print("Intent: " .. json.encode(intent))
   self.client:set_intent(intent)
   self.client:poll()
 end
