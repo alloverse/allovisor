@@ -227,6 +227,11 @@ function euler2axisangle(pitch, yaw, roll)
 end
 
 function pos2vec(x, y, z)
+
+  if (x==nil or y==nil or z==nil) then
+    error("x, y and/or z is nil");
+  end
+
   return {x = x, y = y, z = z}
 end
 
