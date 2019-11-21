@@ -180,11 +180,11 @@ function axisangle2euler(angle, x, y, z)
 
   if ((x*y*t + z*s) > 0.998) then -- north pole singularity detected lul
     roll = 2*math.atan2(x*math.sin(angle/2), math.cos(angle/2))
-		yaw = math.PI/2
+		yaw = math.pi/2
 		pitch = 0
   elseif ((x*y*t + z*s) < -0.998) then -- south pole singularity detected
     roll = -2*math.atan2(x*math.sin(angle/2), math.cos(angle/2))
-    yaw = -math.PI/2
+    yaw = -math.pi/2
     pitch = 0
   else
     roll = math.atan2(y*s-x*z*t, 1-(y*y+z*z)*t)
