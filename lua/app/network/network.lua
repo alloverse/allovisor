@@ -252,7 +252,7 @@ function NetworkScene:onUpdate(dt)
       rotation = pos2vec(axisangle2euler(lovr.headset.getOrientation(device)))
     }
   end
-  print("Intent: " .. json.encode(intent))
+  
   self.client:set_intent(intent)
   self.client:poll()
 end
