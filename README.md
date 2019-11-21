@@ -48,12 +48,13 @@ Not great but _shrug_.
 
 ### Oculus Quest, with hard-linked allonet, from a Mac
 
-1. Install Android Studio if you haven't already.
-2. [Enable developer mode on your Quest](https://developer.oculus.com/documentation/quest/latest/concepts/mobile-device-setup-quest/).
-3. Connect it to your computer, and ensure it shows up when you run `adb devices` in your terminal.
-4. Configure to build the alloverse.apk: `mkdir android-build; cd android-build; cmake -DCMAKE_TOOLCHAIN_FILE=~/Library/Android/sdk/ndk-bundle/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a ..`
-5. Actually build it: `make alloverse-dist`
-6. Upload to headset: `adb install alloverse-debug.apk`
+1. Install CMake version 3.15.4 exactly
+2. Install Android Studio if you haven't already.
+3. [Enable developer mode on your Quest](https://developer.oculus.com/documentation/quest/latest/concepts/mobile-device-setup-quest/).
+4. Connect it to your computer, and ensure it shows up when you run `adb devices` in your terminal.
+5. Configure to build the alloverse.apk: `mkdir android-build; cd android-build; cmake -DCMAKE_TOOLCHAIN_FILE=~/Library/Android/sdk/ndk-bundle/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a ..`
+6. Actually build it: `make alloverse-dist`
+7. Upload to headset: `adb install alloverse-debug.apk`
 
 If you are iterating on the native code parts, you can re-build and upload the api with this handy one-liner
 from the `build` directory:
