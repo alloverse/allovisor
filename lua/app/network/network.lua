@@ -139,72 +139,17 @@ function NetworkScene:onDraw()
     local geom = entity.components.geometry
 
     if trans ~= nil and geom ~= nil then
+      local mat = lovr.math.mat4(trans.matrix)
       if geom.type == "hardcoded-model" then
-		self.models[geom.name]:draw(
-            trans.position.x, trans.position.y, trans.position.z, 
-            geom.name == "head" and 0.35 or 1, 
-            euler2axisangle(trans.rotation.x, trans.rotation.y, trans.rotation.z)
-        )
+        if geom.name == "head" then
+            mat:scale(0.35, 0.35, 0.35)
+        end
+		self.models[geom.name]:draw(mat)
       elseif geom.type == "inline" then
           
       end
     end
   end
-
-end
-
-function axisangle2euler(angle, x, y, z)
-  local s = math.sin(angle)
-  local c = math.cos(angle)
-  local t = 1-c
-  local roll, yaw, pitch
-
-  if ((x*y*t + z*s) > 0.998) then -- north pole singularity detected lul
-    roll = 2*math.atan2(x*math.sin(angle/2), math.cos(angle/2))
-		yaw = math.pi/2
-		pitch = 0
-  elseif ((x*y*t + z*s) < -0.998) then -- south pole singularity detected
-    roll = -2*math.atan2(x*math.sin(angle/2), math.cos(angle/2))
-    yaw = -math.pi/2
-    pitch = 0
-  else
-    roll = math.atan2(y*s-x*z*t, 1-(y*y+z*z)*t)
-    yaw = math.asin(x*y*t+z*s)
-    pitch = math.atan2(x*s-y*z*t, 1-(x*x+z*z)*t)
-  end
-  return yaw, pitch, roll
-end
-
-
--- https://www.euclideanspace.com/maths/geometry/rotations/conversions/eulerToAngle/
-function euler2axisangle(pitch, yaw, roll)
-	local c1 = math.cos(yaw/2)
-	local s1 = math.sin(yaw/2)
-	local c2 = math.cos(pitch/2)
-	local s2 = math.sin(pitch/2)
-	local c3 = math.cos(roll/2)
-	local s3 = math.sin(roll/2)
-	local c1c2 = c1*c2
-	local s1s2 = s1*s2
-	w =c1c2*c3 - s1s2*s3
-	x =c1c2*s3 + s1s2*c3
-	y =s1*c2*c3 + c1*s2*s3
-	z =c1*s2*c3 - s1*c2*s3
-	local angle = 2 * math.acos(w)
-	local norm = x*x+y*y+z*z
-  if norm < 0.001 then 
-    -- when all euler angles are zero angle =0 so
-		-- we can set axis to anything to avoid divide by zero
-		x=1
-    y=0
-    z=0
-	else
-		norm = math.sqrt(norm)
-    x = x / norm;
-    y = y / norm;
-    z = z / norm;
-  end
-  return angle, x, y, z
 end
 
 function pos2vec(x, y, z)
@@ -214,6 +159,16 @@ function pos2vec(x, y, z)
   end
 
   return {x = x, y = y, z = z}
+end
+
+function pose2matrix(x, y, z, angle, ax, ay, az)
+  local mat = lovr.math.mat4()
+
+  mat:rotate(angle, ax, ay, az)
+
+  mat:translate(x, y, z)
+
+  return mat
 end
 
 function NetworkScene:onUpdate(dt)
@@ -229,8 +184,12 @@ function NetworkScene:onUpdate(dt)
   }
   for i, device in ipairs({"head", "hand/left", "hand/right"}) do
     intent.poses[device] = {
-      position = pos2vec(lovr.headset.getPosition(device)),
-      rotation = pos2vec(axisangle2euler(lovr.headset.getOrientation(device)))
+      matrix = pose2matrix(lovr.headset.getPose())
+
+      
+      --position = pos2vec(lovr.headset.getPosition(device)),
+      --rotation = pos2vec(axisangle2euler(lovr.headset.getOrientation(device)))
+      
     }
   end
   
