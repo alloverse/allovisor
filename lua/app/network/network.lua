@@ -139,12 +139,12 @@ function NetworkScene:onDraw()
     local geom = entity.components.geometry
 
     if trans ~= nil and geom ~= nil then
-      local mat = lovr.math.mat4(trans.matrix)
+      local mat = lovr.math.mat4(unpack(trans.matrix))
       if geom.type == "hardcoded-model" then
         if geom.name == "head" then
             mat:scale(0.35, 0.35, 0.35)
         end
-		self.models[geom.name]:draw(mat)
+        self.models[geom.name]:draw(mat)
       elseif geom.type == "inline" then
           
       end
@@ -185,11 +185,6 @@ function NetworkScene:onUpdate(dt)
   for i, device in ipairs({"head", "hand/left", "hand/right"}) do
     intent.poses[device] = {
       matrix = pose2matrix(lovr.headset.getPose())
-
-      
-      --position = pos2vec(lovr.headset.getPosition(device)),
-      --rotation = pos2vec(axisangle2euler(lovr.headset.getOrientation(device)))
-      
     }
   end
   
