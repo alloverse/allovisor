@@ -185,7 +185,7 @@ function NetworkScene:onUpdate(dt)
   }
   for i, device in ipairs({"head", "hand/left", "hand/right"}) do
     intent.poses[device] = {
-      matrix = pose2matrix(lovr.headset.getPose())
+      matrix = pose2matrix(lovr.headset.getPose(device))
     }
   end
   
