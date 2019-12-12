@@ -164,9 +164,10 @@ end
 function pose2matrix(x, y, z, angle, ax, ay, az)
   local mat = lovr.math.mat4()
 
+  
+  mat:translate(x, y, z)
   mat:rotate(angle, ax, ay, az)
 
-  mat:translate(x, y, z)
 
   return mat
 end
