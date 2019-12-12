@@ -2,8 +2,10 @@ local path, cpath = lovr.filesystem.getRequirePath()
 cpath = cpath .. 
 	";?.so;?.dll;" ..
 	lovr.filesystem.getSource() .. "/../build/deps/allonet/?.dylib;" ..
-	lovr.filesystem.getSource() .. "/../../build/deps/allonet/?.dylib;" ..
-	lovr.filesystem.getExecutablePath():gsub("lovr.exe", "?.dll")
+	lovr.filesystem.getSource() .. "/../../build/deps/allonet/?.dylib;"
+if lovr.filesystem.getExecutablePath() then
+	cpath = cpath .. lovr.filesystem.getExecutablePath():gsub("lovr.exe", "?.dll")
+end
 
 lovr.filesystem.setRequirePath(path, cpath)
 package.cpath = cpath
