@@ -63,10 +63,18 @@ function NetworkScene:_init(displayName, url)
       }
     })
   )
-  self.client:set_disconnected_callback(self.onDisconnect)
+  self.state = {
+    entities = {}
+  }
+  self.client:set_state_callback(function() self:onStateChanged() end)
+  self.client:set_disconnected_callback(function() self:onDisconnect() end)
   self.yaw = 0.0
   
   self:super()
+end
+
+function NetworkScene:onStateChanged()
+  self.state = self.client:get_state()
 end
 
 function NetworkScene:onLoad()
@@ -129,11 +137,7 @@ function NetworkScene:onDraw()
   lovr.graphics.setColor({1,1,1})
   lovr.graphics.setShader(self.shader)
 
-
-  -- iterera igenom client.get_state().entities
-  -- rita ut varje entity som en kub
-
-  for _, entity in ipairs(self.client:get_state().entities) do
+  for _, entity in ipairs(self.state.entities) do
 
     local trans = entity.components.transform
     local geom = entity.components.geometry
@@ -152,23 +156,10 @@ function NetworkScene:onDraw()
   end
 end
 
-function pos2vec(x, y, z)
-
-  if (x==nil or y==nil or z==nil) then
-    error("x, y and/or z is nil");
-  end
-
-  return {x = x, y = y, z = z}
-end
-
 function pose2matrix(x, y, z, angle, ax, ay, az)
   local mat = lovr.math.mat4()
-
-  
   mat:translate(x, y, z)
   mat:rotate(angle, ax, ay, az)
-
-
   return mat
 end
 
