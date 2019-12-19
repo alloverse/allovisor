@@ -151,8 +151,7 @@ function NetworkScene:onDraw()
   lovr.graphics.setColor({1,1,1})
   lovr.graphics.setShader(self.shader)
 
-  for _, entity in ipairs(self.state.entities) do
-
+  for eid, entity in pairs(self.state.entities) do
     local trans = entity.components.transform
     local geom = entity.components.geometry
 
