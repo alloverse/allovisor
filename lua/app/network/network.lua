@@ -1,11 +1,11 @@
 namespace("networkscene", "alloverse")
 
 local json = require "json"
+local Entity, componentClasses = unpack(require("app.network.entity"))
 
 local NetworkScene = classNamed("NetworkScene", Ent)
 
 --  If ran from lovr.app/lodr/testapp, liballonet.so is in project root
-
 local success, allonet = pcall(require, "liballonet")
 if success == false then
   print("No liballonet, trying in lovr binary as if we're on a Mac...")
@@ -74,7 +74,21 @@ function NetworkScene:_init(displayName, url)
 end
 
 function NetworkScene:onStateChanged()
-  self.state = self.client:get_state()
+  local state = self.client:get_state()
+  -- Make Entities and their Components classes so they get convenience methods from entity.lua
+  local getSibling = function(id) return state.entities[id] end
+
+  for eid, entity in pairs(state.entities) do
+    setmetatable(entity, Entity)
+    entity.getSibling = getSibling
+    local getEntity = function() return entity end
+    for cname, cval in pairs(entity.components) do
+      local klass = componentClasses[cname]
+      setmetatable(cval, klass)
+      cval.getEntity = getEntity
+    end
+  end
+  self.state = state
 end
 
 function NetworkScene:onLoad()
@@ -143,7 +157,7 @@ function NetworkScene:onDraw()
     local geom = entity.components.geometry
 
     if trans ~= nil and geom ~= nil then
-      local mat = lovr.math.mat4(unpack(trans.matrix))
+      local mat = trans:getMatrix()
       if geom.type == "hardcoded-model" then
         if geom.name == "head" then
             mat:scale(0.35, 0.35, 0.35)
