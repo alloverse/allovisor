@@ -94,9 +94,9 @@ end
 function NetworkScene:onLoad()
   --world = lovr.physics.newWorld()
   self.models = {
-	head = lovr.graphics.newModel('assets/models/mask.glb'),
-	lefthand = lovr.graphics.newModel('assets/models/left-hand/LeftHand.gltf', 'assets/models/test-texture.png'),
-	righthand = lovr.graphics.newModel('assets/models/right-hand/RightHand.gltf', 'assets/models/test-texture.png')
+	head = lovr.graphics.newModel('assets/models/mask/mask.glb'),
+	lefthand = lovr.graphics.newModel('assets/models/left-hand/left-hand.glb'),
+	righthand = lovr.graphics.newModel('assets/models/right-hand/right-hand.glb')
   }
 
   self.shader = lovr.graphics.newShader('standard', {
