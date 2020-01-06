@@ -22,6 +22,7 @@ if(WIN32)
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Alloverse-win64.zip
         COMMAND ${CMAKE_COMMAND} -E make_directory  ${CMAKE_CURRENT_BINARY_DIR}/Alloverse
 		COMMAND copy deps\\lovr\\*.dll Alloverse
+        COMMAND copy deps\\allonet\\lib\\opus\\*.dll Alloverse
 		COMMAND copy deps\\allonet\\allonet.dll Alloverse\\liballonet.dll
 		COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_CURRENT_SOURCE_DIR}/lua ${CMAKE_COMMAND} -E tar c ${CMAKE_CURRENT_BINARY_DIR}/lua.zip --format=zip -- ${ZIP_FILES}
 		COMMAND copy /b deps\\lovr\\lovr.exe+lua.zip Alloverse\\Alloverse.exe
