@@ -69,7 +69,9 @@ function NetworkScene:_init(displayName, url)
   }
   self.client:set_state_callback(function() self:onStateChanged() end)
   self.client:set_disconnected_callback(function() self:onDisconnect() end)
+  self.client:set_audio_callback(function(track, audio) self:onAudio(track, audio) end)
   self.yaw = 0.0
+  self.audio = {}
   
   self:super()
 end
@@ -143,6 +145,22 @@ function NetworkScene:onDisconnect()
   queueDoom(self)
 end
 
+
+function NetworkScene:onAudio(track_id, samples)
+  local audio = self.audio[track_id]
+  if audio == nil then
+    local stream = lovr.data.newAudioStream(1, 48000)
+    audio = {
+      stream = stream,
+      source = lovr.audio.newSource(stream, "stream")
+	}
+    self.audio[track_id] = audio
+  end
+  local blob = lovr.data.newBlob(samples, "audio for track #"..track_id)
+  audio.stream:append(blob)
+  audio.source:play()
+end
+
 function NetworkScene:onDraw()  
   lovr.graphics.skybox(self.skybox)
   
@@ -196,6 +214,10 @@ function NetworkScene:onUpdate(dt)
   
   self.client:set_intent(intent)
   self.client:poll()
+
+  for track_id, audio in pairs(self.audio) do
+    print("Track #"..track_id.." queued samples: "..audio.stream:getQueueLength())
+  end
 end
 
 lovr.scenes.network = NetworkScene
