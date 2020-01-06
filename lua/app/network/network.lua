@@ -3,28 +3,29 @@ namespace("networkscene", "alloverse")
 local json = require "json"
 local Entity, componentClasses = unpack(require("app.network.entity"))
 
+
 local NetworkScene = classNamed("NetworkScene", Ent)
 
---  If ran from lovr.app/lodr/testapp, liballonet.so is in project root
-local success, allonet = pcall(require, "liballonet")
-if success == false then
-  print("No liballonet, trying in lovr binary as if we're on a Mac...")
-  local pkg = package.loadlib("lovr", "luaopen_liballonet")
-  if pkg == nil then
-    print("No allonet in lovr, trying in liblovr.so as if we're on Android...")
-    pkg = package.loadlib("liblovr.so", "luaopen_liballonet")
-
-	if pkg == nil then
-	  print("No liblovr.so, trying in allonet.dll as if we're on Windows...")
-	  pkg = package.loadlib("allonet.dll", "luaopen_liballonet")
-	end
-  end
-  if pkg == nil then
-    error("Allonet missing. Giving up.")
-  end
-  allonet = pkg()
-  print("allonet loaded")
+-- load allonet from dll
+local os = lovr.getOS()    
+local err = nil
+local pkg = nil
+if os == "Windows" then
+  local exepath = lovr.filesystem.getExecutablePath()
+  local dllpath = string.gsub(exepath, "%w+.exe", "liballonet.dll")
+  print("loading liballonet from "..dllpath.."...")
+  pkg, err = package.loadlib(dllpath, "luaopen_liballonet")
+elseif os == "macOS" or os == "Android" then
+  print("loading liballonet from exe...")
+  pkg, err = package.loadlib(lovr.filesystem.getExecutablePath(), "luaopen_liballonet")
+else
+  error("don't know how to load allonet")
 end
+if pkg == nil then
+    error("Failed to load allonet: "..err)
+end   
+allonet = pkg()
+print("allonet loaded")
 
 
 function NetworkScene:_init(displayName, url)
