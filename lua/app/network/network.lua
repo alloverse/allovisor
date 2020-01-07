@@ -145,7 +145,6 @@ function NetworkScene:onDisconnect()
   queueDoom(self)
 end
 
-
 function NetworkScene:onAudio(track_id, samples)
   local audio = self.audio[track_id]
   if audio == nil then
@@ -158,7 +157,11 @@ function NetworkScene:onAudio(track_id, samples)
   end
   local blob = lovr.data.newBlob(samples, "audio for track #"..track_id)
   audio.stream:append(blob)
-  audio.source:play()
+
+  if audio.source:isPlaying() == false and audio.stream:getQueueLength() > 1440 then
+	  print("Starting playback audio in track "..track_id)
+	  audio.source:play()
+  end
 end
 
 function NetworkScene:onDraw()  
@@ -214,10 +217,6 @@ function NetworkScene:onUpdate(dt)
   
   self.client:set_intent(intent)
   self.client:poll()
-
-  for track_id, audio in pairs(self.audio) do
-    print("Track #"..track_id.." queued samples: "..audio.stream:getQueueLength())
-  end
 end
 
 lovr.scenes.network = NetworkScene
