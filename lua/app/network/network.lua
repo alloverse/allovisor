@@ -62,7 +62,13 @@ function NetworkScene:_init(displayName, url)
             actuate_pose = "head"
           }
         }
-      }
+      },
+      live_media = {
+        track_id = 0,
+        sample_rate = 48000,
+        channel_count = 1,
+        format = "opus"
+	  }
     })
   )
   self.state = {
@@ -73,6 +79,8 @@ function NetworkScene:_init(displayName, url)
   self.client:set_audio_callback(function(track, audio) self:onAudio(track, audio) end)
   self.yaw = 0.0
   self.audio = {}
+  self.mic = lovr.audio.newMicrophone(nil, 960*3, 48000, 16, 1)
+  self.mic:startRecording()
   
   self:super()
 end
@@ -142,6 +150,7 @@ end
 function NetworkScene:onDisconnect()
   print("disconnecting...")
   self.client:disconnect(0)
+  self.mic:stopRecording()
   scene:insert(lovr.scenes.menu)
   queueDoom(self)
 end
@@ -213,6 +222,11 @@ function NetworkScene:onUpdate(dt)
     intent.poses[device] = {
       matrix = pose2matrix(lovr.headset.getPose(device))
     }
+  end
+
+  if self.mic:getSampleCount() >= 960 then
+    local sd = self.mic:getData(960)
+    self.client:send_audio(sd:getBlob():getString());
   end
   
   self.client:set_intent(intent)
