@@ -2,7 +2,7 @@ namespace("networkscene", "alloverse")
 
 local json = require "json"
 local Entity, componentClasses = unpack(require("app.network.entity"))
-
+local SoundEng = require "app.network.sound_eng"
 
 local NetworkScene = classNamed("NetworkScene", Ent)
 
@@ -74,15 +74,15 @@ function NetworkScene:_init(displayName, url)
   self.state = {
     entities = {}
   }
-  self.client:set_state_callback(function() self:onStateChanged() end)
-  self.client:set_disconnected_callback(function() self:onDisconnect() end)
-  self.client:set_audio_callback(function(track, audio) self:onAudio(track, audio) end)
+  self.client:set_state_callback(function() self:route("onStateChanged") end)
+  self.client:set_disconnected_callback(function() self:route("onDisconnect") end)
   self.yaw = 0.0
-  self.audio = {}
-  self.mic = lovr.audio.newMicrophone(nil, 960*3, 48000, 16, 1)
-  self.mic:startRecording()
   
   self:super()
+
+  -- sub-engines
+  local sound = SoundEng()
+  sound:insert(self)
 end
 
 function NetworkScene:onStateChanged()
@@ -150,27 +150,8 @@ end
 function NetworkScene:onDisconnect()
   print("disconnecting...")
   self.client:disconnect(0)
-  self.mic:stopRecording()
   scene:insert(lovr.scenes.menu)
   queueDoom(self)
-end
-
-function NetworkScene:onAudio(track_id, samples)
-  local audio = self.audio[track_id]
-  if audio == nil then
-    local stream = lovr.data.newAudioStream(1, 48000)
-    audio = {
-      stream = stream,
-      source = lovr.audio.newSource(stream, "stream")
-	}
-    self.audio[track_id] = audio
-  end
-  local blob = lovr.data.newBlob(samples, "audio for track #"..track_id)
-  audio.stream:append(blob)
-  if audio.source:isPlaying() == false and audio.stream:getDuration() >= 0.2 then
-	  print("Starting playback audio in track "..track_id)
-	  audio.source:play()
-  end
 end
 
 function NetworkScene:onDraw()  
@@ -222,11 +203,6 @@ function NetworkScene:onUpdate(dt)
     intent.poses[device] = {
       matrix = pose2matrix(lovr.headset.getPose(device))
     }
-  end
-
-  if self.mic:getSampleCount() >= 960 then
-    local sd = self.mic:getData(960)
-    self.client:send_audio(sd:getBlob():getString());
   end
   
   self.client:set_intent(intent)
