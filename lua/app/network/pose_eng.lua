@@ -10,6 +10,13 @@ function PoseEng:_init()
   self:super()
 end
 
+function pose2matrix(x, y, z, angle, ax, ay, az)
+  local mat = lovr.math.mat4()
+  mat:translate(x, y, z)
+  mat:rotate(angle, ax, ay, az)
+  return mat
+end
+
 function PoseEng:onUpdate(dt)
   local mx, my = lovr.headset.getAxis("hand/left", "thumbstick")
   local tx, ty = lovr.headset.getAxis("hand/right", "thumbstick")

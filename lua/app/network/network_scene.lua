@@ -85,11 +85,6 @@ function NetworkScene:_init(displayName, url)
   self.client:set_disconnected_callback(function() self:route("onDisconnect") end)
   
   self:super()
-
-  -- Engines. These do the heavy lifting.
-  SoundEng():insert(self)
-  GraphicsEng():insert(self)
-  PoseEng():insert(self)
 end
 
 function NetworkScene:onStateChanged()
@@ -111,28 +106,35 @@ function NetworkScene:onStateChanged()
 end
 
 function NetworkScene:onLoad()
+  -- Engines. These do the heavy lifting.
+  SoundEng():insert(self)
+  GraphicsEng():insert(self)
+  PoseEng():insert(self)
+
   --world = lovr.physics.newWorld()
 end
 
 function NetworkScene:onDisconnect()
   print("disconnecting...")
   self.client:disconnect(0)
-  scene:insert(lovr.scenes.menu)
+  self.client = nil
+  lovr.scenes.menu():insert()
+  print("disconnected.")
   queueDoom(self)
 end
 
 function NetworkScene:onDraw()
 end
 
-function pose2matrix(x, y, z, angle, ax, ay, az)
-  local mat = lovr.math.mat4()
-  mat:translate(x, y, z)
-  mat:rotate(angle, ax, ay, az)
-  return mat
-end
-
 function NetworkScene:onUpdate(dt)
-  self.client:poll()
+  if self.client ~= nil then
+    self.client:poll()
+    if self.client == nil then
+      return route_terminate
+    end
+  else
+    return route_terminate
+  end
 end
 
 lovr.scenes.network = NetworkScene
