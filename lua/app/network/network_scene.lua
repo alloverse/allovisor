@@ -4,6 +4,7 @@ local json = require "json"
 local Entity, componentClasses = unpack(require("app.network.entity"))
 local SoundEng = require "app.network.sound_eng"
 local GraphicsEng = require "app.network.graphics_eng"
+local PoseEng = require "app.network.pose_eng"
 
 -- load allonet from dll
 local os = lovr.getOS()    
@@ -82,13 +83,13 @@ function NetworkScene:_init(displayName, url)
   }
   self.client:set_state_callback(function() self:route("onStateChanged") end)
   self.client:set_disconnected_callback(function() self:route("onDisconnect") end)
-  self.yaw = 0.0
   
   self:super()
 
   -- Engines. These do the heavy lifting.
   SoundEng():insert(self)
   GraphicsEng():insert(self)
+  PoseEng():insert(self)
 end
 
 function NetworkScene:onStateChanged()
@@ -131,23 +132,6 @@ function pose2matrix(x, y, z, angle, ax, ay, az)
 end
 
 function NetworkScene:onUpdate(dt)
-  local mx, my = lovr.headset.getAxis("hand/left", "thumbstick")
-  local tx, ty = lovr.headset.getAxis("hand/right", "thumbstick")
-  self.yaw = self.yaw - (tx/30.0)
-  local intent = {
-    xmovement = mx,
-    zmovement = -my,
-    yaw = self.yaw,
-    pitch = 0.0,
-    poses = {}
-  }
-  for i, device in ipairs({"head", "hand/left", "hand/right"}) do
-    intent.poses[device] = {
-      matrix = pose2matrix(lovr.headset.getPose(device))
-    }
-  end
-  
-  self.client:set_intent(intent)
   self.client:poll()
 end
 
