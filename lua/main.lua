@@ -36,8 +36,8 @@ do
 end
 
 namespace.prepare("alloverse", "standard", function(space)
-	require("app.menu.menu")
-	require("app.network.network")
+	require("app.menu.menu_scene")
+	require("app.network.network_scene")
 end)
 
 -- Ent driver
@@ -46,7 +46,7 @@ namespace "standard"
 
 function lovr.load()
 	ent.root = LoaderEnt({
-		"app/menu/menu",
+		"app/menu/menu_scene",
 		"app/debug/fps"
 	})
 	ent.root:route("onBoot") -- This will only be sent once

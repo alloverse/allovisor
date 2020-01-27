@@ -1,6 +1,6 @@
 namespace("menu", "alloverse")
 
-local Menu = classNamed("Menu", Ent)
+local MenuScene = classNamed("MenuScene", Ent)
 
 x, y, z = 0, 2.5, -1.5
 MENU_ITEM_HEIGHT = .2
@@ -63,13 +63,13 @@ local function drawMenu()
 
 end
 
-function Menu:onLoad()
+function MenuScene:onLoad()
   world = lovr.physics.newWorld()
   --skybox = lovr.graphics.newTexture('assets/tron-skybox.jpg')
   skybox = lovr.graphics.newTexture('assets/cloudy-skybox.jpg')
 end
 
-function Menu:onDraw()
+function MenuScene:onDraw()
 
   lovr.graphics.setColor(COLOR_WHITE)
   lovr.graphics.skybox(skybox)
@@ -135,7 +135,7 @@ end
 
 
 
-function Menu:onUpdate(dt)
+function MenuScene:onUpdate(dt)
   
   -- for name, hand in ipairs(lovr.headset.getHands()) do
   --   if lovr.headset.isDown(hand, "trigger") then
@@ -148,7 +148,7 @@ function Menu:onUpdate(dt)
   -- end
 end
 
-function Menu:openPlace(url)
+function MenuScene:openPlace(url)
   local displayName = "Mario"
   local scene = lovr.scenes.network(displayName, url)
   scene:insert()
@@ -156,6 +156,6 @@ function Menu:openPlace(url)
 
 end
 
-lovr.scenes.menu = Menu
+lovr.scenes.menu = MenuScene
 
-return Menu
+return MenuScene
