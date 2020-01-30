@@ -81,7 +81,9 @@ function NetworkScene:_init(displayName, url)
   self.state = {
     entities = {}
   }
+  self.avatar_id = ""
   self.client:set_state_callback(function() self:route("onStateChanged") end)
+  self.client:set_interaction_callback(function(inter) self:route("onInteraction", inter) end)
   self.client:set_disconnected_callback(function() self:route("onDisconnect") end)
   
   self:super()
@@ -103,6 +105,23 @@ function NetworkScene:onStateChanged()
     end
   end
   self.state = state
+end
+
+function NetworkScene:onInteraction(interaction)
+  local body = json.decode(interaction.body)
+  if interaction.type == "response" and body[1] == "announce" then
+    local avatar_id = body[2]
+	local place_name = body[3]
+	print("Welcome to", place_name, ". You are", avatar_id)
+	self.avatar_id = avatar_id
+  end
+end
+
+function NetworkScene:getAvatar()
+  if self.avatar_id == "" then	
+	return nil
+  end
+  return self.state.entities[self.avatar_id]
 end
 
 function NetworkScene:onLoad()
