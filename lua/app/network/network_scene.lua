@@ -17,8 +17,8 @@ if os == "Windows" then
   pkg, err = package.loadlib(dllpath, "luaopen_liballonet")
 elseif os == "macOS" or os == "Android" then
   print("loading liballonet from exe...")
-  local manualpath = "/Users/kask/Alloverse/allovisor-lovr/build/Alloverse.app/Contents/MacOS/lovr"
-  pkg, err = package.loadlib(manualpath, "luaopen_liballonet")
+  pkg, err = package.loadlib(lovr.filesystem.getExecutablePath(), "luaopen_liballonet")
+
 else
   error("don't know how to load allonet")
 end
