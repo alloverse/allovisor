@@ -67,9 +67,22 @@ function GraphicsEng:onDraw()
     if trans ~= nil and geom ~= nil then
       local mat = trans:getMatrix()
       if geom.type == "hardcoded-model" then
+
+        -- TODO: Scale down the mask model instead of doing i programmaticfally here
         if geom.name == "head" then
-            mat:scale(0.35, 0.35, 0.35)
+            mat:scale(0.25, 0.25, 0.25)
         end
+
+        if geom.name == "lefthand" then
+          local handPos = trans:getMatrix():mul(lovr.math.vec3())
+
+          local distantPoint = trans:getMatrix():mul(lovr.math.vec3(0,0,-10))
+
+          lovr.graphics.setColor({0.8,0.55,1})
+          lovr.graphics.line(handPos, distantPoint)
+          lovr.graphics.setColor({1,1,1})
+        end
+        
         self.models[geom.name]:draw(mat)
       elseif geom.type == "inline" then
           

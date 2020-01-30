@@ -1,6 +1,7 @@
 namespace("networkscene", "alloverse")
 
 local json = require "json"
+local tablex = require "pl.tablex"
 local Entity, componentClasses = unpack(require("app.network.entity"))
 
 local PoseEng = classNamed("PoseEng", Ent)
@@ -8,6 +9,10 @@ function PoseEng:_init()
   self.yaw = 0.0
   
   self:super()
+end
+
+function PoseEng:onLoad()
+  self.world = lovr.physics.newWorld()
 end
 
 function pose2matrix(x, y, z, angle, ax, ay, az)
@@ -35,6 +40,34 @@ function PoseEng:onUpdate(dt)
   end
   
   self.parent.client:set_intent(intent)
+
+
+  -- Find the left hand whose parent is my avatar and whose pose is left hand
+  local lefthand_id = tablex.find_if(self.parent.state.entities, function(entity)
+    return entity.components.relationships ~= nil and
+           entity.components.relationships.parent == self.parent.avatar_id and
+           entity.components.intent ~= nil and
+           entity.components.intent.actuate_pose == "hand/left"
+  end)
+  
+  if (lefthand_id ~= nil) then
+    local lefthand = self.parent.state.entities[lefthand_id]
+    if (lefthand ~= nil) then
+      local handPos = lefthand.components.transform:getMatrix():mul(lovr.math.vec3())
+      local distantPoint = lefthand.components.transform:getMatrix():mul(lovr.math.vec3(0,0,-10))      
+
+      -- Raycast from the left hand
+      self.world:raycast(handPos.x, handPos.y, handPos.z, distantPoint.x, distantPoint.y, distantPoint.z, function(shape)
+        for colliderCount = 1, table.getn(colliderArray) do
+          if (colliderArray[colliderCount]:getShapes()[1] == shape) then
+            print("Colliding with item " .. colliderCount)
+            --collidedMenuItemIndex = colliderCount
+          end
+        end
+      end)
+    end
+  end
+
 end
 
 return PoseEng
