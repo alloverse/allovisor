@@ -28,32 +28,32 @@ jobs:
       pathtoPublish: '$(Build.ArtifactStagingDirectory)'
       artifactName: Alloverse_visor-Mac-x64
 
-# - job: Windows
-#   pool:
-#     vmImage: 'vs2017-win2016'
-#   steps:
-#   - task: CMake@1
-#     inputs:
-#       workingDirectory: 'build'
-#       cmakeArgs: "-A x64 .."
-#   - task: VSBuild@1
-#     displayName: "Visual Studio build"
-#     inputs:
-#       msbuildArchitecture: 'x64'
-#   - task: CopyFiles@2
-#     displayName: "Stage artifacts"
-#     inputs:
-#       contents: |
-#         build/**/allo*.exe
-#         build/**/allo*.dll
-#         build/**/allo*.lib
-#         build/**/allo*.pdb
-#       targetFolder: $(Build.ArtifactStagingDirectory)
-#   - task: PublishBuildArtifacts@1
-#     displayName: "Publish artifacts"
-#     inputs:
-#       pathtoPublish: '$(Build.ArtifactStagingDirectory)'
-#       artifactName: Alloverse_visor-Windows-x64
+- job: Windows
+  pool:
+    vmImage: 'windows-2019'
+  steps:
+  - task: CMake@1
+    inputs:
+      workingDirectory: 'build'
+      cmakeArgs: "-A x64 .."
+  - task: VSBuild@1
+    displayName: "Visual Studio build"
+    inputs:
+      msbuildArchitecture: 'x64'
+      createLogFile: true
+  - task: CopyFiles@2
+    displayName: "Stage artifacts"
+    inputs:
+      contents: |
+        build/**/Alloverse-win64.zip
+        build/Alloverse/*.*
+        build/**/*.log
+      targetFolder: $(Build.ArtifactStagingDirectory)
+  - task: PublishBuildArtifacts@1
+    displayName: "Publish artifacts"
+    inputs:
+      pathtoPublish: '$(Build.ArtifactStagingDirectory)'
+      artifactName: Alloverse_visor-Windows-x64
 
 
 - job: Android
