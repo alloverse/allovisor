@@ -64,7 +64,6 @@ jobs:
     inputs:
       workingDirectory: 'build'
       cmakeArgs: "cmake -DCMAKE_TOOLCHAIN_FILE=~/Library/Android/sdk/ndk-bundle/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a .."
-  - script: sdkmanager --install "ndk;20.0.5594570"
   - script: make alloverse-dist
     workingDirectory: build
     displayName: "Make"
