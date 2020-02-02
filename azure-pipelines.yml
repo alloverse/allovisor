@@ -60,7 +60,7 @@ jobs:
   pool:
     vmImage: 'macOS-10.14'
   steps:
-  - script: 'sdkmanager --install "ndk;21.0.6113669"'
+  - script: 'sdkmanager --install "ndk;21.0.6113669" "cmake;3.16.2"'
     displayName: "Install NDK"
     env:
       PATH: "/Users/runner/Library/Android/sdk/cmake/3.6.4111459/bin:/Applications/Android Studio.app/Contents/jre/jdk/Contents/Home/bin:~/Library/Android/sdk/platform-tools:~/Library/Android/sdk/tools/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin"
