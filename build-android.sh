@@ -12,7 +12,10 @@ export APPSRC=$VISORSRC/deps/lovr-android
 export GRADLE=$APPSRC/gradlew
 export CMAKEVER=$(cmake --version | head -n 1 | cut -d " " -f 3)
 
-sed -i "s/3.16.3/$CMAKEVER/g" deps/lovr-android/cmakelib/build.gradle
+# Azure Pipelines keeps changing the cmake version installed.
+# Also, Gradle REQUIRES us to set a SPECIFIC version for it to look in PATH
+# for a nicer cmake than the one in the SDK. ARGHArhahtarhaghaghaghagh
+sed -i.bak "s/3.16.3/$CMAKEVER/g" deps/lovr-android/cmakelib/build.gradle
 
 pushd $APPSRC
 
