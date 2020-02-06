@@ -12,7 +12,7 @@ function PoseEng:_init()
 end
 
 function PoseEng:onLoad()
-  self.world = lovr.physics.newWorld()
+  
 end
 
 function pose2matrix(x, y, z, angle, ax, ay, az)
@@ -57,7 +57,7 @@ function PoseEng:onUpdate(dt)
       local distantPoint = lefthand.components.transform:getMatrix():mul(lovr.math.vec3(0,0,-10))      
 
       -- Raycast from the left hand
-      self.world:raycast(handPos.x, handPos.y, handPos.z, distantPoint.x, distantPoint.y, distantPoint.z, function(shape)
+      self.parent.physics.world:raycast(handPos.x, handPos.y, handPos.z, distantPoint.x, distantPoint.y, distantPoint.z, function(shape)
         for colliderCount = 1, table.getn(colliderArray) do
           if (colliderArray[colliderCount]:getShapes()[1] == shape) then
             print("Colliding with item " .. colliderCount)

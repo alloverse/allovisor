@@ -5,6 +5,7 @@ local Entity, componentClasses = unpack(require("app.network.entity"))
 local SoundEng = require "app.network.sound_eng"
 local GraphicsEng = require "app.network.graphics_eng"
 local PoseEng = require "app.network.pose_eng"
+local PhysicsEng = require "app.network.physics_eng"
 
 -- load allonet from dll
 local os = lovr.getOS()    
@@ -126,11 +127,10 @@ end
 
 function NetworkScene:onLoad()
   -- Engines. These do the heavy lifting.
-  SoundEng():insert(self)
-  GraphicsEng():insert(self)
-  PoseEng():insert(self)
-
-  --world = lovr.physics.newWorld()
+  self.sound = SoundEng():insert(self)
+  self.graphics = GraphicsEng():insert(self)
+  self.pose = PoseEng():insert(self)
+  self.physics = PhysicsEng():insert(self)
 end
 
 function NetworkScene:onDisconnect()
