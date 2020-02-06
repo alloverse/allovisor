@@ -5,6 +5,8 @@ echo ANDROID_HOME is $ANDROID_HOME
 
 echo PATH is $PATH
 
+echo `pwd`
+
 export PATH="/usr/local/bin:/usr/local/Cellar/cmake/3.16.3/bin:/Users/runner/Library/Android/sdk/cmake/3.6.4111459/bin:/Applications/Android Studio.app/Contents/jre/jdk/Contents/Home/bin":~/Library/Android/sdk/platform-tools:$PATH 
 export ANDROID_HOME=${ANDROID_HOME:-~/Library/Android/sdk}
 export VISORSRC="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
@@ -15,7 +17,7 @@ export CMAKEVER=$(cmake --version | head -n 1 | cut -d " " -f 3)
 # Azure Pipelines keeps changing the cmake version installed.
 # Also, Gradle REQUIRES us to set a SPECIFIC version for it to look in PATH
 # for a nicer cmake than the one in the SDK. ARGHArhahtarhaghaghaghagh
-sed -i.bak "s/3.16.3/$CMAKEVER/g" deps/lovr-android/cmakelib/build.gradle
+sed -i.bak "s/3.16.3/$CMAKEVER/g" $APPSRC/cmakelib/build.gradle
 
 pushd $APPSRC
 
