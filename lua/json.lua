@@ -123,7 +123,7 @@ local type_func_map = {
 
 encode = function(val, stack)
   local t = type(val)
-  local f = type_func_map[t]
+  local f = type_func_map[t] or encode_nil
   if f then
     return f(val, stack)
   end
