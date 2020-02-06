@@ -29,9 +29,6 @@ function PhysicsEng:onUpdate(dt)
 end
 
 function PhysicsEng:onComponentAdded(component_key, component)
-  
-  print("onComponentAdded running")
-
   if component_key ~= "collider" then
     return
   end
@@ -43,8 +40,6 @@ function PhysicsEng:onComponentAdded(component_key, component)
   collider:setUserData(entity)
 
   table.insert(self.colliders, collider)
-
-  print("collider added: ", collider)
 end
 
 function PhysicsEng:onComponentRemoved(component_key, component)

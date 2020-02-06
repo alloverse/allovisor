@@ -2,6 +2,7 @@ namespace("networkscene", "alloverse")
 
 local json = require "json"
 local tablex = require "pl.tablex"
+local pretty = require "pl.pretty"
 local Entity, componentClasses = unpack(require("app.network.entity"))
 local SoundEng = require "app.network.sound_eng"
 local GraphicsEng = require "app.network.graphics_eng"
@@ -169,7 +170,10 @@ function NetworkScene:onStateChanged()
   end
 
   -- Run callbacks
-  --print(json.encode({added = newEntities, removed = deletedEntities, cAdded = newComponents, cChanged = updatedComponents, cRemoved = deletedComponents}))
+  --if #newEntities > 0 then print("New entities: ", pretty.write(newEntities)) end
+  --if #deletedEntities > 0 then print("Removed entities: ", pretty.write(deletedEntities)) end
+  --if #newComponents > 0 then print("New components: ", pretty.write(newComponents)) end
+  --if #deletedComponents > 0 then print("Removed components: ", pretty.write(deletedComponents)) end
   tablex.map(function(x) self:route("onEntityAdded", x) end, newEntities)
   tablex.map(function(x) self:route("onEntityRemoved", x) end, deletedEntities)
   tablex.map(function(x) self:route("onComponentAdded", x.key, x) end, newComponents)
