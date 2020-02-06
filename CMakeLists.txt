@@ -54,7 +54,7 @@ elseif(APPLE)
     )
 elseif(ANDROID)
     # Force-load allonet into lovr exe
-    target_link_libraries(lovr "-Wl,--whole-archive" allonet "-Wl,--no-whole-archive")
+    target_link_libraries(lovr "-Wl,--whole-archive" allonet "-Wl,--no-whole-archive" "-ldl")
 
     add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/alloverse-release.apk
