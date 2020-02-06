@@ -18,10 +18,12 @@ if os == "Windows" then
   local dllpath = string.gsub(exepath, "%w+.exe", "liballonet.dll")
   print("loading liballonet from "..dllpath.."...")
   pkg, err = package.loadlib(dllpath, "luaopen_liballonet")
-elseif os == "macOS" or os == "Android" then
+elseif os == "macOS" then
   print("loading liballonet from exe...")
   pkg, err = package.loadlib(lovr.filesystem.getExecutablePath(), "luaopen_liballonet")
-
+elseif os == "Android" then
+  print("loading liballonet from lovr.so...")
+  pkg, err = package.loadlib("lovr.so", "luaopen_liballonet")
 else
   error("don't know how to load allonet")
 end
