@@ -68,11 +68,6 @@ function GraphicsEng:onDraw()
       local mat = trans:getMatrix()
       if geom.type == "hardcoded-model" then
 
-        -- TODO: Scale down the mask model instead of doing i programmaticfally here
-        if geom.name == "head" then
-            mat:scale(0.25, 0.25, 0.25)
-        end
-
         if geom.name == "lefthand" then
           local handPos = trans:getMatrix():mul(lovr.math.vec3())
 

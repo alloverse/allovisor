@@ -57,14 +57,14 @@ function PoseEng:onUpdate(dt)
       local distantPoint = lefthand.components.transform:getMatrix():mul(lovr.math.vec3(0,0,-10))      
 
       -- Raycast from the left hand
-      self.parent.physics.world:raycast(handPos.x, handPos.y, handPos.z, distantPoint.x, distantPoint.y, distantPoint.z, function(shape)
-        for colliderCount = 1, table.getn(colliderArray) do
-          if (colliderArray[colliderCount]:getShapes()[1] == shape) then
-            print("Colliding with item " .. colliderCount)
-            --collidedMenuItemIndex = colliderCount
-          end
-        end
-      end)
+      -- self.parent.physics.world:raycast(handPos.x, handPos.y, handPos.z, distantPoint.x, distantPoint.y, distantPoint.z, function(shape)
+      --   for colliderCount = 1, table.getn(colliderArray) do
+      --     if (colliderArray[colliderCount]:getShapes()[1] == shape) then
+      --       print("Colliding with item " .. colliderCount)
+      --       --collidedMenuItemIndex = colliderCount
+      --     end
+      --   end
+      -- end)
     end
   end
 
