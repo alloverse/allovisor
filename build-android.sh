@@ -10,6 +10,9 @@ export ANDROID_HOME=${ANDROID_HOME:-~/Library/Android/sdk}
 export VISORSRC="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 export APPSRC=$VISORSRC/deps/lovr-android
 export GRADLE=$APPSRC/gradlew
+export CMAKEVER=$(cmake --version | head -n 1 | cut -d " " -f 3)
+
+sed -i "s/3.16.3/$CMAKEVER/g" deps/lovr-android/cmakelib/build.gradle
 
 pushd $APPSRC
 
