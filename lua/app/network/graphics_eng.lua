@@ -25,7 +25,7 @@ function GraphicsEng:onLoad()
     }
   })
 
-  self.skybox = lovr.graphics.newTexture({
+  self.factorySkybox = lovr.graphics.newTexture({
     left = 'assets/env/nx.png',
     right = 'assets/env/px.png',
     top = 'assets/env/py.png',
@@ -33,6 +33,10 @@ function GraphicsEng:onLoad()
     back = 'assets/env/pz.png',
     front = 'assets/env/nz.png'
   }, { linear = true })
+  self.cloudSkybox = lovr.graphics.newTexture("assets/cloudy-skybox.jpg")
+
+  local logoTex = lovr.graphics.newTexture("assets/alloverse-logo.png", {})
+  self.logoMat = lovr.graphics.newMaterial(logoTex, 1, 1, 1, 1)
 
   self.environmentMap = lovr.graphics.newTexture(256, 256, { type = 'cube' })
   for mipmap = 1, self.environmentMap:getMipmapCount() do
@@ -52,13 +56,22 @@ function GraphicsEng:onLoad()
 end
 
 function GraphicsEng:onDraw()  
-  lovr.graphics.skybox(self.skybox)
+  lovr.graphics.skybox(self.cloudSkybox)
   
   lovr.graphics.setBackgroundColor(.3, .3, .40)
   lovr.graphics.setCullingEnabled(true)
   lovr.graphics.setBlendMode()
   lovr.graphics.setColor({1,1,1})
   lovr.graphics.setShader(self.shader)
+
+  -- Dummy floor until we have something proper
+  lovr.graphics.plane( 
+    self.logoMat,
+    0, 0, 0, -- x y z
+    6, 6,  -- w h
+    -3.141593/2, 1, 0, 0,  -- rotation
+    0, 0, 1, 1 -- u v tw th
+  )
 
   for eid, entity in pairs(self.parent.state.entities) do
     local trans = entity.components.transform
