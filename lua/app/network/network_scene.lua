@@ -8,6 +8,7 @@ local SoundEng = require "app.network.sound_eng"
 local GraphicsEng = require "app.network.graphics_eng"
 local PoseEng = require "app.network.pose_eng"
 local PhysicsEng = require "app.network.physics_eng"
+local OverlayMenuScene = require "app.menu.overlay_menu_scene"
 
 -- load allonet from dll
 local os = lovr.getOS()    
@@ -228,6 +229,10 @@ function NetworkScene:onUpdate(dt)
     end
   else
     return route_terminate
+  end
+
+  if lovr.headset.wasPressed("hand/right", "b") then
+    OverlayMenuScene(self):insert(self)
   end
 end
 

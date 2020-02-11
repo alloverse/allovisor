@@ -48,6 +48,8 @@ function MenuScene:_init(items)
   end
   self.handRays = {HandRay(), HandRay()}
 
+  self.drawBackground = true
+
   self:super()
 end
 
@@ -88,8 +90,10 @@ function MenuScene:drawMenu()
 end
 
 function MenuScene:onDraw()
-  lovr.graphics.setColor(COLOR_WHITE)
-  lovr.graphics.skybox(skybox)
+  if self.drawBackground then
+    lovr.graphics.setColor(COLOR_WHITE)
+    lovr.graphics.skybox(skybox)
+  end
 
   lovr.graphics.setColor(COLOR_ALLOVERSE_GRAY)
   for i, hand in ipairs(lovr.headset.getHands()) do
@@ -126,8 +130,11 @@ function MenuScene:onUpdate(dt)
       ray:highlightItem(newItem)
     end
 
-    if lovr.headset.isDown(hand, "trigger") and ray.currentMenuItem ~= nil then
-      lovr.headset.vibrate(hand, 0.7, 0.5)
+    -- todo: shown "down" state on down, and only trigger on release if still within bounds.
+    -- this should also fix "accidentally connect to localhost after disconnect" problem
+
+    if lovr.headset.wasReleased(hand, "trigger") and ray.currentMenuItem ~= nil then
+      lovr.headset.vibrate(hand, 0.7, 0.2, 100)
       ray.currentMenuItem.action()
     end
   end
