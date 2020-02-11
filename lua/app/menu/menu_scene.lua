@@ -2,10 +2,10 @@ namespace("menu", "alloverse")
 
 local MenuScene = classNamed("MenuScene", Ent)
 
-local x, y, z = 0, 2.5, -1.5
-local MENU_ITEM_HEIGHT = .2
-local MENU_ITEM_WIDTH = 1
-local MENU_ITEM_VERTICAL_PADDING = .1
+x, y, z = 0, 2.5, -1.5
+MENU_ITEM_HEIGHT = .2
+MENU_ITEM_WIDTH = 1
+MENU_ITEM_VERTICAL_PADDING = .1
 
 local COLOR_WHITE = {1,1,1}
 local COLOR_BLACK = {0,0,0}
@@ -13,6 +13,8 @@ local COLOR_ALLOVERSE_GRAY = {0.40, 0.45, 0.50}
 local COLOR_ALLOVERSE_ORANGE = {0.91, 0.43, 0.29}
 local COLOR_ALLOVERSE_ORANGE_DARK = {0.7,0.37,0.47}
 local COLOR_ALLOVERSE_BLUE = {0.27,0.55,1}
+
+local MenuItem = require("app.menu.menu_item")
 
 local HandRay = classNamed("HandRay")
 function HandRay:init()
@@ -37,30 +39,21 @@ function HandRay:getColor()
   end
 end
 
+function MenuScene:_init(items)
+  self.world = lovr.physics.newWorld()
+  skybox = lovr.graphics.newTexture('assets/cloudy-skybox.jpg')
+  self.menuItems = items
+  for i, item in ipairs(items) do
+    item:createCollider(self.world, i)
+  end
+  self.handRays = {HandRay(), HandRay()}
 
-local MenuItem = classNamed("MenuItem")
-function MenuItem:_init(world, label, index, action)
-  self.label = label
-  self.index = index
-  self.action = action
-  self.isHighlighted = false
-  local menuItemY = y-((MENU_ITEM_HEIGHT+MENU_ITEM_VERTICAL_PADDING)*index)
-  self.collider = world:newBoxCollider(x, menuItemY, z, MENU_ITEM_WIDTH, MENU_ITEM_HEIGHT, 0.1 )
-  self.collider:setUserData(self)
+  self:super()
 end
 
 function MenuScene:onLoad()
-  self.world = lovr.physics.newWorld()
-  skybox = lovr.graphics.newTexture('assets/cloudy-skybox.jpg')
-  self.menuItems = {
-    MenuItem(self.world, "Nevyn's place", 1, function() self:openPlace("alloplace://nevyn.places.alloverse.com") end),
-    MenuItem(self.world, "Localhost", 2, function() self:openPlace("alloplace://localhostcom") end),
-    MenuItem(self.world, "Quit", 3, function() lovr.event.quit(0) end),
-  }
   self.menuFont = lovr.graphics.newFont(16)
-  self.handRays = {HandRay(), HandRay()}
 end
-
 
 function MenuScene:drawLabel(str, x, y, z)
   lovr.graphics.setShader()
@@ -139,15 +132,5 @@ function MenuScene:onUpdate(dt)
     end
   end
 end
-
-function MenuScene:openPlace(url)
-  local displayName = "Mario"
-  local scene = lovr.scenes.network(displayName, url)
-  scene:insert()
-  queueDoom(self)
-
-end
-
-lovr.scenes.menu = MenuScene
 
 return MenuScene
