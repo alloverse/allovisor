@@ -2,21 +2,20 @@ cmake_minimum_required(VERSION 3.13.0) # 3.13 minimum for CMP0079
 project(allovisor VERSION 0.2.0)
 cmake_policy(SET CMP0079 NEW)
 
+SET(LOVR_BUILD_SHARED ON CACHE BOOL "Always build lovr as library")
 SET(LOVR_BUILD_BUNDLE ON CACHE BOOL "Always build lovr bundle on mac")
 SET(LOVR_ENABLE_ENET OFF CACHE BOOL "Disable Lovr enet since allonet embeds its own")
 set(ALLONET_USE_LUA ON CACHE BOOL "Request Lua bridge")
-if(WIN32)
-	set(ALLONET_BUILD_STATIC OFF CACHE BOOL "bundle a DLL")
-elseif(APPLE OR ANDROID)
-    set(ALLONET_BUILD_STATIC ON CACHE BOOL "Always build allonet static")
-endif()
+set(ALLONET_BUILD_STATIC ON CACHE BOOL "Always build allonet static")
 
 add_subdirectory (deps/lovr)
 add_subdirectory (deps/allonet)
 
 if(WIN32)
     target_link_libraries(lovr allonet)
-    
+    add_executable (Alloverse src/allonet_loader.c)
+    target_link_libraries (Alloverse lovr)
+
     file(GLOB ZIP_FILES "${CMAKE_CURRENT_SOURCE_DIR}/lua/*")
     add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Alloverse-win64.zip
@@ -32,7 +31,7 @@ if(WIN32)
         COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_CURRENT_SOURCE_DIR}/lua ${CMAKE_COMMAND} -E tar c ${CMAKE_CURRENT_BINARY_DIR}/lua.zip --format=zip -- ${ZIP_FILES}
         COMMAND copy /b $<SHELL_PATH:$<TARGET_FILE:lovr>>+lua.zip Alloverse\\Alloverse.exe
         COMMAND ${CMAKE_COMMAND} -E tar c ${CMAKE_CURRENT_BINARY_DIR}/Alloverse-win64.zip --format=zip Alloverse
-        DEPENDS lovr allonet
+        DEPENDS Alloverse
     )
     add_custom_target(
         alloverse-dist ALL
