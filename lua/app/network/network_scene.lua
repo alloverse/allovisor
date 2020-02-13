@@ -194,6 +194,10 @@ function NetworkScene:onInteraction(interaction)
   end
 end
 
+function NetworkScene:sendInteraction(interaction)
+  self.client.send_interaction(interaction)
+end
+
 function NetworkScene:getAvatar()
   if self.avatar_id == "" then	
 	return nil
