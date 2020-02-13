@@ -6,8 +6,10 @@ local Entity, componentClasses = unpack(require("app.network.entity"))
 local SoundEng = classNamed("SoundEng", Ent)
 function SoundEng:_init()
   self.audio = {}
-  self.mic = lovr.audio.newMicrophone(nil, 960*3, 48000, 16, 1)
-  self.mic:startRecording()
+  if #lovr.audio.getMicrophoneNames() > 0 then
+    self.mic = lovr.audio.newMicrophone(nil, 960*3, 48000, 16, 1)
+    self.mic:startRecording()
+  end
   
   self:super()
 end
@@ -39,11 +41,13 @@ function SoundEng:onStateChanged()
 end
 
 function SoundEng:onDisconnect()
-  self.mic:stopRecording()
+  if self.mic ~= nil then
+    self.mic:stopRecording()
+  end
 end
 
 function SoundEng:onUpdate(dt)
-  if self.mic:getSampleCount() >= 960 then
+  if self.mic ~= nil and self.mic:getSampleCount() >= 960 then
     local sd = self.mic:getData(960)
     self.parent.client:send_audio(sd:getBlob():getString());
   end
