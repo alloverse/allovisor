@@ -19,8 +19,8 @@ local MenuItem = require("app.menu.menu_item")
 local HandRay = classNamed("HandRay")
 function HandRay:init()
   self.currentMenuItem = nil
-  self.from = lovr.math.vec3()
-  self.to = lovr.math.vec3()
+  self.from = lovr.math.newVec3()
+  self.to = lovr.math.newVec3()
 end
 function HandRay:highlightItem(item)
   if self.currentMenuItem ~= nil then
@@ -113,11 +113,11 @@ function MenuScene:onUpdate(dt)
   for handIndex, hand in ipairs(lovr.headset.getHands()) do
     local ray = self.handRays[handIndex]
 
-    local handPos = lovr.math.vec3(lovr.headset.getPosition(hand))
+    local handPos = lovr.math.newVec3(lovr.headset.getPosition(hand))
     local straightAhead = lovr.math.vec3(0, 0, -1)
     local handRotation = lovr.math.mat4():rotate(lovr.headset.getOrientation(hand))
     local pointedDirection = handRotation:mul(straightAhead)
-    local distantPoint = lovr.math.vec3(pointedDirection):mul(10):add(handPos)
+    local distantPoint = lovr.math.newVec3(pointedDirection):mul(10):add(handPos)
     ray.from = handPos
     ray.to = distantPoint
 
