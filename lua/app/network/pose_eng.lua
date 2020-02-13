@@ -58,33 +58,29 @@ function PoseEng:onUpdate(dt)
 
       -- Raycast from the left hand
       self.parent.physics.world:raycast(handPos.x, handPos.y, handPos.z, distantPoint.x, distantPoint.y, distantPoint.z, function(shape)
-        print("colliding with: ", shape:getCollider():getUserData().id, " at ", lovr.timer.getTime())
-
+       
+        -- TODO: Set the correct point of intersection (i.e. not just the "distantPoint")
+        -- self.parent:sendInteraction({
+        --   type = "one-way",
+        --   receiver_entity_id = shape:getCollider():getUserData().id,
+        --   body = {"point", {handPos.x, handPos.y, handPos.z}, {distantPoint.x, distantPoint.y, distantPoint.z}}
+        -- })
 
         if lovr.headset.wasPressed("hand/left", "trigger") then
-          -- Set poke to true
-          --print("poke is true: ", shape:getCollider():getUserData().id)
-
           self.parent:sendInteraction({
             type = "request",
             receiver_entity_id = shape:getCollider():getUserData().id,
             body = {"poke", true}
           })
-
         end
 
         if lovr.headset.wasReleased("hand/left", "trigger") then
-          -- Set poke to false
-          --print("poke: ", shape:getCollider():getUserData().id)
-
           self.parent:sendInteraction({
             type = "request",
             receiver_entity_id = shape:getCollider():getUserData().id,
             body = {"poke", false}
           })
-
         end
-
 
       end)
     end

@@ -212,7 +212,6 @@ function NetworkScene:sendInteraction(interaction)
     interaction.request_id = "" -- todo, fix this in allonet
   end
   interaction.body = json.encode(interaction.body)
-  print("Sending interaction", interaction)
   self.client:send_interaction(interaction)
 end
 
