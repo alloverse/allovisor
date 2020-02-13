@@ -23,8 +23,8 @@ elseif os == "macOS" then
   print("loading liballonet from exe...")
   pkg, err = package.loadlib(lovr.filesystem.getExecutablePath(), "luaopen_liballonet")
 elseif os == "Android" then
-  print("loading liballonet from lovr.so...")
-  pkg, err = package.loadlib("lovr.so", "luaopen_liballonet")
+  print("loading liballonet from liblovr.so...")
+  pkg, err = package.loadlib("liblovr.so", "luaopen_liballonet")
 else
   error("don't know how to load allonet")
 end
