@@ -2,6 +2,8 @@ namespace("networkscene", "alloverse")
 
 local json = require "json"
 local Entity, componentClasses = unpack(require("app.network.entity"))
+local array2d = require "pl.array2d"
+local tablex = require "pl.tablex"
 
 local GraphicsEng = classNamed("GraphicsEng", Ent)
 function GraphicsEng:_init()
@@ -93,7 +95,15 @@ function GraphicsEng:onDraw()
         
         self.models[geom.name]:draw(mat)
       elseif geom.type == "inline" then
-          
+        -- Flatten the 2d arrays
+        local verts = array2d.flatten(geom.vertices)
+        local indices = array2d.flatten(geom.triangles)
+        -- map indices to coordinates
+        local tris = tablex.map(function (i) return {verts[i + 1], verts[i + 2], verts[i + 3]} end, indices)
+        local data = array2d.flatten(tris)
+        -- Draw in a nice color
+        lovr.graphics.setColor(1, 0, 0)
+        lovr.graphics.triangle('fill', unpack(data))
       end
     end
   end
