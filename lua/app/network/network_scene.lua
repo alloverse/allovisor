@@ -208,6 +208,8 @@ function NetworkScene:sendInteraction(interaction)
   end
   if interaction.type == "request" then
     interaction.request_id = string.random(16)
+  else
+    interaction.request_id = "" -- todo, fix this in allonet
   end
   interaction.body = json.encode(interaction.body)
   print("Sending interaction", interaction)
