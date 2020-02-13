@@ -95,6 +95,7 @@ function NetworkScene:_init(displayName, url)
     entities = {}
   }
   self.avatar_id = ""
+  self.outstanding_response_callbacks = {}
   self.client:set_state_callback(function() self:route("onStateChanged") end)
   self.client:set_interaction_callback(function(inter) self:onInteractionInternal(inter) end)
   self.client:set_disconnected_callback(function() self:route("onDisconnect") end)
@@ -196,18 +197,25 @@ function NetworkScene:onInteraction(interaction)
     local place_name = interaction.body[3]
     print("Welcome to", place_name, ". You are", avatar_id)
     self.avatar_id = avatar_id
-  else
-    print("Incoming interaction", pretty.write(interaction))
+  elseif interaction.type == "response" then
+    local callback = self.outstanding_response_callbacks[interaction.request_id]
+    if callback ~= nil then
+      callback(interaction)
+      self.outstanding_response_callbacks[interaction.request_id] = nil
+    end
   end
 end
 
-function NetworkScene:sendInteraction(interaction)
+function NetworkScene:sendInteraction(interaction, callback)
   if interaction.sender_entity_id == nil then
     assert(self.avatar_id ~= nil)
     interaction.sender_entity_id = self.avatar_id
   end
   if interaction.type == "request" then
     interaction.request_id = string.random(16)
+    if callback ~= nil then
+      self.outstanding_response_callbacks[interaction.request_id] = callback
+    end
   else
     interaction.request_id = "" -- todo, fix this in allonet
   end
