@@ -133,7 +133,7 @@ function MenuScene:onUpdate(dt)
     -- todo: shown "down" state on down, and only trigger on release if still within bounds.
     -- this should also fix "accidentally connect to localhost after disconnect" problem
 
-    if lovr.headset.wasReleased(hand, "trigger") and ray.currentMenuItem ~= nil then
+    if lovr.headset.isDown(hand, "trigger") and ray.currentMenuItem ~= nil then
       lovr.headset.vibrate(hand, 0.7, 0.2, 100)
       ray.currentMenuItem.action()
     end
