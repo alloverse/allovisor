@@ -74,9 +74,9 @@ function NetworkScene:_init(displayName, url)
           },
           collider = {
             type = "box",
-            width = 1,
-            height = 1,
-            depth = 1
+            width = 0.1,
+            height = 0.1,
+            depth = 0.1
           },
           intent = {
             actuate_pose = "head"

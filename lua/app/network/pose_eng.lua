@@ -57,14 +57,36 @@ function PoseEng:onUpdate(dt)
       local distantPoint = lefthand.components.transform:getMatrix():mul(lovr.math.vec3(0,0,-10))      
 
       -- Raycast from the left hand
-      -- self.parent.physics.world:raycast(handPos.x, handPos.y, handPos.z, distantPoint.x, distantPoint.y, distantPoint.z, function(shape)
-      --   for colliderCount = 1, table.getn(colliderArray) do
-      --     if (colliderArray[colliderCount]:getShapes()[1] == shape) then
-      --       print("Colliding with item " .. colliderCount)
-      --       --collidedMenuItemIndex = colliderCount
-      --     end
-      --   end
-      -- end)
+      self.parent.physics.world:raycast(handPos.x, handPos.y, handPos.z, distantPoint.x, distantPoint.y, distantPoint.z, function(shape)
+        print("colliding with: ", shape:getCollider():getUserData().id, " at ", lovr.timer.getTime())
+
+
+        if lovr.headset.wasPressed("hand/left", "trigger") then
+          -- Set poke to true
+          --print("poke is true: ", shape:getCollider():getUserData().id)
+
+          self.parent:sendInteraction({
+            type = "request",
+            receiver_entity_id = shape:getCollider():getUserData().id,
+            body = {"poke", true}
+          })
+
+        end
+
+        if lovr.headset.wasReleased("hand/left", "trigger") then
+          -- Set poke to false
+          --print("poke: ", shape:getCollider():getUserData().id)
+
+          self.parent:sendInteraction({
+            type = "request",
+            receiver_entity_id = shape:getCollider():getUserData().id,
+            body = {"poke", false}
+          })
+
+        end
+
+
+      end)
     end
   end
 
