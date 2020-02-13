@@ -95,15 +95,10 @@ function GraphicsEng:onDraw()
         
         self.models[geom.name]:draw(mat)
       elseif geom.type == "inline" then
-        -- Flatten the 2d arrays
-        local verts = array2d.flatten(geom.vertices)
-        local indices = array2d.flatten(geom.triangles)
-        -- map indices to coordinates
-        local tris = tablex.map(function (i) return {verts[i + 1], verts[i + 2], verts[i + 3]} end, indices)
-        local data = array2d.flatten(tris)
-        -- Draw in a nice color
+        -- lovr.graphics.setColor(0, 0, 1)
+        -- drawInlineGeomTriangles(geom)
         lovr.graphics.setColor(1, 0, 0)
-        lovr.graphics.triangle('fill', unpack(data))
+        drawInlineGeomMesh(geom)
       end
     end
   end
@@ -111,6 +106,31 @@ end
 
 function GraphicsEng:onUpdate(dt)
 
+end
+
+function drawInlineGeomMesh(geom) 
+  local verts = geom.vertices
+  local z_indices = array2d.flatten(geom.triangles)
+  local indices = tablex.map(function (x) return x + 1 end, z_indices)
+  local mesh = lovr.graphics.newMesh(
+    verts, -- vertices (or other types, see docs)
+    'triangles', -- DrawMode
+    'static', -- MeshUsage. dynamic, static, stream
+    false -- do we need to read the data from the mesh later
+  )
+  mesh:setVertexMap(indices)
+  mesh:draw()
+end
+
+function drawInlineGeomTriangles(geom)
+  -- Flatten the 2d arrays
+  local verts = array2d.flatten(geom.vertices)
+  local indices = array2d.flatten(geom.triangles)
+  -- map indices to coordinates
+  local tris = tablex.map(function (i) return {verts[i + 1], verts[i + 2], verts[i + 3]} end, indices)
+  local data = array2d.flatten(tris)
+  
+  lovr.graphics.triangle('fill', unpack(data))
 end
 
 return GraphicsEng
