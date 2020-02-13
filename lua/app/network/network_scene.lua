@@ -9,6 +9,7 @@ local GraphicsEng = require "app.network.graphics_eng"
 local PoseEng = require "app.network.pose_eng"
 local PhysicsEng = require "app.network.physics_eng"
 local OverlayMenuScene = require "app.menu.overlay_menu_scene"
+require "lib.random_string"
 
 -- load allonet from dll
 local os = lovr.getOS()    
@@ -95,7 +96,7 @@ function NetworkScene:_init(displayName, url)
   }
   self.avatar_id = ""
   self.client:set_state_callback(function() self:route("onStateChanged") end)
-  self.client:set_interaction_callback(function(inter) self:route("onInteraction", inter) end)
+  self.client:set_interaction_callback(function(inter) self:onInteractionInternal(inter) end)
   self.client:set_disconnected_callback(function() self:route("onDisconnect") end)
   
   self:super()
@@ -184,18 +185,33 @@ function NetworkScene:onStateChanged()
   tablex.map(function(x) self:route("onComponentRemoved", x.key, x) end, deletedComponents)
 end
 
+function NetworkScene:onInteractionInternal(interaction)
+  interaction.body = json.decode(interaction.body)
+  self:route("onInteraction", interaction)
+end
+
 function NetworkScene:onInteraction(interaction)
-  local body = json.decode(interaction.body)
-  if interaction.type == "response" and body[1] == "announce" then
-    local avatar_id = body[2]
-	local place_name = body[3]
-	print("Welcome to", place_name, ". You are", avatar_id)
-	self.avatar_id = avatar_id
+  if interaction.type == "response" and interaction.body[1] == "announce" then
+    local avatar_id = interaction.body[2]
+    local place_name = interaction.body[3]
+    print("Welcome to", place_name, ". You are", avatar_id)
+    self.avatar_id = avatar_id
+  else
+    print("Incoming interaction", pretty.write(interaction))
   end
 end
 
 function NetworkScene:sendInteraction(interaction)
-  self.client.send_interaction(interaction)
+  if interaction.sender_entity_id == nil then
+    assert(self.avatar_id ~= nil)
+    interaction.sender_entity_id = self.avatar_id
+  end
+  if interaction.type == "request" then
+    interaction.request_id = string.random(16)
+  end
+  interaction.body = json.encode(interaction.body)
+  print("Sending interaction", interaction)
+  self.client:send_interaction(interaction)
 end
 
 function NetworkScene:getAvatar()
