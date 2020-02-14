@@ -4,6 +4,7 @@ local json = require "json"
 local Entity, componentClasses = unpack(require("app.network.entity"))
 local array2d = require "pl.array2d"
 local tablex = require "pl.tablex"
+local pretty = require "pl.pretty"
 
 local GraphicsEng = classNamed("GraphicsEng", Ent)
 function GraphicsEng:_init()
@@ -93,13 +94,9 @@ function GraphicsEng:onDraw()
           lovr.graphics.setColor({1,1,1})
         end
         
-        self.models[geom.name]:draw(mat)
-      elseif geom.type == "inline" then
-        -- lovr.graphics.setColor(0, 0, 1)
-        -- drawInlineGeomTriangles(geom)
-        lovr.graphics.setColor(1, 0, 0)
-        drawInlineGeomMesh(geom)
       end
+      -- XXX: the bleep bloop seems to get a wonky mat
+      geom.model:draw(mat)
     end
   end
 end
@@ -108,29 +105,80 @@ function GraphicsEng:onUpdate(dt)
 
 end
 
-function drawInlineGeomMesh(geom) 
-  local verts = geom.vertices
-  local z_indices = array2d.flatten(geom.triangles)
-  local indices = tablex.map(function (x) return x + 1 end, z_indices)
-  local mesh = lovr.graphics.newMesh(
-    verts, -- vertices (or other types, see docs)
-    'triangles', -- DrawMode
-    'static', -- MeshUsage. dynamic, static, stream
-    false -- do we need to read the data from the mesh later
-  )
-  mesh:setVertexMap(indices)
-  mesh:draw()
+function GraphicsEng:onComponentAdded(component_key, component)
+  if component_key ~= "geometry" then
+    return
+  end
+
+  local entity = component:getEntity()
+
+  if component.type == "hardcoded-model" then
+    entity.components.geometry.model = self.models[component.name]
+  elseif component.type == "inline" then 
+    entity.components.geometry.model = createMesh(component)
+  end
+
 end
 
-function drawInlineGeomTriangles(geom)
-  -- Flatten the 2d arrays
-  local verts = array2d.flatten(geom.vertices)
-  local indices = array2d.flatten(geom.triangles)
-  -- map indices to coordinates
-  local tris = tablex.map(function (i) return {verts[i + 1], verts[i + 2], verts[i + 3]} end, indices)
-  local data = array2d.flatten(tris)
-  
-  lovr.graphics.triangle('fill', unpack(data))
+-- function GraphicsEng:onComponentRemoved(component_key, component)
+
+-- end
+
+function createMesh(geom)
+  -- convert the flattened zero-based indices list
+  local z_indices = array2d.flatten(geom.triangles)
+  -- convert to 1-based 
+  local indices = tablex.map(function (x) return x + 1 end, z_indices)
+  -- zip together verts, normals, and uv
+  local combined = tablex.zip(
+    geom.vertices, 
+    -- geom.normals, 
+    geom.uvs
+  )
+  -- flatten the inner tables
+  local vertices = tablex.map(function (x) return array2d.flatten(x) end, combined)
+
+  -- Setup the mesh
+  local mesh = lovr.graphics.newMesh({
+    { 'lovrPosition', 'float', 3 },
+    -- { 'lovrNormal', 'float', 3 },
+    { 'lovrTexCoord', 'float', 2 }
+  },
+  vertices,
+  'triangles', -- DrawMode
+  'static', -- MeshUsage. dynamic, static, stream
+  false -- do we need to read the data from the mesh later
+)
+
+  mesh:setVertices(vertices)
+  mesh:setVertexMap(indices)
+
+  -- decode texture data and setup material
+  local data = base64decode(geom.texture)
+  local blob = lovr.data.newBlob(data, "texture")
+  local texture = lovr.graphics.newTexture(blob)
+  local material = lovr.graphics.newMaterial(texture)
+  mesh:setMaterial(material)
+
+  return mesh
+end
+
+
+-- decoding
+function base64decode(data)
+  local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/' -- You will need this for encoding/decoding
+  data = string.gsub(data, '[^'..b..'=]', '')
+  return (data:gsub('.', function(x)
+      if (x == '=') then return '' end
+      local r,f='',(b:find(x)-1)
+      for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end
+      return r;
+  end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
+      if (#x ~= 8) then return '' end
+      local c=0
+      for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end
+          return string.char(c)
+  end))
 end
 
 return GraphicsEng
