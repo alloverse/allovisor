@@ -36,7 +36,7 @@ function GraphicsEng:onLoad()
     back = 'assets/env/pz.png',
     front = 'assets/env/nz.png'
   }, { linear = true })
-  self.cloudSkybox = lovr.graphics.newTexture("assets/cloudy-skybox.jpg")
+  self.cloudSkybox = lovr.graphics.newTexture("assets/cloudy-sunset.png")
 
   local logoTex = lovr.graphics.newTexture("assets/alloverse-logo.png", {})
   self.logoMat = lovr.graphics.newMaterial(logoTex, 1, 1, 1, 1)

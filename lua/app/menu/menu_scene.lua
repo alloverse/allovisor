@@ -41,7 +41,7 @@ end
 
 function MenuScene:_init(items)
   self.world = lovr.physics.newWorld()
-  skybox = lovr.graphics.newTexture('assets/cloudy-skybox.jpg')
+  skybox = lovr.graphics.newTexture('assets/cloudy-sunset.png')
   self.menuItems = items
   for i, item in ipairs(items) do
     item:createCollider(self.world, i)
