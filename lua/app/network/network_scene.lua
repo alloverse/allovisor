@@ -17,7 +17,7 @@ local err = nil
 local pkg = nil
 if os == "Windows" then
   local exepath = lovr.filesystem.getExecutablePath()
-  local dllpath = string.gsub(exepath, "%w+.exe", "liballonet.dll")
+  local dllpath = string.gsub(exepath, "%w+.exe", "allonet.dll")
   print("loading liballonet from "..dllpath.."...")
   pkg, err = package.loadlib(dllpath, "luaopen_liballonet")
 elseif os == "macOS" then

@@ -16,17 +16,24 @@ add_subdirectory (deps/allonet)
 
 if(WIN32)
     target_link_libraries(lovr allonet)
-	
-	file(GLOB ZIP_FILES "${CMAKE_CURRENT_SOURCE_DIR}/lua/*")
+    
+    file(GLOB ZIP_FILES "${CMAKE_CURRENT_SOURCE_DIR}/lua/*")
     add_custom_command(
         OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Alloverse-win64.zip
         COMMAND ${CMAKE_COMMAND} -E make_directory  ${CMAKE_CURRENT_BINARY_DIR}/Alloverse
-		COMMAND copy deps\\lovr\\*.dll Alloverse
-        COMMAND copy deps\\allonet\\lib\\opus\\*.dll Alloverse
-		COMMAND copy deps\\allonet\\allonet.dll Alloverse\\liballonet.dll
-		COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_CURRENT_SOURCE_DIR}/lua ${CMAKE_COMMAND} -E tar c ${CMAKE_CURRENT_BINARY_DIR}/lua.zip --format=zip -- ${ZIP_FILES}
-		COMMAND copy /b deps\\lovr\\lovr.exe+lua.zip Alloverse\\Alloverse.exe
-		COMMAND ${CMAKE_COMMAND} -E tar c ${CMAKE_CURRENT_BINARY_DIR}/Alloverse-win64.zip --format=zip Alloverse
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:glfw> ${CMAKE_CURRENT_BINARY_DIR}/Alloverse
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:glfw> ${CMAKE_CURRENT_BINARY_DIR}/Alloverse
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libluajit> ${CMAKE_CURRENT_BINARY_DIR}/Alloverse
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ode> ${CMAKE_CURRENT_BINARY_DIR}/Alloverse
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:OpenAL> ${CMAKE_CURRENT_BINARY_DIR}/Alloverse
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:openvr_api64> ${CMAKE_CURRENT_BINARY_DIR}/Alloverse
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:lib_msdfgen> ${CMAKE_CURRENT_BINARY_DIR}/Alloverse
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:opus> ${CMAKE_CURRENT_BINARY_DIR}/Alloverse
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:allonet> ${CMAKE_CURRENT_BINARY_DIR}/Alloverse
+        COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_CURRENT_SOURCE_DIR}/lua ${CMAKE_COMMAND} -E tar c ${CMAKE_CURRENT_BINARY_DIR}/lua.zip --format=zip -- ${ZIP_FILES}
+        COMMAND echo copy /b $<SHELL_PATH:$<TARGET_FILE:lovr>>+lua.zip Alloverse\\Alloverse.exe
+        COMMAND copy /b $<SHELL_PATH:$<TARGET_FILE:lovr>>+lua.zip Alloverse\\Alloverse.exe
+        COMMAND ${CMAKE_COMMAND} -E tar c ${CMAKE_CURRENT_BINARY_DIR}/Alloverse-win64.zip --format=zip Alloverse
         DEPENDS lovr allonet
     )
     add_custom_target(
