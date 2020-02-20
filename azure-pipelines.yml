@@ -41,6 +41,7 @@ jobs:
     inputs:
       msbuildArchitecture: 'x64'
       createLogFile: true
+      solution: 'build\alloverse-dist.vcxproj'
   - task: CopyFiles@2
     displayName: "Stage artifacts"
     inputs:
