@@ -28,6 +28,28 @@ function PhysicsEng:onUpdate(dt)
 
 end
 
+function PhysicsEng:onDraw()
+  if self.parent.debug == false then
+    return
+  end
+
+  lovr.graphics.setShader()
+  lovr.graphics.setColor(0.5, 0.5, 1, 1)
+  for i, collider in ipairs(self.colliders) do
+    local entity = collider:getUserData()
+    local x, y, z = collider:getPosition()
+    local boxShape = collider:getShapes()[1]
+    local w, h, d = boxShape:getDimensions()
+    -- todo: rotation
+
+    lovr.graphics.box("line",
+      x, y, z,
+      w, h, d,
+      0, 0, 1, 0 -- rot
+    )
+  end
+end
+
 function PhysicsEng:onComponentAdded(component_key, component)
   if component_key ~= "collider" then
     return
