@@ -117,7 +117,7 @@ function NetworkScene:onStateChanged()
   -- While at it, also make Entities and their Components classes so they get convenience methods from entity.lua
 
   -- Entity:getSibling(eid) to get any entity from an entity.
-  local getSibling = function(id) return self.state.entities[id] end
+  local getSibling = function(this, id) return self.state.entities[id] end
 
   for eid, newEntity in pairs(newState.entities) do
     local existingEntity = oldEntities[eid]
