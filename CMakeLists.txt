@@ -31,7 +31,6 @@ if(WIN32)
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:opus> ${CMAKE_CURRENT_BINARY_DIR}/Alloverse
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:allonet> ${CMAKE_CURRENT_BINARY_DIR}/Alloverse
         COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_CURRENT_SOURCE_DIR}/lua ${CMAKE_COMMAND} -E tar c ${CMAKE_CURRENT_BINARY_DIR}/lua.zip --format=zip -- ${ZIP_FILES}
-        COMMAND echo copy /b $<SHELL_PATH:$<TARGET_FILE:lovr>>+lua.zip Alloverse\\Alloverse.exe
         COMMAND copy /b $<SHELL_PATH:$<TARGET_FILE:lovr>>+lua.zip Alloverse\\Alloverse.exe
         COMMAND ${CMAKE_COMMAND} -E tar c ${CMAKE_CURRENT_BINARY_DIR}/Alloverse-win64.zip --format=zip Alloverse
         DEPENDS lovr allonet
