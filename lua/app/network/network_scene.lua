@@ -99,7 +99,8 @@ function NetworkScene:_init(displayName, url)
   self.client:set_state_callback(function() self:route("onStateChanged") end)
   self.client:set_interaction_callback(function(inter) self:onInteractionInternal(inter) end)
   self.client:set_disconnected_callback(function() self:route("onDisconnect") end)
-  
+  self.debug = false
+
   self:super()
 end
 
@@ -248,6 +249,30 @@ function NetworkScene:onDisconnect()
 end
 
 function NetworkScene:onDraw()
+  if self.debug == false then
+    return
+  end
+
+  for eid, entity in pairs(self.state.entities) do
+    local trans = entity.components.transform
+
+    if trans ~= nil then
+      local mat = trans:getMatrix()
+      local pos = mat:mul(lovr.math.vec3())
+      local s = string.format("Entity[%s]", eid)
+      local parent = entity:getParent()
+      if parent then
+        s = string.format("%s\nParent: %s", s, parent.id )
+      end
+      lovr.graphics.print(s, 
+        pos.x, pos.y, pos.z,
+        0.001, --  scale
+        0, 0, 1, 0,
+        0, -- wrap
+        "left"
+      )
+    end
+  end
 end
 
 function NetworkScene:onUpdate(dt)
