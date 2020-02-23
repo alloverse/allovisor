@@ -104,6 +104,14 @@ function NetworkScene:_init(displayName, url)
   self:super()
 end
 
+function NetworkScene:onLoad()
+  -- Engines. These do the heavy lifting.
+  self.sound = SoundEng():insert(self)
+  self.graphics = GraphicsEng():insert(self)
+  self.pose = PoseEng():insert(self)
+  self.physics = PhysicsEng():insert(self)
+end
+
 function NetworkScene:onStateChanged()
   local newState = self.client:get_state()
   local oldEntities = tablex.copy(self.state.entities)
@@ -229,14 +237,6 @@ function NetworkScene:getAvatar()
 	return nil
   end
   return self.state.entities[self.avatar_id]
-end
-
-function NetworkScene:onLoad()
-  -- Engines. These do the heavy lifting.
-  self.sound = SoundEng():insert(self)
-  self.graphics = GraphicsEng():insert(self)
-  self.pose = PoseEng():insert(self)
-  self.physics = PhysicsEng():insert(self)
 end
 
 function NetworkScene:onDisconnect()
