@@ -22,7 +22,7 @@ function PhysicsEng:onUpdate(dt)
     local matrix = entity.components.transform:getMatrix()
 
     local position = matrix:mul(lovr.math.vec3())
-
+    -- todo: rotation
     collider:setPosition(position:unpack())
   end
 
@@ -34,13 +34,20 @@ function PhysicsEng:onDraw()
   end
 
   lovr.graphics.setShader()
-  lovr.graphics.setColor(0.5, 0.5, 1, 1)
   for i, collider in ipairs(self.colliders) do
     local entity = collider:getUserData()
     local x, y, z = collider:getPosition()
     local boxShape = collider:getShapes()[1]
     local w, h, d = boxShape:getDimensions()
     -- todo: rotation
+
+    if entity == self.parent.pose.pokedEntity then
+      lovr.graphics.setColor(1.0, 0.5, 0.5, 1)
+    elseif self.parent.pose.hoveredEntity then
+      lovr.graphics.setColor(1.0, 0.5, 1.0, 1)
+    else
+      lovr.graphics.setColor(0.5, 0.5, 1.0, 1)
+    end
 
     lovr.graphics.box("line",
       x, y, z,
