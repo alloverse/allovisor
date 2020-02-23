@@ -84,7 +84,7 @@ function PoseEng:updatePointing()
     --   body = {"point", {handPos.x, handPos.y, handPos.z}, {hx, hy, hz}}
     -- })
 
-    if lovr.headset.wasPressed("hand/left", "trigger") then
+    if self.pokedEntity == nil and lovr.headset.isDown("hand/left", "trigger") then
       self.pokedEntity = self.hoveredEntity
       self.parent:sendInteraction({
         type = "request",
@@ -94,7 +94,7 @@ function PoseEng:updatePointing()
     end
   end
 
-  if self.pokedEntity and lovr.headset.wasReleased("hand/left", "trigger") then
+  if self.pokedEntity and not lovr.headset.isDown("hand/left", "trigger") then
     self.parent:sendInteraction({
       type = "request",
       receiver_entity_id = self.pokedEntity.id,

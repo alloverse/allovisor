@@ -42,7 +42,7 @@ function PhysicsEng:onDraw()
     -- todo: rotation
 
     if entity == self.parent.pose.pokedEntity then
-      lovr.graphics.setColor(1.0, 0.5, 0.5, 1)
+      lovr.graphics.setColor(1.0, 0.2, 0.2, 1)
     elseif self.parent.pose.hoveredEntity then
       lovr.graphics.setColor(1.0, 0.5, 1.0, 1)
     else
