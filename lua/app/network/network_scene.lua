@@ -258,12 +258,14 @@ function NetworkScene:onDraw()
 
     if trans ~= nil then
       local mat = trans:getMatrix()
+      local rowmajor_mat = lovr.math.mat4(mat):transpose()
       local pos = mat:mul(lovr.math.vec3())
       local s = string.format("Entity[%s]", eid)
       local parent = entity:getParent()
       if parent then
         s = string.format("%s\nParent: %s", s, parent.id )
       end
+      s = string.format("%s\n %.1f %.1f %.1f %.1f\n%.1f %.1f %.1f %.1f\n%.1f %.1f %.1f %.1f\n%.1f %.1f %.1f %.1f", s, rowmajor_mat:unpack(true))
       lovr.graphics.print(s, 
         pos.x, pos.y, pos.z,
         0.001, --  scale
