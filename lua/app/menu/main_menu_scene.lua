@@ -15,7 +15,9 @@ function MainMenuScene:_init()
   return self:super(mainMenuItems)
 end
 
+function MainMenuScene:onLoad()
   --self:openPlace("alloplace://localhost")
+end
 
 function MainMenuScene:toggleDebug()
   self.debug = not self.debug
