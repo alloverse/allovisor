@@ -31,6 +31,15 @@ function HandRay:highlightItem(item)
     self.currentMenuItem.isHighlighted = true
   end
 end
+function HandRay:selectItem(item)
+  if self.selectedMenuItem ~= nil then
+    self.selectedMenuItem.isSelected = false
+  end
+  self.selectedMenuItem = item
+  if self.selectedMenuItem ~= nil then
+    self.selectedMenuItem.isSelected = true
+  end
+end
 function HandRay:getColor()
   if self.currentMenuItem ~= nil then
     return COLOR_ALLOVERSE_ORANGE
@@ -66,13 +75,17 @@ end
 function MenuScene:drawMenuItem(item)
   local menuItemY = y-((MENU_ITEM_HEIGHT+MENU_ITEM_VERTICAL_PADDING)*item.index)
 
-  if (item.isHighlighted) then
+  if item.isHighlighted then
     lovr.graphics.setColor(COLOR_ALLOVERSE_ORANGE_DARK)
   else
     lovr.graphics.setColor(COLOR_ALLOVERSE_ORANGE)
   end
-  
-  lovr.graphics.plane('fill', x, menuItemY, z, MENU_ITEM_WIDTH, MENU_ITEM_HEIGHT)
+
+  local myZ = z
+  if item.isSelected then
+    myZ = z - 0.045
+  end
+  lovr.graphics.plane('fill', x, menuItemY, myZ, MENU_ITEM_WIDTH, MENU_ITEM_HEIGHT)
   lovr.graphics.setColor(COLOR_BLACK)
   lovr.graphics.plane('fill', x, menuItemY, z-0.05, MENU_ITEM_WIDTH, MENU_ITEM_HEIGHT)
   
@@ -82,7 +95,8 @@ end
 function MenuScene:drawMenu()
   lovr.graphics.setColor(COLOR_WHITE)
   lovr.graphics.setFont(menuFont)
-  lovr.graphics.plane('fill', x, y-0.6, z-0.1, 1.2, 1)
+  local h = (MENU_ITEM_HEIGHT+MENU_ITEM_VERTICAL_PADDING)*#self.menuItems + MENU_ITEM_VERTICAL_PADDING*2
+  lovr.graphics.plane('fill', x, y-h/2, z-0.1, 1.2, h)
 
   for i, item in ipairs(self.menuItems) do
     self:drawMenuItem(item)
@@ -133,9 +147,16 @@ function MenuScene:onUpdate(dt)
     -- todo: shown "down" state on down, and only trigger on release if still within bounds.
     -- this should also fix "accidentally connect to localhost after disconnect" problem
 
-    if lovr.headset.isDown(hand, "trigger") and ray.currentMenuItem ~= nil then
+    if lovr.headset.isDown(hand, "trigger") and ray.currentMenuItem ~= nil and ray.selectedMenuItem == nil then
+      ray:selectItem(ray.currentMenuItem)
       lovr.headset.vibrate(hand, 0.7, 0.2, 100)
-      ray.currentMenuItem.action()
+    end
+    if not lovr.headset.isDown(hand, "trigger") and ray.selectedMenuItem ~= nil then
+      if ray.currentMenuItem == ray.selectedMenuItem then
+        lovr.headset.vibrate(hand, 0.7, 0.2, 100)
+        ray.currentMenuItem.action()
+      end
+      ray:selectItem(nil)
     end
   end
 end

@@ -5,6 +5,7 @@ function MenuItem:_init(label, action)
   self.label = label
   self.action = action
   self.isHighlighted = false
+  self.isSelected = false
 end
 
 function MenuItem:createCollider(world, index)
