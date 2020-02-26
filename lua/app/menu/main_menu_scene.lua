@@ -8,14 +8,24 @@ function MainMenuScene:_init()
   local mainMenuItems = {
     MenuItem("Nevyn's place", function() self:openPlace("alloplace://nevyn.places.alloverse.com") end),
     MenuItem("Localhost", function() self:openPlace("alloplace://localhost") end),
+    MenuItem("Debug (off)", function() self:toggleDebug() end),
     MenuItem("Quit", function() lovr.event.quit(0) end),
   }
+  self.debug = false
   return self:super(mainMenuItems)
+end
+
+  --self:openPlace("alloplace://localhost")
+
+function MainMenuScene:toggleDebug()
+  self.debug = not self.debug
+  self.menuItems[3].label = string.format("Debug (%s)", self.debug and "on" or "off")
 end
 
 function MainMenuScene:openPlace(url)
   local displayName = "Mario"
   local scene = lovr.scenes.network(displayName, url)
+  scene.debug = self.debug
   scene:insert()
   queueDoom(self)
 end
