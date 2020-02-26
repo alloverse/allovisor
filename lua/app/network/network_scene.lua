@@ -44,52 +44,56 @@ print("allonet loaded")
 -- Engines should, in turn, manage roughly one component type.
 local NetworkScene = classNamed("NetworkScene", Ent)
 function NetworkScene:_init(displayName, url)
+  local avatar = {
+    children = {
+      {
+        geometry = {
+          type = "hardcoded-model",
+          name = "lefthand"
+        },
+        intent = {
+          actuate_pose = "hand/left"
+        }
+      },
+      {
+        geometry = {
+          type = "hardcoded-model",
+          name = "righthand"
+        },
+        intent = {
+          actuate_pose = "hand/right"
+        }
+      },
+      {
+        geometry = {
+          type = "hardcoded-model",
+          name = "head"
+        },
+        collider = {
+          type = "box",
+          width = 0.1,
+          height = 0.1,
+          depth = 0.1
+        },
+        intent = {
+          actuate_pose = "head"
+        }
+      }
+    },
+    live_media = {
+      track_id = 0,
+      sample_rate = 48000,
+      channel_count = 1,
+      format = "opus"
+    }
+  }
+  if lovr.headset.getDriver() == "desktop" then
+    table.remove(avatar.children, 2) -- remove right hand as it can't be simulated
+  end
   self.client = allonet.connect(
     url,
     json.encode({display_name = displayName}),
-    json.encode({
-      children = {
-        {
-          geometry = {
-            type = "hardcoded-model",
-            name = "lefthand"
-          },
-          intent = {
-            actuate_pose = "hand/left"
-          }
-        },
-        {
-          geometry = {
-            type = "hardcoded-model",
-            name = "righthand"
-          },
-          intent = {
-            actuate_pose = "hand/right"
-          }
-        },
-        {
-          geometry = {
-            type = "hardcoded-model",
-            name = "head"
-          },
-          collider = {
-            type = "box",
-            width = 0.1,
-            height = 0.1,
-            depth = 0.1
-          },
-          intent = {
-            actuate_pose = "head"
-          }
-        }
-      },
-      live_media = {
-        track_id = 0,
-        sample_rate = 48000,
-        channel_count = 1,
-        format = "opus"
-	  }
-    })
+    json.encode(avatar)
   )
   self.state = {
     entities = {}
@@ -99,7 +103,6 @@ function NetworkScene:_init(displayName, url)
   self.client:set_state_callback(function() self:route("onStateChanged") end)
   self.client:set_interaction_callback(function(inter) self:onInteractionInternal(inter) end)
   self.client:set_disconnected_callback(function() self:route("onDisconnect") end)
-  self.debug = false
 
   self:super()
 end
