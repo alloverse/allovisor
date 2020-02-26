@@ -59,6 +59,8 @@ function GraphicsEng:onLoad()
 end
 
 function GraphicsEng:onDraw()  
+  lovr.graphics.setShader()
+  lovr.graphics.setColor(1,1,1)
   lovr.graphics.skybox(self.cloudSkybox)
   
   lovr.graphics.setBackgroundColor(.3, .3, .40)
