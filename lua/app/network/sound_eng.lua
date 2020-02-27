@@ -38,6 +38,28 @@ end
 
 function SoundEng:onStateChanged()
   -- todo: position sources at their entities
+
+  for _, entity in pairs(self.parent.state.entities) do
+    self:setAudioPositionForEntitiy(entity)
+  end
+end
+
+
+-- set position of audio for each entity that has a track_id assigned
+function SoundEng:setAudioPositionForEntitiy(entity)
+  local media = entity.components.live_media 
+
+  if media == nil then return end
+
+  local track_id = media.track_id
+  local track = self.audio[track_id]
+
+  if track == nil then return end 
+
+  local matrix = entity.components.transform:getMatrix()
+  local position = matrix:mul(lovr.math.vec3())
+
+  track.source:setPosition(position:unpack())
 end
 
 function SoundEng:onDraw()
