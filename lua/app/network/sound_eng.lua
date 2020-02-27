@@ -40,6 +40,31 @@ function SoundEng:onStateChanged()
   -- todo: position sources at their entities
 end
 
+function SoundEng:onDraw()
+  if self.debug == false then
+    return
+  end
+
+  lovr.graphics.setColor(1.0, 0.0, 1.0, 0.5)
+  for track_id, audio in pairs(self.audio) do
+    local x, y, z = audio.source:getPosition()
+    lovr.graphics.sphere(
+      x, y, z,
+      0.1,
+      0, 0, 1, 0 -- rot
+    )
+
+    local s = string.format("%d", track_id)
+    lovr.graphics.print(s, 
+      x, y+0.15, z,
+      0.01, --  scale
+      0, 0, 1, 0,
+      0, -- wrap
+      "left"
+    )
+  end
+end
+
 function SoundEng:onDisconnect()
   if self.mic ~= nil then
     self.mic:stopRecording()
