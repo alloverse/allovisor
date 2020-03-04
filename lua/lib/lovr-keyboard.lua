@@ -144,6 +144,22 @@ function keyboard.isDown(key, ...)
   return C.glfwGetKey(window, keycode) == 1 or keyboard.isDown(...)
 end
 
+local historic_values = {}
+function keyboard.wasPressed(key)
+  local isDown = keyboard.isDown(key)
+  local wasDown = historic_values[key] == true
+  local wasPressed = isDown == true and wasDown == false
+  historic_values[key] = isDown
+  return wasPressed
+end
+function keyboard.wasReleased(key)
+  local isDown = keyboard.isDown(key)
+  local wasDown = historic_values[key]
+  local wasReleased = wasDown == true and isDown == false
+  historic_values[key] = isDown
+  return wasReleased
+end
+
 C.glfwSetKeyCallback(window, function(window, key, scancode, action, mods)
   if action ~= 2 and keymap[key] then
     lovr.event.push(action > 0 and 'keypressed' or 'keyreleased', keymap[key])

@@ -3,6 +3,7 @@ namespace("networkscene", "alloverse")
 local json = require "json"
 local tablex = require "pl.tablex"
 local Entity, componentClasses = unpack(require("app.network.entity"))
+local keyboard = (lovr.getOS() == "Windows" or lovr.getOS() == "macOS") and require "lib.lovr-keyboard" or nil
 
 local PoseEng = classNamed("PoseEng", Ent)
 function PoseEng:_init()
@@ -30,6 +31,7 @@ function PoseEng:onUpdate(dt)
 end
 
 function PoseEng:updateIntent()
+  -- root entity movement
   local mx, my = lovr.headset.getAxis("hand/left", "thumbstick")
   local tx, ty = lovr.headset.getAxis("hand/right", "thumbstick")
   self.yaw = self.yaw - (tx/30.0)
@@ -40,6 +42,27 @@ function PoseEng:updateIntent()
     pitch = 0.0,
     poses = {}
   }
+
+  if keyboard then
+    if keyboard.isDown("j") then
+      intent.xmovement = -1
+    elseif keyboard.isDown("l") then
+      intent.xmovement = 1
+    end
+    if keyboard.isDown("i") then
+      intent.zmovement = -1
+    elseif keyboard.isDown("k") then
+      intent.zmovement = 1
+    end
+    if keyboard.wasPressed("u") then
+      intent.yaw = self.yaw - 3.141592 / 4 -- 45deg snap turns
+    elseif keyboard.wasPressed("o") then
+      intent.yaw = self.yaw + 3.141592 / 4 -- 45deg snap turns
+    end
+    self.yaw = intent.yaw
+  end
+
+  -- child entity positioning
   for i, device in ipairs({"head", "hand/left", "hand/right"}) do
     intent.poses[device] = {
       matrix = pose2matrix(lovr.headset.getPose(device))
