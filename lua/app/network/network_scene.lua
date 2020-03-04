@@ -106,8 +106,8 @@ end
 
 function NetworkScene:onLoad()
   -- Engines. These do the heavy lifting.
-  self.sound = SoundEng():insert(self)
   self.graphics = GraphicsEng():insert(self)
+  self.sound = SoundEng():insert(self)
   self.pose = PoseEng():insert(self)
   self.physics = PhysicsEng():insert(self)
 end
