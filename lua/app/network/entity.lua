@@ -8,7 +8,17 @@ function Entity:getParent()
     return nil
 end
 
+-- Implemented as a field override in NetworkScene:onStateChanged
+function Entity:getSibling(eid)
+  return nil
+end
+
 local Component = classNamed("Component")
+
+-- Implemented as a field override in NetworkScene:onStateChanged
+function Component:getEntity()
+  return nil
+end
 
 local TransformComponent = classNamed("TransformComponent", Component)
 function TransformComponent:getMatrix()

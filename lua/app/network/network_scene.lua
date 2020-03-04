@@ -137,7 +137,6 @@ function NetworkScene:onStateChanged()
       setmetatable(entity, Entity)
       entity.getSibling = getSibling
       table.insert(newEntities, entity)
-      tablex.insertvalues(newComponents, entity.components)
       self.state.entities[eid] = newEntity
     end
     
@@ -176,9 +175,9 @@ function NetworkScene:onStateChanged()
   -- check for deleted entities
   for eid, oldEntity in pairs(oldEntities) do
     local newEntity = newState.entities[eid]
-    if newEntity == nil then
+    if newEntity == nil then      
       table.insert(deletedEntities, oldEntity)
-      tablex.insertvalues(deletedComponents, oldEntity.components)
+      tablex.insertvalues(deletedComponents, tablex.values(oldEntity.components))
       self.state.entities[eid] = nil
     end
   end

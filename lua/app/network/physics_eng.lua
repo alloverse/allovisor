@@ -8,7 +8,7 @@ local PhysicsEng = classNamed("PhysicsEng", Ent)
 function PhysicsEng:_init()
   self:super()
 
-  self.colliders = {}
+  self.colliders = {} -- [entity_id] = collider
 end
 
 function PhysicsEng:onLoad()
@@ -17,7 +17,7 @@ end
 
 function PhysicsEng:onUpdate(dt)
   
-  for i, collider in ipairs(self.colliders) do
+  for eid, collider in pairs(self.colliders) do
     local entity = collider:getUserData()
     local matrix = entity.components.transform:getMatrix()
 
@@ -34,7 +34,7 @@ function PhysicsEng:onDraw()
   end
 
   lovr.graphics.setShader()
-  for i, collider in ipairs(self.colliders) do
+  for eid, collider in pairs(self.colliders) do
     local entity = collider:getUserData()
     local x, y, z = collider:getPosition()
     local boxShape = collider:getShapes()[1]
@@ -68,7 +68,7 @@ function PhysicsEng:onComponentAdded(component_key, component)
   entity.collider = collider
   collider:setUserData(entity)
 
-  table.insert(self.colliders, collider)
+  self.colliders[entity.id] = collider
 end
 
 function PhysicsEng:onComponentRemoved(component_key, component)
@@ -77,10 +77,11 @@ function PhysicsEng:onComponentRemoved(component_key, component)
     return
   end
 
-  local collider = table.remove(tablex.find(self.colliders, component:getEntity().collider))
+  local eid = component.getEntity().id
+  local collider = self.colliders[eid]
 
+  self.colliders[eid] = nil
   collider:setUserData(nil)
-
   collider:destroy()  
 end
 
