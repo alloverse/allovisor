@@ -25,7 +25,7 @@ function TransformComponent:getMatrix()
     local parent = self:getEntity():getParent()
     local myMatrix = lovr.math.mat4(unpack(self.matrix))
     if parent ~= nil then
-        return myMatrix:mul(parent.components.transform:getMatrix())
+        return parent.components.transform:getMatrix():mul(myMatrix)
     else
         return myMatrix
     end
