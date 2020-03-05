@@ -66,6 +66,31 @@ jobs:
     env:
       PATH: "/Users/runner/Library/Android/sdk/cmake/3.6.4111459/bin:/Applications/Android Studio.app/Contents/jre/jdk/Contents/Home/bin:~/Library/Android/sdk/platform-tools:~/Library/Android/sdk/tools/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin"
       ANDROID_HOME: "~/Library/Android/sdk"
+  - task: DownloadSecureFile@1
+    name: debugKeys
+    displayName: 'Download debug signing keys'
+    inputs:
+      secureFile: 'android.debug.keystore'
+  - script: |
+      echo Moving key into place...
+      ln -s $(debugKeys.secureFilePath) $(Build.Repository.LocalPath)/deps/lovr-android/LovrApp/Projects/Android/android.debug.keystore
+  - task: DownloadSecureFile@1
+    name: releaseKeys
+    displayName: 'Download release signing keys'
+    inputs:
+      secureFile: 'android.release.keystore'
+  - script: |
+      echo Moving key into place...
+      ln -s $(releaseKeys.secureFilePath) $(Build.Repository.LocalPath)/deps/lovr-android/LovrApp/Projects/Android/android.release.keystore
+  - task: DownloadSecureFile@1
+    name: keyPasswords
+    displayName: 'Download signing passwords'
+    inputs:
+      secureFile: 'keys.properties'
+  - script: |
+      echo Moving key passwords into place...
+      ln -s $(keyPasswords.secureFilePath) $(Build.Repository.LocalPath)/deps/lovr-android/LovrApp/Projects/Android/keys.properties
+
   - task: CMake@1
     inputs:
       workingDirectory: 'build'
