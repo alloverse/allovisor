@@ -69,16 +69,6 @@ function GraphicsEng:onDraw()
   lovr.graphics.setColor({1,1,1})
   lovr.graphics.setShader(self.shader)
 
-  -- Move camera to root entity of avatar. Lovr's standard projection
-  -- matrix will then move it to the head (while allonet's pose application
-  -- will also move the head entity to the same location).
-  -- If this ends up not working, we could also set the projection matrix
-  -- to use the avatar's head entity as the base for the camera.
-  local avatar = self.parent:getAvatar()
-  if avatar then
-    lovr.graphics.transform(avatar.components.transform:getMatrix():invert())
-  end
-
   -- Dummy floor until we have something proper
   lovr.graphics.plane( 
     self.logoMat,
