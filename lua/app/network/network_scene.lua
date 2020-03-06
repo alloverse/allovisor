@@ -79,12 +79,6 @@ function NetworkScene:_init(displayName, url)
           actuate_pose = "head"
         }
       }
-    },
-    live_media = {
-      track_id = 0,
-      sample_rate = 48000,
-      channel_count = 1,
-      format = "opus"
     }
   }
   if lovr.headset.getDriver() == "desktop" then
@@ -99,6 +93,7 @@ function NetworkScene:_init(displayName, url)
     entities = {}
   }
   self.avatar_id = ""
+  self.head_id = ""
   self.outstanding_response_callbacks = {}
   self.client:set_state_callback(function() self:route("onStateChanged") end)
   self.client:set_interaction_callback(function(inter) self:onInteractionInternal(inter) end)
@@ -197,6 +192,28 @@ function NetworkScene:onStateChanged()
   tablex.map(function(x) self:route("onComponentRemoved", x.key, x) end, deletedComponents)
 end
 
+function NetworkScene:onComponentAdded(cname, component)
+  if cname == "intent" and component.actuate_pose == "head" then
+    self:lookForHead()
+  end
+end
+
+-- See if we can find our head entity plz
+function NetworkScene:lookForHead()
+  if self.head_id ~= "" then return end
+  if self.avatar_id == "" then return end
+
+  for eid, entity in pairs(self.state.entities) do
+    if 
+      entity.components.intent and entity.components.intent.actuate_pose == "head" and 
+      entity.components.relationships and entity.components.relationships.parent == self.avatar_id then
+      print("Avatar's head entity:", eid)
+      self.head_id = eid
+      self:route("onHeadAdded", entity)
+    end
+  end
+end
+
 function NetworkScene:onInteractionInternal(interaction)
   interaction.body = json.decode(interaction.body)
   self:route("onInteraction", interaction)
@@ -208,6 +225,7 @@ function NetworkScene:onInteraction(interaction)
     local place_name = interaction.body[3]
     print("Welcome to", place_name, ". You are", avatar_id)
     self.avatar_id = avatar_id
+    self:lookForHead()
   elseif interaction.type == "response" then
     local callback = self.outstanding_response_callbacks[interaction.request_id]
     if callback ~= nil then
@@ -232,6 +250,7 @@ function NetworkScene:sendInteraction(interaction, callback)
   end
   interaction.body = json.encode(interaction.body)
   self.client:send_interaction(interaction)
+  return interaction.request_id
 end
 
 function NetworkScene:getAvatar()

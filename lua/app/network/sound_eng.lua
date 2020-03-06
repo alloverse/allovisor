@@ -6,9 +6,9 @@ local Entity, componentClasses = unpack(require("app.network.entity"))
 local SoundEng = classNamed("SoundEng", Ent)
 function SoundEng:_init()
   self.audio = {}
+  self.track_id = 0
   if #lovr.audio.getMicrophoneNames() > 0 then
     self.mic = lovr.audio.newMicrophone(nil, 960*3, 48000, 16, 1)
-    self.mic:startRecording()
   end
   
   self:super()
@@ -38,6 +38,25 @@ end
 
 function SoundEng:onStateChanged()
   -- todo: position sources at their entities
+end
+
+function SoundEng:onHeadAdded(head)
+  if self.track_id ~= 0 then return end
+  if self.track_allocation_request_id ~= nil then return end
+
+  self.track_allocation_request_id = self.parent:sendInteraction({
+    type = "request",
+    sender_entity_id = self.parent.head_id,
+    receiver_entity_id = "place",
+    body = {"allocate_track", "audio", 48000, 1, "opus"}
+  }, function (interaction) 
+    if interaction.body[2] == "ok" then
+      self.track_id = interaction.body[3]
+      self.mic:startRecording()
+    else
+      print("Failed to allocate track:", interaction.body[3])
+    end
+  end)
 end
 
 function SoundEng:onDraw()
@@ -74,7 +93,9 @@ end
 function SoundEng:onUpdate(dt)
   if self.mic ~= nil and self.mic:getSampleCount() >= 960 then
     local sd = self.mic:getData(960)
-    self.parent.client:send_audio(sd:getBlob():getString());
+    if self.track_id then
+      self.parent.client:send_audio(self.track_id, sd:getBlob():getString())
+    end
   end
 end
 
