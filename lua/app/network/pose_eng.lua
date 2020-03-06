@@ -34,7 +34,7 @@ function PoseEng:updateIntent()
   -- root entity movement
   local mx, my = lovr.headset.getAxis("hand/left", "thumbstick")
   local tx, ty = lovr.headset.getAxis("hand/right", "thumbstick")
-  self.yaw = self.yaw - (tx/30.0)
+  self.yaw = self.yaw - (-tx/30.0)
   local intent = {
     xmovement = mx,
     zmovement = -my,
