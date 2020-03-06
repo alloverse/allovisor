@@ -43,6 +43,7 @@ end
 function SoundEng:onHeadAdded(head)
   if self.track_id ~= 0 then return end
   if self.track_allocation_request_id ~= nil then return end
+  if self.mic == nil then return end
 
   self.track_allocation_request_id = self.parent:sendInteraction({
     type = "request",
