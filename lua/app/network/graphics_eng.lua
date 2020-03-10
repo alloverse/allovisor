@@ -82,7 +82,7 @@ function GraphicsEng:onDraw()
     local trans = entity.components.transform
     local geom = entity.components.geometry
 
-    if trans ~= nil and geom ~= nil then
+    if trans ~= nil and geom ~= nil and geom.model ~= nil then
       local mat = trans:getMatrix()
       if geom.type == "hardcoded-model" then
 
