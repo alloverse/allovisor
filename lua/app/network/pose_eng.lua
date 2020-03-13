@@ -31,11 +31,14 @@ function PoseEng:onUpdate(dt)
 end
 
 function PoseEng:updateIntent()
+  if self.parent.avatar_id == "" then return end
+
   -- root entity movement
   local mx, my = lovr.headset.getAxis("hand/left", "thumbstick")
   local tx, ty = lovr.headset.getAxis("hand/right", "thumbstick")
   self.yaw = self.yaw - (-tx/30.0)
   local intent = {
+    entity_id = self.parent.avatar_id,
     xmovement = mx,
     zmovement = -my,
     yaw = self.yaw,

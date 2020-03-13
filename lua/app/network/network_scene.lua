@@ -320,6 +320,9 @@ function NetworkScene:onUpdate(dt)
     return route_terminate
   end
 
+  self.client:simulate(dt)
+
+
   if lovr.headset.wasPressed("hand/right", "b") then
     OverlayMenuScene(self):insert(self)
   end
