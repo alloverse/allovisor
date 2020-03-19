@@ -103,6 +103,11 @@ function PoseEng:updatePointing()
 
   self.hoveredEntity = nil
 
+    --if position is nan, stop trying to raycast (as raycasting with nan will crash ODE)
+    if handPos.x ~= handPos.x then
+      return
+    end
+
   -- Raycast from the left hand
   self.parent.physics.world:raycast(handPos.x, handPos.y, handPos.z, distantPoint.x, distantPoint.y, distantPoint.z, function(shape, hx, hy, hz)
     -- assuming first hit is nearest; skip all other hovered entities.
