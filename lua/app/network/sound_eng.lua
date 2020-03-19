@@ -81,7 +81,7 @@ function SoundEng:onHeadAdded(head)
 end
 
 function SoundEng:onDraw()
-  if self.debug == false then
+  if self.parent.debug == false then
     return
   end
   lovr.graphics.setShader()
