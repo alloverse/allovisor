@@ -2,6 +2,7 @@ namespace("networkscene", "alloverse")
 
 local json = require "json"
 local tablex = require "pl.tablex"
+local allomath = require "lib.allomath"
 local Entity, componentClasses = unpack(require("app.network.entity"))
 local keyboard = (lovr.getOS() == "Windows" or lovr.getOS() == "macOS") and require "lib.lovr-keyboard" or nil
 
@@ -36,7 +37,15 @@ function PoseEng:updateIntent()
   -- root entity movement
   local mx, my = lovr.headset.getAxis("hand/left", "thumbstick")
   local tx, ty = lovr.headset.getAxis("hand/right", "thumbstick")
-  self.yaw = self.yaw - (-tx/30.0)
+
+  if math.abs(tx) > 0.5 and not self.didTurn then
+    self.yaw = self.yaw + allomath.sign(tx) * math.pi/4
+    self.didTurn = true
+  end
+  if math.abs(tx) < 0.5 and self.didTurn then
+    self.didTurn = false
+  end
+  
   local intent = {
     entity_id = self.parent.avatar_id,
     xmovement = mx,
