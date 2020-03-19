@@ -128,6 +128,10 @@ function MenuScene:onUpdate(dt)
     local ray = self.handRays[handIndex]
 
     local handPos = lovr.math.newVec3(lovr.headset.getPosition(hand))
+    -- if position is nan, stop trying to raycast (as raycasting with nan will crash ODE)
+    if handPos.x ~= handPos.x then
+      return
+    end
     local straightAhead = lovr.math.vec3(0, 0, -1)
     local handRotation = lovr.math.mat4():rotate(lovr.headset.getOrientation(hand))
     local pointedDirection = handRotation:mul(straightAhead)
