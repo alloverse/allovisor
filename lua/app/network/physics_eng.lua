@@ -85,5 +85,13 @@ function PhysicsEng:onComponentRemoved(component_key, component)
   collider:destroy()  
 end
 
+function PhysicsEng:onDisconnect()
+  for eid, collider in pairs(self.colliders) do
+    collider:setUserData(nil)
+    collider:destroy()  
+  end
+  self.colliders = {}
+end
+
 
 return PhysicsEng
