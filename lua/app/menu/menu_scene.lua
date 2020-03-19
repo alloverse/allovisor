@@ -103,6 +103,15 @@ function MenuScene:drawMenu()
   end
 end
 
+local function drawHand(ray, hand)
+  if ray.from == nil then return end
+
+  lovr.graphics.box('fill', ray.from, .03, .04, .06, lovr.headset.getOrientation(hand))
+
+  lovr.graphics.setColor(ray:getColor())
+  lovr.graphics.line(ray.from, ray.to)
+end
+
 function MenuScene:onDraw()
   if self.drawBackground then
     lovr.graphics.setColor(COLOR_WHITE)
@@ -112,10 +121,7 @@ function MenuScene:onDraw()
   lovr.graphics.setColor(COLOR_ALLOVERSE_GRAY)
   for i, hand in ipairs(lovr.headset.getHands()) do
     local ray = self.handRays[i]
-    lovr.graphics.box('fill', ray.from, .03, .04, .06, lovr.headset.getOrientation(hand))
-
-    lovr.graphics.setColor(ray:getColor())
-    lovr.graphics.line(ray.from, ray.to)
+    drawHand(ray, hand)
   end
   
   self:drawMenu()
