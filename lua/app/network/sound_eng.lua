@@ -1,6 +1,6 @@
 namespace("networkscene", "alloverse")
 
-local json = require "json"
+local pretty = require "pl.pretty"
 local Entity, componentClasses = unpack(require("app.network.entity"))
 
 local SoundEng = classNamed("SoundEng", Ent)
@@ -25,20 +25,18 @@ function SoundEng:onAudio(track_id, samples)
     audio = {
       stream = stream,
       source = lovr.audio.newSource(stream, "stream")
-	}
+    }
     self.audio[track_id] = audio
   end
   local blob = lovr.data.newBlob(samples, "audio for track #"..track_id)
   audio.stream:append(blob)
   if audio.source:isPlaying() == false and audio.stream:getDuration() >= 0.2 then
-	  print("Starting playback audio in track "..track_id)
-	  audio.source:play()
+    print("Starting playback audio in track "..track_id)
+    audio.source:play()
   end
 end
 
 function SoundEng:onStateChanged()
-  -- todo: position sources at their entities
-
   for _, entity in pairs(self.parent.state.entities) do
     self:setAudioPositionForEntitiy(entity)
   end
@@ -86,7 +84,7 @@ function SoundEng:onDraw()
   if self.debug == false then
     return
   end
-
+  lovr.graphics.setShader()
   lovr.graphics.setColor(1.0, 0.0, 1.0, 0.5)
   for track_id, audio in pairs(self.audio) do
     local x, y, z = audio.source:getPosition()
@@ -107,12 +105,6 @@ function SoundEng:onDraw()
   end
 end
 
-function SoundEng:onDisconnect()
-  if self.mic ~= nil then
-    self.mic:stopRecording()
-  end
-end
-
 function SoundEng:onUpdate(dt)
   if self.mic ~= nil and self.mic:getSampleCount() >= 960 then
     local sd = self.mic:getData(960)
@@ -120,6 +112,28 @@ function SoundEng:onUpdate(dt)
       self.parent.client:send_audio(self.track_id, sd:getBlob():getString())
     end
   end
+end
+
+function SoundEng:onComponentRemoved(component_key, component)
+  if component_key ~= "live_media" then
+    return
+  end
+  
+  local audio = self.audio[component.track_id]
+  print("Removing incoming audio channel ", component.track_id)
+
+  if audio == nil then return end
+
+  audio.source:stop()
+  self.audio[component.track_id] = nil
+end
+
+function SoundEng:onDisconnect()
+  if self.mic ~= nil then
+    self.mic:stopRecording()
+  end
+
+  lovr.audio.stop()
 end
 
 return SoundEng
