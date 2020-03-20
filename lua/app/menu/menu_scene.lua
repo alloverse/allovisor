@@ -17,7 +17,7 @@ local COLOR_ALLOVERSE_BLUE = {0.27,0.55,1}
 local MenuItem = require("app.menu.menu_item")
 
 local HandRay = classNamed("HandRay")
-function HandRay:init()
+function HandRay:_init()
   self.currentMenuItem = nil
   self.from = lovr.math.newVec3()
   self.to = lovr.math.newVec3()

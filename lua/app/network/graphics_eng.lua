@@ -84,22 +84,14 @@ function GraphicsEng:onDraw()
 
     if trans ~= nil and geom ~= nil and geom.model ~= nil then
       local mat = trans:getMatrix()
-      if geom.type == "hardcoded-model" then
-
-        if geom.name == "lefthand" then
-          local handPos = trans:getMatrix():mul(lovr.math.vec3())
-
-          local distantPoint = trans:getMatrix():mul(lovr.math.vec3(0,0,-10))
-
-          lovr.graphics.setColor({0.8,0.55,1})
-          lovr.graphics.line(handPos, distantPoint)
-          lovr.graphics.setColor({1,1,1})
-        end
-        
-      end
-      -- XXX: the bleep bloop seems to get a wonky mat
       geom.model:draw(mat)
     end
+  end
+
+  for _, ray in ipairs(self.parent.pose.handRays) do
+    lovr.graphics.setColor(ray:getColor())
+    lovr.graphics.line(ray.from, ray.to)
+    lovr.graphics.setColor({1,1,1})
   end
 end
 
