@@ -161,12 +161,11 @@ function PoseEng:updatePointing(hand_pose, ray)
   end)
 
   if ray.highlightedEntity then
-    -- todo: server needs to be more resilient before we can start spamming these :S
-    -- self.parent:sendInteraction({
-    --   type = "one-way",
-    --   receiver_entity_id = shape:getCollider():getUserData().id,
-    --   body = {"point", {handPos.x, handPos.y, handPos.z}, {hx, hy, hz}}
-    -- })
+    self.parent:sendInteraction({
+      type = "one-way",
+      receiver_entity_id = ray.highlightedEntity.id,
+      body = {"point", {ray.from.x, ray.from.y, ray.from.z}, {ray.to.x, ray.to.y, ray.to.z}}
+    })
 
     if ray.selectedEntity == nil and lovr.headset.isDown(hand_pose, "trigger") then
       ray:selectEntity(ray.highlightedEntity)
