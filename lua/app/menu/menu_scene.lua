@@ -103,6 +103,24 @@ function MenuScene:drawMenu()
   end
 end
 
+function MenuScene:drawMessage(message)
+  lovr.graphics.setFont(menuFont)
+
+  local scale = .1
+  local wrap = 1 / scale
+  local font = lovr.graphics.getFont()
+  local height = font:getHeight()
+  local width, lines = font:getWidth(message, wrap)
+  
+  local OFFSET_X = 0.8
+  local OFFSET_Y = -0.15
+
+  lovr.graphics.setColor(COLOR_WHITE)
+  lovr.graphics.plane('fill', x+OFFSET_X+(scale*width/2), y+OFFSET_Y-(lines * height * scale/2), z, width * scale, lines * height * scale)
+  lovr.graphics.setColor(COLOR_BLACK)
+  lovr.graphics.print(message, x+OFFSET_X, y+OFFSET_Y, z + .001, scale, quat(), wrap, "left", "top")
+end
+
 local function drawHand(ray, hand)
   if ray.from == nil then return end
 
@@ -125,6 +143,8 @@ function MenuScene:onDraw()
   end
   
   self:drawMenu()
+  
+  --self:drawMessage("Träutensilierna i ett tryckeri äro ingalunda en oviktig faktor, för trevnadens, ordningens och ekonomiens upprätthållande, och dock är det icke sällan som sorgliga erfarenheter göras på grund af det oförstånd med hvilket kaster, formbräden och regaler tillverkas och försäljas Kaster som äro dåligt hopkomna och af otillräckligt.")
 end
 
 
