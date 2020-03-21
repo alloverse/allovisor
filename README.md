@@ -10,6 +10,20 @@ with, and easier to extend with low level functionality.
 
 ### Mac
 
+#### Xcode project
+
+1. Install CMake 3.13.0 or newer
+2. `mkdir build && cd build && cmake -GXcode ..` to prepare to build
+3. `open build/allovisor.xcodeproj`
+4. Build the **ALL_BUILD** target
+5. Switch to the **lovr** target
+6. Open the scheme editor and add these launch arguments. 
+  - `${PROJECT_DIR}/deps/lodr`
+  - `${PROJECT_DIR}/lua`
+7. Run the **lovr** target
+
+#### make
+
 1. Install CMake 3.13.0 or newer
 2. `mkdir build && cd build && cmake ..` to prepare to build
 3. In build, `make alloverse-dist` to build `Alloverse.app`.
