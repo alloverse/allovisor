@@ -7,6 +7,7 @@ SET(LOVR_BUILD_BUNDLE ON CACHE BOOL "Always build lovr bundle on mac")
 SET(LOVR_ENABLE_ENET OFF CACHE BOOL "Disable Lovr enet since allonet embeds its own")
 set(ALLONET_USE_LUA ON CACHE BOOL "Request Lua bridge")
 set(ALLONET_BUILD_STATIC ON CACHE BOOL "Always build allonet static")
+set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON CACHE BOOL "always export all symbols")
 
 add_subdirectory (deps/lovr)
 add_subdirectory (deps/allonet)
@@ -15,6 +16,9 @@ if(WIN32)
     target_link_libraries(lovr allonet)
     add_executable (Alloverse src/allonet_loader.c)
     target_link_libraries (Alloverse lovr)
+    include_directories(deps/lovr/src)
+    include_directories(deps/lovr/deps/luajit/src ${CMAKE_BINARY_DIR}/deps/lovr/luajit)
+
 
     file(GLOB ZIP_FILES "${CMAKE_CURRENT_SOURCE_DIR}/lua/*")
     add_custom_command(
