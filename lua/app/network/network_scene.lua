@@ -97,7 +97,7 @@ function NetworkScene:_init(displayName, url)
   self.outstanding_response_callbacks = {}
   self.client:set_state_callback(function() self:route("onStateChanged") end)
   self.client:set_interaction_callback(function(inter) self:onInteractionInternal(inter) end)
-  self.client:set_disconnected_callback(function() self:route("onDisconnect") end)
+  self.client:set_disconnected_callback(function(code, message) self:route("onDisconnect", code, message) end)
 
   self:super()
 end
@@ -260,12 +260,12 @@ function NetworkScene:getAvatar()
   return self.state.entities[self.avatar_id]
 end
 
-function NetworkScene:onDisconnect()
+function NetworkScene:onDisconnect(code, message)
   print("disconnecting...")
   self.client:disconnect(0)
   self.client = nil
   local menu = lovr.scenes.menu():insert()
-  menu:setMessage("Lost connection to server")
+  menu:setMessage(message)
   print("disconnected.")
   queueDoom(self)
 end
