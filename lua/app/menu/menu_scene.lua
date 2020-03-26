@@ -103,9 +103,13 @@ function MenuScene:drawMenu()
   end
 end
 
-function MenuScene:drawMessage(message)
-  lovr.graphics.setFont(menuFont)
+function MenuScene:setMessage(message)
 
+  self.message = message
+
+end
+
+function MenuScene:drawMessage(message)
   local scale = .1
   local wrap = 1 / scale
   local font = lovr.graphics.getFont()
@@ -144,7 +148,10 @@ function MenuScene:onDraw()
   
   self:drawMenu()
   
-  --self:drawMessage("Träutensilierna i ett tryckeri äro ingalunda en oviktig faktor, för trevnadens, ordningens och ekonomiens upprätthållande, och dock är det icke sällan som sorgliga erfarenheter göras på grund af det oförstånd med hvilket kaster, formbräden och regaler tillverkas och försäljas Kaster som äro dåligt hopkomna och af otillräckligt.")
+  if self.message then
+    self:drawMessage(self.message)
+  end 
+
 end
 
 

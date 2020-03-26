@@ -264,7 +264,8 @@ function NetworkScene:onDisconnect()
   print("disconnecting...")
   self.client:disconnect(0)
   self.client = nil
-  lovr.scenes.menu():insert()
+  local menu = lovr.scenes.menu():insert()
+  menu:setMessage("Lost connection to server")
   print("disconnected.")
   queueDoom(self)
 end
