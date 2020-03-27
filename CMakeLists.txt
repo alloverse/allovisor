@@ -19,27 +19,20 @@ if(WIN32)
     include_directories(deps/lovr/src)
     include_directories(deps/lovr/deps/luajit/src ${CMAKE_BINARY_DIR}/deps/lovr/luajit)
 
-
     file(GLOB ZIP_FILES "${CMAKE_CURRENT_SOURCE_DIR}/lua/*")
     add_custom_command(
-        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Alloverse-win64.zip
-        COMMAND ${CMAKE_COMMAND} -E make_directory  ${CMAKE_CURRENT_BINARY_DIR}/Alloverse
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:glfw> ${CMAKE_CURRENT_BINARY_DIR}/Alloverse
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libluajit> ${CMAKE_CURRENT_BINARY_DIR}/Alloverse
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ode> ${CMAKE_CURRENT_BINARY_DIR}/Alloverse
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:OpenAL> ${CMAKE_CURRENT_BINARY_DIR}/Alloverse
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:openvr_api64> ${CMAKE_CURRENT_BINARY_DIR}/Alloverse
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:lib_msdfgen> ${CMAKE_CURRENT_BINARY_DIR}/Alloverse
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:opus> ${CMAKE_CURRENT_BINARY_DIR}/Alloverse
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:allonet> ${CMAKE_CURRENT_BINARY_DIR}/Alloverse
+        TARGET Alloverse POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_CURRENT_SOURCE_DIR}/lua ${CMAKE_COMMAND} -E tar c ${CMAKE_CURRENT_BINARY_DIR}/lua.zip --format=zip -- ${ZIP_FILES}
-        COMMAND copy /b $<SHELL_PATH:$<TARGET_FILE:lovr>>+lua.zip Alloverse\\Alloverse.exe
-        COMMAND ${CMAKE_COMMAND} -E tar c ${CMAKE_CURRENT_BINARY_DIR}/Alloverse-win64.zip --format=zip Alloverse
-        DEPENDS Alloverse
-    )
-    add_custom_target(
-        alloverse-dist ALL
-        DEPENDS Alloverse-win64.zip
+        COMMAND copy /b $<SHELL_PATH:$<TARGET_FILE:Alloverse>>+lua.zip $<SHELL_PATH:$<TARGET_FILE:Alloverse>>
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:glfw> ${CMAKE_CURRENT_BINARY_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libluajit> ${CMAKE_CURRENT_BINARY_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ode> ${CMAKE_CURRENT_BINARY_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:OpenAL> ${CMAKE_CURRENT_BINARY_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:openvr_api64> ${CMAKE_CURRENT_BINARY_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:lib_msdfgen> ${CMAKE_CURRENT_BINARY_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:opus> ${CMAKE_CURRENT_BINARY_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:allonet> ${CMAKE_CURRENT_BINARY_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:lovr> ${CMAKE_CURRENT_BINARY_DIR}
     )
 elseif(APPLE)
     # Force-load allonet into lovr exe
