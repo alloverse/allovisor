@@ -6,6 +6,8 @@
 #include <string.h>
 #include <stdlib.h>
 
+extern int luaopen_liballonet(lua_State* L);
+
 int main(int argc, char** argv)
 {
   lovrAssert(lovrPlatformInit(), "Failed to initialize platform");
@@ -30,6 +32,7 @@ int main(int argc, char** argv)
     lua_getfield(L, -1, "preload");
     luaL_register(L, NULL, lovrModules);
     lua_pop(L, 2);
+    luaopen_liballonet(L);
 
     lua_pushcfunction(L, luax_getstack);
     if (luaL_loadbuffer(L, (const char*)src_resources_boot_lua, src_resources_boot_lua_len, "@boot.lua") || lua_pcall(L, 0, 1, -2)) {
