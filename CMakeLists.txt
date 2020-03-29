@@ -9,6 +9,15 @@ set(ALLONET_USE_LUA ON CACHE BOOL "Request Lua bridge")
 set(ALLONET_BUILD_STATIC ON CACHE BOOL "Always build allonet static")
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON CACHE BOOL "always export all symbols")
 
+set(CPACK_PACKAGE_NAME Alloverse)
+SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Create your own classrooms, meeting places or social spaces in the Alloverse and, from inside it, run collaborative apps with your students, colleagues and friends. The Alloverse is an open source 'operating system' for collaborative workspaces in VR.")
+SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
+SET(CPACK_PACKAGE_VENDOR "Alloverse AB")
+set(CPACK_PACKAGE_VERSION ${PROJECT_VERSION})
+set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
+set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
+set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
+
 add_subdirectory (deps/lovr)
 add_subdirectory (deps/allonet)
 
@@ -34,6 +43,35 @@ if(WIN32)
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:allonet> ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:lovr> ${CMAKE_CURRENT_BINARY_DIR}
     )
+
+    set(CPACK_GENERATOR "NSIS")
+    #set(CPACK_NSIS_INSTALLED_ICON_NAME "${APP_LOW_NAME}.ico")
+    set(CPACK_NSIS_HELP_LINK "https://alloverse.com/support")
+    set(CPACK_NSIS_URL_INFO_ABOUT "https://alloverse.com/")
+    set(CPACK_NSIS_CONTACT "info@alloverse.com")
+    set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
+    set(CPACK_PACKAGE_INSTALL_DIRECTORY "Alloverse")
+    set(CPACK_NSIS_INSTALLED_ICON_NAME "Alloverse.exe")
+    set(CPACK_NSIS_DISPLAY_NAME "Alloverse ${PROJECT_VER}")
+    if (CMAKE_CL_64)
+      set(CPACK_NSIS_INSTALL_ROOT "$PROGRAMFILES64")
+    else (CMAKE_CL_64)
+      set(CPACK_NSIS_INSTALL_ROOT "$PROGRAMFILES")
+    endif (CMAKE_CL_64)
+    include(CPack)
+
+
+    install(TARGETS Alloverse DESTINATION .)
+    install(FILES $<TARGET_FILE:glfw> DESTINATION .)
+    install(FILES $<TARGET_FILE:libluajit> DESTINATION .)
+    install(FILES $<TARGET_FILE:ode> DESTINATION .)
+    install(FILES $<TARGET_FILE:OpenAL> DESTINATION .)
+    install(FILES $<TARGET_FILE:openvr_api64> DESTINATION .)
+    install(FILES $<TARGET_FILE:lib_msdfgen> DESTINATION .)
+    install(FILES $<TARGET_FILE:opus> DESTINATION .)
+    install(FILES $<TARGET_FILE:allonet> DESTINATION .)
+    install(FILES $<TARGET_FILE:lovr> DESTINATION .)
+
 elseif(APPLE)
     # Force-load allonet into lovr exe
     target_link_libraries(lovr "-Wl,-all_load" allonet )
