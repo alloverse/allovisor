@@ -85,11 +85,8 @@ function NetworkScene:_init(displayName, url)
   if lovr.headset.getDriver() == "desktop" then
     table.remove(avatar.children, 2) -- remove right hand as it can't be simulated
   end
-  self.client = allonet.connect(
-    url,
-    json.encode({display_name = displayName}),
-    json.encode(avatar)
-  )
+  self.client = allonet.create()
+  
   self.state = {
     entities = {}
   }
@@ -98,17 +95,27 @@ function NetworkScene:_init(displayName, url)
   self.outstanding_response_callbacks = {}
   self.client:set_state_callback(function() self:route("onStateChanged") end)
   self.client:set_interaction_callback(function(inter) self:onInteractionInternal(inter) end)
-  self.client:set_disconnected_callback(function() self:route("onDisconnect") end)
+  self.client:set_disconnected_callback(function(code, message) self:route("onDisconnect", code, message) end)
+
+  if self.client:connect(
+    url,
+    json.encode({display_name = displayName}),
+    json.encode(avatar)
+  ) == false then
+    self:onDisconnect(1003, "Failed to connect")
+  end
 
   self:super()
 end
 
 function NetworkScene:onLoad()
-  -- Engines. These do the heavy lifting.
-  self.graphics = GraphicsEng():insert(self)
-  self.sound = SoundEng():insert(self)
-  self.pose = PoseEng():insert(self)
-  self.physics = PhysicsEng():insert(self)
+  if self.client ~= nil then
+    -- Engines. These do the heavy lifting.
+    self.graphics = GraphicsEng():insert(self)
+    self.sound = SoundEng():insert(self)
+    self.pose = PoseEng():insert(self)
+    self.physics = PhysicsEng():insert(self)
+  end
 end
 
 function NetworkScene:onStateChanged()
@@ -261,11 +268,12 @@ function NetworkScene:getAvatar()
   return self.state.entities[self.avatar_id]
 end
 
-function NetworkScene:onDisconnect()
+function NetworkScene:onDisconnect(code, message)
   print("disconnecting...")
   self.client:disconnect(0)
   self.client = nil
-  lovr.scenes.menu():insert()
+  local menu = lovr.scenes.menu():insert()
+  menu:setMessage(message)
   print("disconnected.")
   queueDoom(self)
 end
