@@ -42,6 +42,7 @@ jobs:
       msbuildArchitecture: 'x64'
       createLogFile: true
       solution: 'build\PACKAGE.vcxproj'
+      configuration: release
   - task: CopyFiles@2
     displayName: "Stage artifacts"
     inputs:
