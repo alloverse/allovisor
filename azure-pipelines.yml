@@ -42,7 +42,7 @@ jobs:
       msbuildArchitecture: 'x64'
       createLogFile: true
       solution: 'build\PACKAGE.vcxproj'
-      configuration: release
+      configuration: MinSizeRel # Hangs in CreateWindow in Release????
   - task: CopyFiles@2
     displayName: "Stage artifacts"
     inputs:
