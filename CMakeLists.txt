@@ -58,6 +58,7 @@ if(WIN32)
     else (CMAKE_CL_64)
       set(CPACK_NSIS_INSTALL_ROOT "$PROGRAMFILES")
     endif (CMAKE_CL_64)
+    set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "CreateShortCut \\\"$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Alloverse.lnk\\\" \\\"$INSTDIR\\\\.\\\\Alloverse.exe \\\"")
     include(CPack)
 
 
