@@ -74,33 +74,40 @@ if(WIN32)
     install(FILES $<TARGET_FILE:lovr> DESTINATION .)
 
 elseif(APPLE)
+    # Add the mac source dir to the module path, for the info plist
+    list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/src/mac")
+    
+    # The icon
+    SET(ALLO_ICON "${CMAKE_CURRENT_LIST_DIR}/src/mac/alloverse.icns")
 
-    SET(ALLO_SOURCES
-        src/allonet_loader.c
-    )
-    SET(ALLO_LIBS
+    # The loader
+    SET(ALLO_SOURCES src/allonet_loader.c)
+
+    # Libs to link into the app target
+    SET(ALLO_LINK_LIBS
         lovr
         allonet
         opus
     )
-    SET(ALLO_ICON
-        "${CMAKE_CURRENT_SOURCE_DIR}/src/mac/alloverse.icns"
-    )
-    SET(ALLO_LUA_DIR
+    
+    # The dir with all the lua code
+    SET(ALLO_LUA_SOURCE_DIR
         ${CMAKE_CURRENT_SOURCE_DIR}/lua
     )
-    SET(ALLO_APP ${CMAKE_CURRENT_BINARY_DIR}/Alloverse.app)
-    SET(ALLO_APP_LIB_DIR ${ALLO_APP}/Contents/lib)
-    SET(ALLO_APP_LUA_DIR ${ALLO_APP}/Contents/Resources/.lovr)
+    
+    # The app target lib folder
+    SET(ALLO_APP_LIB_DIR ../lib)
+    # The app target lua folder
+    SET(ALLO_APP_LUA_DIR ../Resources/.lovr)
 
-    # Sets the icon property in the info.plist
+    ## Setup Info.plist
+    # Sets the icon
     SET(MACOSX_BUNDLE_ICON_FILE alloverse.icns)
     # Give the location of the icon
     set_source_files_properties(${ALLO_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-    # Set destination path for the libs
-    set_source_files_properties(${ALLO_LIBS} PROPERTIES MACOSX_PACKAGE_LOCATION "lib")
 
-    #If you're building a 64 bit application on OSX which links directly or indirectly against LuaJIT, you need to link your main executable with these flags:
+    ## LuaJit requires some special linking
+    # If you're building a 64 bit application on OSX which links directly or indirectly against LuaJIT, you need to link your main executable with these flags:
     # http://luajit.org/install.html
     set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-pagezero_size 10000 -image_base 100000000")
 
@@ -109,40 +116,27 @@ elseif(APPLE)
         ${ALLO_SOURCES}
         ${ALLO_ICON}
     )
-    # Link some more?
+
+    # Link the libs
     target_link_libraries (Alloverse 
-        ${ALLO_LIBS}
+        ${ALLO_LINK_LIBS}
     )
+
+    # Include dependencies
     include_directories(deps/lovr/src)
     include_directories(deps/lovr/deps/luajit/src ${CMAKE_BINARY_DIR}/deps/lovr/luajit)
 
+    # Do some post processing
     add_custom_command(
         TARGET Alloverse POST_BUILD
-        # COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_CURRENT_SOURCE_DIR}/lua ${CMAKE_COMMAND} -E tar c ${CMAKE_CURRENT_BINARY_DIR}/lua.zip --format=zip -- ${ZIP_FILES}
-        # COMMAND copy /b $<SHELL_PATH:$<TARGET_FILE:Alloverse>>+lua.zip $<SHELL_PATH:$<TARGET_FILE:Alloverse>>
-        COMMAND ${CMAKE_COMMAND} -E make_directory ${ALLO_APP_LIB_DIR}
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${ALLO_LUA_DIR} ${ALLO_APP_LUA_DIR}
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:glfw> ${ALLO_APP_LIB_DIR}
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libluajit> ${ALLO_APP_LIB_DIR}
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ode> ${ALLO_APP_LIB_DIR}
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:OpenAL> ${ALLO_APP_LIB_DIR}
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:lib_msdfgen> ${ALLO_APP_LIB_DIR}
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:opus> ${ALLO_APP_LIB_DIR}
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:allonet> ${ALLO_APP_LIB_DIR}
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:lovr> ${ALLO_APP_LIB_DIR}
-    )
+        # Create the lib dir
+        COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:Alloverse>/${ALLO_APP_LIB_DIR}
+        # Copy dylibs
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:lovr> $<TARGET_FILE_DIR:Alloverse>/${ALLO_APP_LIB_DIR}
 
-    # add_cuslib(
-    #     TARGET Alloverse POST_BUILD
-    #     # COMMAND cp -r ${CMAKE_CURRENT_BINARY_DIR}/deps/lovr/lovr.app ${CMAKE_CURRENT_BINARY_DIR}/Alloverse.app
-    #     COMMAND cp -r ${CMAKE_CURRENT_SOURCE_DIR}/lua Alloverse.app/Contents/Resources/.lovr
-    #     #COMMAND cp -r ${CMAKE_CURRENT_BINARY_DIR}/deps/allonet/liballonet.dylib Alloverse.app/Contents/Resources/.lovr/liballonet.so
-    #     COMMAND cp -r ${CMAKE_CURRENT_BINARY_DIR}/deps/allonet/lib/opus/libopus.0.dylib Alloverse.app/Contents/MacOS
-    #     # COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/src/mac/Info.plist Alloverse.app/Contents/Info.plist
-    #     # COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/src/mac/alloverse.icns Alloverse.app/Contents/Resources/alloverse.icns
-    #     # COMMAND zip ${CMAKE_CURRENT_BINARY_DIR}/Alloverse-mac.zip -r Alloverse.app
-    #     DEPENDS lovr allonet
-    # )
+        # Copy the lua code
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${ALLO_LUA_SOURCE_DIR} $<TARGET_FILE_DIR:Alloverse>/${ALLO_APP_LUA_DIR}
+    )
 elseif(ANDROID)
     # Force-load allonet into lovr exe
     target_link_libraries(lovr "-Wl,--whole-archive" allonet "-Wl,--no-whole-archive" "-ldl")
