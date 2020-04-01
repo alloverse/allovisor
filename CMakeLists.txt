@@ -74,6 +74,8 @@ if(WIN32)
     install(FILES $<TARGET_FILE:lovr> DESTINATION .)
 
 elseif(APPLE)
+    set(CMAKE_XCODE_GENERATE_SCHEME ON)
+
     # Add the mac source dir to the module path, for the info plist
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/src/mac")
     
@@ -105,7 +107,7 @@ elseif(APPLE)
     SET(MACOSX_BUNDLE_ICON_FILE alloverse.icns)
     # Give the location of the icon
     set_source_files_properties(${ALLO_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-
+    
     ## LuaJit requires some special linking
     # If you're building a 64 bit application on OSX which links directly or indirectly against LuaJIT, you need to link your main executable with these flags:
     # http://luajit.org/install.html
@@ -115,6 +117,11 @@ elseif(APPLE)
     add_executable (Alloverse MACOSX_BUNDLE 
         ${ALLO_SOURCES}
         ${ALLO_ICON}
+    )
+
+    set_property(TARGET Alloverse 
+        APPEND PROPERTY XCODE_SCHEME_ARGUMENTS "\${PROJECT_DIR}/deps/lodr"
+        APPEND PROPERTY XCODE_SCHEME_ARGUMENTS "\${PROJECT_DIR}/lua"
     )
 
     # Link the libs
