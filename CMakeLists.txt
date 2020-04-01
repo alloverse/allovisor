@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.13.0) # 3.13 minimum for CMP0079
 project(allovisor VERSION 0.2.0)
 cmake_policy(SET CMP0079 NEW)
+cmake_policy(SET CMP0068 NEW)
+cmake_policy(SET CMP0042 NEW) # make @rpath default
 
 SET(LOVR_BUILD_SHARED ON CACHE BOOL "Always build lovr as library")
 SET(LOVR_BUILD_BUNDLE ON CACHE BOOL "Always build lovr bundle on mac")
@@ -18,10 +20,12 @@ set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
 set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 
-add_subdirectory (deps/lovr)
+
+# set(BUILD_SHARED_LIBS OFF)
 add_subdirectory (deps/allonet)
 
 if(WIN32)
+    add_subdirectory (deps/lovr)
     target_link_libraries(lovr allonet)
     add_executable (Alloverse src/allonet_loader.c)
     target_link_libraries (Alloverse lovr)
@@ -74,6 +78,9 @@ if(WIN32)
     install(FILES $<TARGET_FILE:lovr> DESTINATION .)
 
 elseif(APPLE)
+    set(INSTALL_NAME_DIR .)
+    set(CMAKE_INSTALL_RPATH "@loader_path")
+    add_subdirectory (deps/lovr)
     set(CMAKE_XCODE_GENERATE_SCHEME ON)
 
     # Add the mac source dir to the module path, for the info plist
@@ -89,7 +96,7 @@ elseif(APPLE)
     SET(ALLO_LINK_LIBS
         lovr
         allonet
-        opus
+        # opus
     )
     
     # The dir with all the lua code
@@ -113,15 +120,12 @@ elseif(APPLE)
     # http://luajit.org/install.html
     set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-pagezero_size 10000 -image_base 100000000")
 
+    set(APP_NAME Alloverse)
+
     # Setup the executable
-    add_executable (Alloverse MACOSX_BUNDLE 
+    add_executable (${APP_NAME} MACOSX_BUNDLE 
         ${ALLO_SOURCES}
         ${ALLO_ICON}
-    )
-
-    set_property(TARGET Alloverse 
-        APPEND PROPERTY XCODE_SCHEME_ARGUMENTS "\${PROJECT_DIR}/deps/lodr"
-        APPEND PROPERTY XCODE_SCHEME_ARGUMENTS "\${PROJECT_DIR}/lua"
     )
 
     # Link the libs
@@ -129,21 +133,73 @@ elseif(APPLE)
         ${ALLO_LINK_LIBS}
     )
 
+    # Set xcode launch arguments for hot reload of the lua folder
+    set_property(TARGET Alloverse 
+        APPEND PROPERTY XCODE_SCHEME_ARGUMENTS "\${PROJECT_DIR}/deps/lodr"
+        APPEND PROPERTY XCODE_SCHEME_ARGUMENTS "\${PROJECT_DIR}/lua"
+    )
+
+    set_target_properties(Alloverse PROPERTIES
+        MACOSX_BUNDLE TRUE
+        MACOSX_RPATH TRUE
+        BUILD_WITH_INSTALL_RPATH TRUE
+        INSTALL_RPATH "@loader_path"
+        # MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/src/resources/Info.plist"
+        # RESOURCE "${CMAKE_CURRENT_SOURCE_DIR}/src/resources/lovr.icns"
+    )
+
+
     # Include dependencies
     include_directories(deps/lovr/src)
     include_directories(deps/lovr/deps/luajit/src ${CMAKE_BINARY_DIR}/deps/lovr/luajit)
 
-    # Do some post processing
-    add_custom_command(
-        TARGET Alloverse POST_BUILD
-        # Create the lib dir
-        COMMAND ${CMAKE_COMMAND} -E make_directory $<TARGET_FILE_DIR:Alloverse>/${ALLO_APP_LIB_DIR}
-        # Copy dylibs
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:lovr> $<TARGET_FILE_DIR:Alloverse>/${ALLO_APP_LIB_DIR}
-
-        # Copy the lua code
+    # Copy the lua code
+    add_custom_command(TARGET Alloverse POST_BUILD
         COMMAND ${CMAKE_COMMAND} -E copy_directory ${ALLO_LUA_SOURCE_DIR} $<TARGET_FILE_DIR:Alloverse>/${ALLO_APP_LUA_DIR}
     )
+
+    function(move_lib)
+      if(TARGET ${ARGV0})
+        add_custom_command(TARGET Alloverse POST_BUILD
+          COMMAND ${CMAKE_COMMAND} -E copy
+          $<TARGET_SONAME_FILE:${ARGV0}>
+          ${CMAKE_CURRENT_BINARY_DIR}/Alloverse.app/Contents/MacOS/$<TARGET_SONAME_FILE_NAME:${ARGV0}> # Bad
+        )
+      endif()
+    endfunction()
+
+    move_lib(lovr)
+    move_lib(opus)
+    move_lib(glfw)
+    move_lib(libluajit)
+    move_lib(lib_msdfgen)
+    move_lib(ode)
+    move_lib(OpenAL)
+    move_lib(openvr_api)
+    
+    # Add the target to install package
+    install(TARGETS ${APP_NAME} 
+        BUNDLE DESTINATION . COMPONENT applications
+        RUNTIME DESTINATION bin COMPONENT applications
+        )
+
+    # set(APPS 
+    #     "\${CMAKE_INSTALL_PREFIX}/${APP_NAME}.app"
+    #     )
+    # SET(DIRS ${CMAKE_BINARY_DIR})
+
+    # install(CODE "
+    #     message(\"HELLO\")
+    #     include(BundleUtilities)
+    #     fixup_bundle(\"${APPS}\" \"\" \"${DIRS}\")")
+    
+    # Enable "drag into applications folder" dmg
+    set(CPACK_BINARY_DRAGNDROP ON)
+    # Only pack the application
+    set(CPACK_ARCHIVE_COMPONENT_INSTALL ON)
+    set(CPACK_COMPONENTS_ALL applications libs)
+    # Pack it up
+    include(CPack)
 elseif(ANDROID)
     # Force-load allonet into lovr exe
     target_link_libraries(lovr "-Wl,--whole-archive" allonet "-Wl,--no-whole-archive" "-ldl")
