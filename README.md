@@ -14,13 +14,10 @@ with, and easier to extend with low level functionality.
 
 1. Install CMake 3.13.0 or newer
 2. `mkdir build && cd build && cmake -GXcode ..` to prepare to build
-3. `open build/allovisor.xcodeproj`
-4. Build the **ALL_BUILD** target
-5. Switch to the **lovr** target
-6. Open the scheme editor and add these launch arguments. 
-  - `${PROJECT_DIR}/deps/lodr`
-  - `${PROJECT_DIR}/lua`
-7. Run the **lovr** target
+3. `open allovisor.xcodeproj`
+4. Build and run the Alloverse target
+
+When running from xcode the lua code will hot reload when any file in the lua folder is saved. This can be disabled from the scheme run arguments. 
 
 #### make
 
