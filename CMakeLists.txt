@@ -20,12 +20,10 @@ set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
 set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 
-
-# set(BUILD_SHARED_LIBS OFF)
+add_subdirectory (deps/lovr)
 add_subdirectory (deps/allonet)
 
 if(WIN32)
-    add_subdirectory (deps/lovr)
     target_link_libraries(lovr allonet)
     add_executable (Alloverse src/allonet_loader.c)
     target_link_libraries (Alloverse lovr)
@@ -80,7 +78,6 @@ if(WIN32)
 elseif(APPLE)
     set(INSTALL_NAME_DIR .)
     set(CMAKE_INSTALL_RPATH "@loader_path")
-    add_subdirectory (deps/lovr)
     set(CMAKE_XCODE_GENERATE_SCHEME ON)
 
     # Add the mac source dir to the module path, for the info plist
@@ -96,18 +93,12 @@ elseif(APPLE)
     SET(ALLO_LINK_LIBS
         lovr
         allonet
-        # opus
     )
     
     # The dir with all the lua code
     SET(ALLO_LUA_SOURCE_DIR
         ${CMAKE_CURRENT_SOURCE_DIR}/lua
     )
-    
-    # The app target lib folder
-    SET(ALLO_APP_LIB_DIR ../lib)
-    # The app target lua folder
-    SET(ALLO_APP_LUA_DIR ../Resources/.lovr)
 
     ## Setup Info.plist
     # Sets the icon
@@ -155,7 +146,7 @@ elseif(APPLE)
 
     # Copy the lua code
     add_custom_command(TARGET Alloverse POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E copy_directory ${ALLO_LUA_SOURCE_DIR} $<TARGET_FILE_DIR:Alloverse>/${ALLO_APP_LUA_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy_directory ${ALLO_LUA_SOURCE_DIR} $<TARGET_FILE_DIR:Alloverse>/../Resources/.lovr
     )
 
     function(move_lib)
@@ -163,7 +154,7 @@ elseif(APPLE)
         add_custom_command(TARGET Alloverse POST_BUILD
           COMMAND ${CMAKE_COMMAND} -E copy
           $<TARGET_SONAME_FILE:${ARGV0}>
-          ${CMAKE_CURRENT_BINARY_DIR}/Alloverse.app/Contents/MacOS/$<TARGET_SONAME_FILE_NAME:${ARGV0}> # Bad
+          $<TARGET_FILE_DIR:Alloverse>/$<TARGET_SONAME_FILE_NAME:${ARGV0}> # Bad
         )
       endif()
     endfunction()
