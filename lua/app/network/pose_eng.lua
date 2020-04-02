@@ -149,7 +149,7 @@ function PoseEng:updatePointing(hand_pose, ray)
   end
 
   ray.from = lovr.math.newVec3(handPos)
-  ray.to = hand.components.transform:getMatrix():mul(lovr.math.vec3(0,0,-10))
+  ray.to = lovr.math.newVec3(hand.components.transform:getMatrix():mul(lovr.math.vec3(0,0,-10)))
 
   -- Raycast from the hand
   self.parent.physics.world:raycast(handPos.x, handPos.y, handPos.z, ray.to.x, ray.to.y, ray.to.z, function(shape, hx, hy, hz)
