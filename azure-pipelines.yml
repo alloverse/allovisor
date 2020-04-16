@@ -12,7 +12,7 @@ jobs:
     inputs:
       workingDirectory: 'build'
       cmakeArgs: "-G \"Unix Makefiles\" .."
-  - script: make alloverse-dist
+  - script: make PACKAGE
     workingDirectory: build
     displayName: "Make"
   - task: CopyFiles@2
@@ -21,6 +21,7 @@ jobs:
       contents: |
         build/*.app/**
         build/*.zip
+        build/*.dmg
       targetFolder: $(Build.ArtifactStagingDirectory)
   - task: PublishBuildArtifacts@1
     displayName: "Publish artifacts"
