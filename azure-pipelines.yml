@@ -12,15 +12,13 @@ jobs:
     inputs:
       workingDirectory: 'build'
       cmakeArgs: "-G \"Unix Makefiles\" .."
-  - script: make help; make package
+  - script: make package
     workingDirectory: build
     displayName: "Make"
   - task: CopyFiles@2
     displayName: "Stage artifacts"
     inputs:
       contents: |
-        build/*.app/**
-        build/*.zip
         build/*.dmg
       targetFolder: $(Build.ArtifactStagingDirectory)
   - task: PublishBuildArtifacts@1
