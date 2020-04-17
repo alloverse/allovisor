@@ -12,7 +12,8 @@ jobs:
     inputs:
       workingDirectory: 'build'
       cmakeArgs: "-G \"Unix Makefiles\" .."
-  - script: make package
+  # Note: _CPack_Packages has symlink to /Applications which crashes the stupid CopyFiles
+  - script: make package; rm -rf _CPack_Packages
     workingDirectory: build
     displayName: "Make"
   - task: CopyFiles@2
