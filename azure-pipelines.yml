@@ -12,7 +12,7 @@ jobs:
     inputs:
       workingDirectory: 'build'
       cmakeArgs: "-G \"Unix Makefiles\" .."
-  - script: make PACKAGE
+  - script: make help; make package
     workingDirectory: build
     displayName: "Make"
   - task: CopyFiles@2
