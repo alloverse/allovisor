@@ -14,13 +14,10 @@ with, and easier to extend with low level functionality.
 
 1. Install CMake 3.13.0 or newer
 2. `mkdir build && cd build && cmake -GXcode ..` to prepare to build
-3. `open build/allovisor.xcodeproj`
-4. Build the **ALL_BUILD** target
-5. Switch to the **lovr** target
-6. Open the scheme editor and add these launch arguments. 
-  - `${PROJECT_DIR}/deps/lodr`
-  - `${PROJECT_DIR}/lua`
-7. Run the **lovr** target
+3. `open allovisor.xcodeproj`
+4. Build and run the Alloverse target
+
+When running from xcode the lua code will hot reload when any file in the lua folder is saved. This can be disabled from the scheme run arguments. 
 
 #### make
 
@@ -45,20 +42,28 @@ might not work as expected.) cpath is set up to find
 1. Install Visual Studio 2019, including "C++ CMake tools for Windows" which comes with "Desktop development with C++".
 2. Open the project folder in VS2019
 3. In the Solution Explorer, right-click CMakeLists.txt and select "Generate CMake cache for allovisor"
-4. Switch to the [targets view](https://docs.microsoft.com/en-us/cpp/build/cmake-projects-in-visual-studio?view=vs-2019#ide-integration)
-5. Build the target `alloverse-dist`.
+4. Build and run the Alloverse.exe target
 
-To iterate on the lua stuff, from `out/build/x64-debug/Alloverse`, you can run:
+Lua code is zipped and attached to the end of the exe as a post-build step. This means Lua changes aren't
+visible until you rebuild the target. To get automatic hot-reloading so you don't even have to relaunch
+Alloverse.exe to see your changes, you can launch Alloverse with Lodr.
 
-`Alloverse.exe ..\..\..\..\deps\lodr ..\..\..\..\lua`
+Either cd to `out/build/x64-debug` and `Alloverse.exe ../../../deps/lodr ../../../lua`, or set it up
+in Visual Studio by right-clicking the target and changing "Debug and Launch settings" and adding
+absolute paths to lodr and lua that work on your computer to the ALloverse target, something like this:
 
-If you want to run from the VS2019 debugger to debug C stuff:
-
-1. choose lovr.exe as the startup item
-2. copy `allonet.dll` from `out/build/x64-Debug/deps/allonet` to `out/build/x64-Debug/deps/lovr/liballonet.dll`
-3. Run in Visual Studio. Copy liballonet again if you make changes.
-
-Not great but _shrug_.
+```
+    {
+      "type": "default",
+      "project": "CMakeLists.txt",
+      "projectTarget": "Alloverse.exe",
+      "name": "Alloverse.exe",
+      "args": [
+        "C:\\Users\\nevyn\\Dev\\allovisor-lovr\\deps\\lodr",
+        "C:\\Users\\nevyn\\Dev\\allovisor-lovr\\lua"
+      ]
+    }
+```
 
 ### Oculus Quest, with hard-linked allonet, from a Mac
 

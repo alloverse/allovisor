@@ -16,23 +16,24 @@ local os = lovr.getOS()
 local err = nil
 local pkg = nil
 if os == "Windows" then
-  local exepath = lovr.filesystem.getExecutablePath()
-  local dllpath = string.gsub(exepath, "%w+.exe", "allonet.dll")
-  print("loading liballonet from "..dllpath.."...")
-  pkg, err = package.loadlib(dllpath, "luaopen_liballonet")
+  -- already loaded into runtime
 elseif os == "macOS" then
   print("loading liballonet from exe...")
   pkg, err = package.loadlib(lovr.filesystem.getExecutablePath(), "luaopen_liballonet")
+  if pkg == nil then
+    error("Failed to load allonet: "..err)
+  end
+  allonet = pkg()
 elseif os == "Android" then
   print("loading liballonet from liblovr.so...")
   pkg, err = package.loadlib("liblovr.so", "luaopen_liballonet")
+  if pkg == nil then
+    error("Failed to load allonet: "..err)
+  end
+  allonet = pkg()
 else
   error("don't know how to load allonet")
 end
-if pkg == nil then
-    error("Failed to load allonet: "..err)
-end   
-allonet = pkg()
 print("allonet loaded")
 
 

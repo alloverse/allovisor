@@ -11,8 +11,9 @@ jobs:
   - task: CMake@1
     inputs:
       workingDirectory: 'build'
-      cmakeArgs: "-G \"Unix Makefiles\" .."
-  - script: make alloverse-dist
+      cmakeArgs: "-G \"Unix Makefiles\" -DCMAKE_BUILD_TYPE=Release .."
+  # Note: _CPack_Packages has symlink to /Applications which crashes the stupid CopyFiles
+  - script: make package; rm -rf _CPack_Packages
     workingDirectory: build
     displayName: "Make"
   - task: CopyFiles@2
@@ -20,7 +21,8 @@ jobs:
     inputs:
       contents: |
         build/*.app/**
-        build/*.zip
+        build/*.dmg
+        build/CMakeFiles/*.log
       targetFolder: $(Build.ArtifactStagingDirectory)
   - task: PublishBuildArtifacts@1
     displayName: "Publish artifacts"
@@ -41,13 +43,13 @@ jobs:
     inputs:
       msbuildArchitecture: 'x64'
       createLogFile: true
-      solution: 'build\alloverse-dist.vcxproj'
+      solution: 'build\PACKAGE.vcxproj'
+      configuration: MinSizeRel # Hangs in CreateWindow in Release????
   - task: CopyFiles@2
     displayName: "Stage artifacts"
     inputs:
       contents: |
-        build/**/Alloverse-win64.zip
-        build/Alloverse/*.*
+        build/**/*win64.exe
         build/**/*.log
       targetFolder: $(Build.ArtifactStagingDirectory)
   - task: PublishBuildArtifacts@1
