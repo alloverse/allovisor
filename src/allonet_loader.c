@@ -15,6 +15,16 @@ int main(int argc, char** argv)
   int status;
   bool restart;
 
+  if (argc == 1)
+  {
+    printf("using bundled assets\n");
+    argc = 2;
+    argv = (char*[]){
+      argv[0],
+      "lua"
+    };
+  }
+
   do {
     lovrPlatformSetTime(0.);
     lua_State* L = luaL_newstate();
@@ -47,13 +57,10 @@ int main(int argc, char** argv)
       ARGFLAG_ROOT
     } ArgFlag;
 
-    printf("Parsing %d args\n", argc);
-
     ArgFlag currentFlag = ARGFLAG_NONE;
     int lovrArgs = 0; // Arg count up to but not including the game path
     // One pass to parse flags
     for (int i = 0; i < argc; i++) {
-      printf("arg %d: %s\n", i, argv[i]);
       if (lovrArgs > 0) {
         // This argument is an argument to a -- flag
         if (currentFlag == ARGFLAG_ROOT) {

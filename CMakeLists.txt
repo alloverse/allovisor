@@ -30,11 +30,8 @@ if(WIN32)
     include_directories(deps/lovr/src)
     include_directories(deps/lovr/deps/luajit/src ${CMAKE_BINARY_DIR}/deps/lovr/luajit)
 
-    file(GLOB ZIP_FILES "${CMAKE_CURRENT_SOURCE_DIR}/lua/*")
     add_custom_command(
         TARGET Alloverse POST_BUILD
-        COMMAND ${CMAKE_COMMAND} -E chdir ${CMAKE_CURRENT_SOURCE_DIR}/lua ${CMAKE_COMMAND} -E tar c ${CMAKE_CURRENT_BINARY_DIR}/lua.zip --format=zip -- ${ZIP_FILES}
-        COMMAND copy /b $<SHELL_PATH:$<TARGET_FILE:Alloverse>>+lua.zip $<SHELL_PATH:$<TARGET_FILE:Alloverse>>
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:glfw> ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libluajit> ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ode> ${CMAKE_CURRENT_BINARY_DIR}
@@ -65,6 +62,7 @@ if(WIN32)
 
 
     install(TARGETS Alloverse DESTINATION .)
+    install(FILES lua DESTINATION .)
     install(FILES $<TARGET_FILE:glfw> DESTINATION .)
     install(FILES $<TARGET_FILE:libluajit> DESTINATION .)
     install(FILES $<TARGET_FILE:ode> DESTINATION .)
