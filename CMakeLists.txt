@@ -62,7 +62,7 @@ if(WIN32)
 
 
     install(TARGETS Alloverse DESTINATION .)
-    install(FILES lua DESTINATION .)
+    install(FILES lua/** DESTINATION .)
     install(FILES $<TARGET_FILE:glfw> DESTINATION .)
     install(FILES $<TARGET_FILE:libluajit> DESTINATION .)
     install(FILES $<TARGET_FILE:ode> DESTINATION .)
