@@ -13,9 +13,9 @@ end
 
 function GraphicsEng:onLoad()
   self.models = {
-	head = lovr.graphics.newModel('assets/models/mask/mask.glb'),
-	lefthand = lovr.graphics.newModel('assets/models/left-hand/left-hand.glb'),
-	righthand = lovr.graphics.newModel('assets/models/right-hand/right-hand.glb')
+    head = lovr.graphics.newModel('assets/models/mask/mask.glb'),
+    lefthand = lovr.graphics.newModel('assets/models/left-hand/left-hand.glb'),
+    righthand = lovr.graphics.newModel('assets/models/right-hand/right-hand.glb')
   }
 
   self.shader = lovr.graphics.newShader('standard', {
