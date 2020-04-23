@@ -140,6 +140,7 @@ function PoseEng:updatePointing(hand_pose, ray)
   local hand = self.parent.state.entities[hand_id]
   if hand == nil then return end
 
+  local previouslyHighlighted = ray.highlightedEntity
   ray:highlightEntity(nil)
 
   local handPos = hand.components.transform:getMatrix():mul(lovr.math.vec3())
@@ -159,6 +160,14 @@ function PoseEng:updatePointing(hand_pose, ray)
       ray.to = lovr.math.newVec3(hx, hy, hz)
     end
   end)
+
+  if previouslyHighlighted and previouslyHighlighted ~= ray.highlightedEntity then
+    self.parent:sendInteraction({
+      type = "one-way",
+      receiver_entity_id = previouslyHighlighted.id,
+      body = {"point-exit"}
+    })
+  end
 
   if ray.highlightedEntity then
     self.parent:sendInteraction({
