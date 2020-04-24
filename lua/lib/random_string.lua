@@ -13,4 +13,7 @@ function string.random(length)
   end
 end
 
+math.randomseed( os.time() )
+
+
 return string.random
