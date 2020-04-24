@@ -65,6 +65,8 @@ function pose2matrix(x, y, z, angle, ax, ay, az)
 end
 
 function PoseEng:onUpdate(dt)
+  if self.parent.client == nil then return end
+
   self:updateIntent()
   for handIndex, hand in ipairs(lovr.headset.getHands()) do
     self:updatePointing(hand, self.handRays[handIndex])

@@ -15,7 +15,7 @@ function SoundEng:_init()
 end
 
 function SoundEng:onLoad()
-  self.parent.client:set_audio_callback(function(track, audio) self:onAudio(track, audio) end)
+  self.parent.client:set_audio_callback(function(track_id, audio) self:onAudio(track_id, audio) end)
 end
 
 function SoundEng:onAudio(track_id, samples)
