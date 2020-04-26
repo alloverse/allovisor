@@ -81,10 +81,14 @@ function GraphicsEng:onDraw()
   for eid, entity in pairs(self.parent.state.entities) do
     local trans = entity.components.transform
     local geom = entity.components.geometry
-
+    local parent = entity.components.relationships and entity.components.relationships.parent or nil
+    local pose = entity.components.intent and entity.components.intent.actuate_pose or nil
     if trans ~= nil and geom ~= nil and geom.model ~= nil then
-      local mat = trans:getMatrix()
-      geom.model:draw(mat)
+      -- don't draw our own head, as it obscures the camera
+      if parent ~= self.parent.avatar_id or pose ~= "head" then
+        local mat = trans:getMatrix()
+        geom.model:draw(mat)
+      end
     end
   end
 
