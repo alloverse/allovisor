@@ -19,6 +19,9 @@ function SoundEng:onLoad()
 end
 
 function SoundEng:onAudio(track_id, samples)
+  if type(track_id) == "table" then 
+    print("Here's broken track ID: ", pretty.write(track_id))
+  end
   local audio = self.audio[track_id]
   if audio == nil then
     local stream = lovr.data.newAudioStream(1, 48000)
