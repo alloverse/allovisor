@@ -40,6 +40,11 @@ function SoundEng:onStateChanged()
   for _, entity in pairs(self.parent.state.entities) do
     self:setAudioPositionForEntitiy(entity)
   end
+  if self.head then
+    local matrix = self.head.components.transform:getMatrix()
+    -- todo: gotta install a custom lovr loop function which doesn't set pose for headset
+    lovr.audio.setPose(matrix:unpack())
+  end
 end
 
 
@@ -55,12 +60,12 @@ function SoundEng:setAudioPositionForEntitiy(entity)
   if track == nil then return end 
 
   local matrix = entity.components.transform:getMatrix()
-  local position = matrix:mul(lovr.math.vec3())
 
-  track.source:setPosition(position:unpack())
+  track.source:setPose(matrix:unpack())
 end
 
 function SoundEng:onHeadAdded(head)
+  self.head = head
   if self.track_id ~= 0 then return end
   if self.track_allocation_request_id ~= nil then return end
   if self.mic == nil then return end
