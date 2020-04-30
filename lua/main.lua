@@ -69,3 +69,32 @@ function lovr.mirror()
 	mirror()
 	ent.root:route("onMirror")
 end
+
+-- need a custom lovr.run to disable built-in lovr.audio.setPose
+function lovr.run()
+  lovr.timer.step()
+  lovr.load()
+  return function()
+    lovr.event.pump()
+    for name, a, b, c, d in lovr.event.poll() do
+      if name == 'quit' and (not lovr.quit or not lovr.quit()) then
+        return a or 0
+      end
+      if lovr.handlers[name] then lovr.handlers[name](a, b, c, d) end
+    end
+    local dt = lovr.timer.step()
+    lovr.headset.update(dt)
+    lovr.update(dt)
+
+    lovr.audio.setVelocity(lovr.headset.getVelocity())
+    lovr.audio.update()
+
+    lovr.graphics.origin()
+    lovr.headset.renderTo(lovr.draw)
+    if lovr.graphics.hasWindow() then
+      lovr.mirror()
+    end
+    lovr.graphics.present()
+		lovr.math.drain()
+  end
+end

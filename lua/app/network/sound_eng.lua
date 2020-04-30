@@ -45,7 +45,6 @@ function SoundEng:onStateChanged()
   end
   if self.head then
     local matrix = self.head.components.transform:getMatrix()
-    -- todo: gotta install a custom lovr loop function which doesn't set pose for headset
     lovr.audio.setPose(matrix:unpack())
   end
 end
