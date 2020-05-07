@@ -27,6 +27,7 @@ function SoundEng:_attemptOpenMicrophone()
       end
     end
   end
+  print("SoundEng: No compatible microphones found :(")
   return nil
 end
 
