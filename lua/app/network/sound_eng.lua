@@ -7,11 +7,27 @@ local SoundEng = classNamed("SoundEng", Ent)
 function SoundEng:_init()
   self.audio = {}
   self.track_id = 0
-  if #lovr.audio.getMicrophoneNames() > 0 then
-    self.mic = lovr.audio.newMicrophone(nil, 960*3, 48000, 16, 1)
-  end
+  self.mic = self:_attemptOpenMicrophone()
   
   self:super()
+end
+
+function SoundEng:_attemptOpenMicrophone()
+  local sampleFmts = {48000, 44100, 32000, 22050, 16000, 8000}
+  local bufferSizes = {960*3, 8192, 16384}
+  local drivers = lovr.audio.getMicrophoneNames()
+  for _, driver in ipairs(drivers) do
+    for _, sampleFmt in ipairs(sampleFmts) do
+      for _, bufferSize in ipairs(bufferSizes) do
+        local mic = lovr.audio.newMicrophone(driver, bufferSize, sampleFmt, 16, 1)
+        if mic ~= nil then
+          print("SoundEng: Opened microphone '", driver, "' at ", sampleFmt, "hz and ", bufferSize, "bytes per packet")
+          return mic
+        end
+      end
+    end
+  end
+  return nil
 end
 
 function SoundEng:onLoad()
