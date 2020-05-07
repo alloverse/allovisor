@@ -15,16 +15,22 @@ end
 function SoundEng:_attemptOpenMicrophone()
   local sampleFmts = {48000, 44100, 32000, 22050, 16000, 8000}
   local bufferSizes = {960*3, 8192, 16384}
+  local channelss = {1, 2}
+  local bitDepths = {16, 8}
   local drivers = lovr.audio.getMicrophoneNames()
   for _, driver in ipairs(drivers) do
     for _, sampleFmt in ipairs(sampleFmts) do
       for _, bufferSize in ipairs(bufferSizes) do
-        local ok, mic = pcall(lovr.audio.newMicrophone, driver, bufferSize, sampleFmt, 16, 1)
-        if ok == true and mic ~= nil then
-          print("SoundEng: Opened microphone '", driver, "' at ", sampleFmt, "hz and ", bufferSize, "bytes per packet")
-          return mic
-        else
-          print("SoundEng: Incompatible microphone: ", driver, sampleFmt, bufferSize, ":", mic)
+        for _, bitDepth in ipairs(bitDepths) do
+          for _, channels in ipairs(channelss) do
+            local ok, mic = pcall(lovr.audio.newMicrophone, driver, bufferSize, sampleFmt, bitDepth, channels)
+            if ok == true and mic ~= nil then
+              print("SoundEng: Opened microphone '", driver, "' at ", sampleFmt, "hz, ", channels, "channels,", bitDepth, "bits and ", bufferSize, "bytes per packet")
+              return mic
+            else
+              print("SoundEng: Incompatible microphone: ", driver, sampleFmt, bufferSize, bitDepth, channels, ":", mic)
+            end
+          end
         end
       end
     end
