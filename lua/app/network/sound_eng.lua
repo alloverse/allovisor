@@ -13,10 +13,10 @@ function SoundEng:_init()
 end
 
 function SoundEng:_attemptOpenMicrophone()
-  local sampleFmts = {48000, 44100, 32000, 22050, 16000, 8000}
-  local bufferSizes = {960*3, 8192, 16384, 1024, 1024*3}
-  local channelss = {1, 2}
-  local bitDepths = {16, 8}
+  local sampleFmts = {48000}
+  local bufferSizes = {960*3, 16384, 1024*4}
+  local channelss = {1}
+  local bitDepths = {16}
   local drivers = lovr.audio.getMicrophoneNames()
   for _, driver in ipairs(drivers) do
     for _, sampleFmt in ipairs(sampleFmts) do
