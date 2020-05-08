@@ -14,7 +14,7 @@ end
 
 function SoundEng:_attemptOpenMicrophone()
   local sampleFmts = {48000, 44100, 32000, 22050, 16000, 8000}
-  local bufferSizes = {960*3, 8192, 16384}
+  local bufferSizes = {960*3, 8192, 16384, 1024, 1024*3}
   local channelss = {1, 2}
   local bitDepths = {16, 8}
   local drivers = lovr.audio.getMicrophoneNames()
