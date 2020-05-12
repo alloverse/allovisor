@@ -46,6 +46,8 @@ end)
 namespace "standard"
 
 function lovr.load()
+	local menuServerThread = lovr.thread.newThread("menuserv_main.lua")
+	menuServerThread:start()
 	ent.root = LoaderEnt({
   "app.menu.main_menu_scene",
 		"app/debug/fps"

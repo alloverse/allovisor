@@ -3,7 +3,6 @@ namespace("networkscene", "alloverse")
 local json = require "json"
 local tablex = require "pl.tablex"
 local pretty = require "pl.pretty"
-local Entity, componentClasses = unpack(require("app.network.entity"))
 local Client = require "alloui.client"
 
 local engines = {
@@ -14,31 +13,8 @@ local engines = {
 }
 local OverlayMenuScene = require "app.menu.overlay_menu_scene"
 require "lib.random_string"
-
--- load allonet from dll
-local os = lovr.getOS()    
-local err = nil
-local pkg = nil
-if os == "Windows" then
-  -- already loaded into runtime
-elseif os == "macOS" then
-  print("loading liballonet from exe...")
-  pkg, err = package.loadlib(lovr.filesystem.getExecutablePath(), "luaopen_liballonet")
-  if pkg == nil then
-    error("Failed to load allonet: "..err)
-  end
-  allonet = pkg()
-elseif os == "Android" then
-  print("loading liballonet from liblovr.so...")
-  pkg, err = package.loadlib("liblovr.so", "luaopen_liballonet")
-  if pkg == nil then
-    error("Failed to load allonet: "..err)
-  end
-  allonet = pkg()
-else
-  error("don't know how to load allonet")
-end
-print("allonet loaded")
+local util = require "util"
+--allonet = util.load_allonet()
 
 
 -- The responsibilies of NetworkScene are:
@@ -160,7 +136,7 @@ function NetworkScene:onInteraction(interaction)
     self.avatar_id = avatar_id
     self:lookForHead()
   end
-end
+end   
 
 function NetworkScene:getAvatar()
   if self.avatar_id == "" then	
@@ -171,10 +147,12 @@ end
 
 function NetworkScene:onDisconnect(code, message)
   print("disconnecting...")
-  self.client:disconnect(0)
+  self.client.client:disconnect(0)
   self.client = nil
-  for _, engine in pairs(self.engines) do
-    engine.client = nil
+  if self.engines then
+    for _, engine in pairs(self.engines) do
+      engine.client = nil
+    end
   end
   local menu = lovr.scenes.menu():insert()
   menu:setMessage(message)
