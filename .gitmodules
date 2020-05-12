@@ -10,3 +10,6 @@
 [submodule "deps/lovr-android"]
 	path = deps/lovr-android
 	url = https://github.com/alloverse/lovr-oculus-mobile-alloverse.git
+[submodule "deps/alloui"]
+	path = lua/alloui
+	url = https://github.com/alloverse/alloui-lua.git

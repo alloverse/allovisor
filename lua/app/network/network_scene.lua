@@ -4,10 +4,14 @@ local json = require "json"
 local tablex = require "pl.tablex"
 local pretty = require "pl.pretty"
 local Entity, componentClasses = unpack(require("app.network.entity"))
-local SoundEng = require "app.network.sound_eng"
-local GraphicsEng = require "app.network.graphics_eng"
-local PoseEng = require "app.network.pose_eng"
-local PhysicsEng = require "app.network.physics_eng"
+local Client = require "alloui.client"
+
+local engines = {
+  SoundEng = require "eng.sound_eng",
+  GraphicsEng = require "eng.graphics_eng",
+  PoseEng = require "eng.pose_eng",
+  PhysicsEng = require "eng.physics_eng"
+}
 local OverlayMenuScene = require "app.menu.overlay_menu_scene"
 require "lib.random_string"
 
@@ -85,23 +89,20 @@ function NetworkScene:_init(displayName, url)
   if lovr.headset.getDriver() == "desktop" then
     table.remove(avatar.children, 2) -- remove right hand as it can't be simulated
   end
-  self.client = allonet.create()
+  self.client = Client(url, displayName)
   
-  self.state = {
-    entities = {}
-  }
-  self.avatar_id = ""
   self.head_id = ""
-  self.outstanding_response_callbacks = {}
-  self.client:set_state_callback(function() self:route("onStateChanged") end)
-  self.client:set_interaction_callback(function(inter) self:onInteractionInternal(inter) end)
-  self.client:set_disconnected_callback(function(code, message) self:route("onDisconnect", code, message) end)
-
-  if self.client:connect(
-    url,
-    json.encode({display_name = displayName}),
-    json.encode(avatar)
-  ) == false then
+  self.client.delegates = {
+    onStateChanged = function() self:route("onStateChanged") end,
+    onEntityAdded = function(e) self:route("onEntityAdded", e) end,
+    onEntityRemoved = function(e) self:route("onEntityRemoved", e) end,
+    onComponentAdded = function(k, v) self:route("onComponentAdded", k, v) end,
+    onComponentChanged = function(k, v) self:route("onComponentChanged", k, v) end,
+    onComponentRemoved = function(k, v) self:route("onComponentRemoved", k, v) end,
+    onInteraction = function(inter, body, receiver, sender) self:route("onInteraction", inter, body, receiver, sender) end,
+    onDisconnected =  function(code, message) self:route("onDisconnect", code, message) end
+  } 
+  if self.client:connect(avatar) == false then
     self:onDisconnect(1003, "Failed to connect")
   end
 
@@ -111,93 +112,22 @@ end
 function NetworkScene:onLoad()
   if self.client ~= nil then
     -- Engines. These do the heavy lifting.
-    self.graphics = GraphicsEng():insert(self)
-    self.sound = SoundEng():insert(self)
-    self.pose = PoseEng():insert(self)
-    self.physics = PhysicsEng():insert(self)
+    self.engines = {
+      graphics = engines.GraphicsEng(),
+      sound = engines.SoundEng(),
+      pose = engines.PoseEng(),
+      physics = engines.PhysicsEng()
+    }
+    for _, engine in pairs(self.engines) do
+      engine.client = self.client
+      engine:insert(self)
+    end
   end
 end
 
 function NetworkScene:onStateChanged()
-  local newState = self.client:get_state()
-  local oldEntities = tablex.copy(self.state.entities)
-
-  -- Compare existing state to the new incoming state, and apply appropriate functions when we're done.
-  local newEntities = {}
-  local deletedEntities = {}
-  local newComponents = {}
-  local updatedComponents = {}
-  local deletedComponents = {}
-
-  -- While at it, also make Entities and their Components classes so they get convenience methods from entity.lua
-
-  -- Entity:getSibling(eid) to get any entity from an entity.
-  local getSibling = function(this, id) return self.state.entities[id] end
-
-  for eid, newEntity in pairs(newState.entities) do
-    local existingEntity = oldEntities[eid]
-    local entity = existingEntity
-    -- Check for new entity
-    if entity == nil then
-      entity = newEntity
-      setmetatable(entity, Entity)
-      entity.getSibling = getSibling
-      table.insert(newEntities, entity)
-      self.state.entities[eid] = newEntity
-    end
-    
-    -- Component:getEntity()
-    local getEntity = function() return entity end
-
-    -- Check for new or updated components
-    for cname, newComponent in pairs(newEntity.components) do
-      local oldComponent = existingEntity and existingEntity.components[cname]
-      if oldComponent == nil then
-        -- it's a new component
-        local klass = componentClasses[cname]
-        setmetatable(newComponent, klass)
-        newComponent.getEntity = getEntity
-        newComponent.key = cname
-        entity.components[cname] = newComponent
-        table.insert(newComponents, newComponent)
-      elseif tablex.deepcompare(oldComponent, newComponent, false) == false then
-        -- it's a changed component
-        table.insert(updatedComponents, oldComponent)
-        tablex.update(oldComponent, newComponent)
-      end
-    end
-    -- Check for deleted components
-    if existingEntity ~= nil then
-      for cname, oldComponent in pairs(existingEntity.components) do
-        local newComponent = newEntity.components[cname]
-        if newComponent == nil then
-          table.insert(deletedComponents, oldComponent)
-          entity.components[cname] = nil
-        end
-      end
-    end
-  end
-
-  -- check for deleted entities
-  for eid, oldEntity in pairs(oldEntities) do
-    local newEntity = newState.entities[eid]
-    if newEntity == nil then      
-      table.insert(deletedEntities, oldEntity)
-      tablex.insertvalues(deletedComponents, tablex.values(oldEntity.components))
-      self.state.entities[eid] = nil
-    end
-  end
-
-  -- Run callbacks
-  --if #newEntities > 0 then print("New entities: ", pretty.write(newEntities)) end
-  --if #deletedEntities > 0 then print("Removed entities: ", pretty.write(deletedEntities)) end
-  --if #newComponents > 0 then print("New components: ", pretty.write(newComponents)) end
-  --if #deletedComponents > 0 then print("Removed components: ", pretty.write(deletedComponents)) end
-  tablex.map(function(x) self:route("onEntityAdded", x) end, newEntities)
-  tablex.map(function(x) self:route("onEntityRemoved", x) end, deletedEntities)
-  tablex.map(function(x) self:route("onComponentAdded", x.key, x) end, newComponents)
-  tablex.map(function(x) self:route("onComponentChanged", x.key, x) end, updatedComponents)
-  tablex.map(function(x) self:route("onComponentRemoved", x.key, x) end, deletedComponents)
+  -- compatibility with older code
+  self.state = self.client.state
 end
 
 function NetworkScene:onComponentAdded(cname, component)
@@ -222,11 +152,6 @@ function NetworkScene:lookForHead()
   end
 end
 
-function NetworkScene:onInteractionInternal(interaction)
-  interaction.body = json.decode(interaction.body)
-  self:route("onInteraction", interaction)
-end
-
 function NetworkScene:onInteraction(interaction)
   if interaction.type == "response" and interaction.body[1] == "announce" then
     local avatar_id = interaction.body[2]
@@ -234,31 +159,7 @@ function NetworkScene:onInteraction(interaction)
     print("Welcome to", place_name, ". You are", avatar_id)
     self.avatar_id = avatar_id
     self:lookForHead()
-  elseif interaction.type == "response" then
-    local callback = self.outstanding_response_callbacks[interaction.request_id]
-    if callback ~= nil then
-      callback(interaction)
-      self.outstanding_response_callbacks[interaction.request_id] = nil
-    end
   end
-end
-
-function NetworkScene:sendInteraction(interaction, callback)
-  if interaction.sender_entity_id == nil then
-    assert(self.avatar_id ~= nil)
-    interaction.sender_entity_id = self.avatar_id
-  end
-  if interaction.type == "request" then
-    interaction.request_id = string.random(16)
-    if callback ~= nil then
-      self.outstanding_response_callbacks[interaction.request_id] = callback
-    end
-  else
-    interaction.request_id = "" -- todo, fix this in allonet
-  end
-  interaction.body = json.encode(interaction.body)
-  self.client:send_interaction(interaction)
-  return interaction.request_id
 end
 
 function NetworkScene:getAvatar()
@@ -272,6 +173,9 @@ function NetworkScene:onDisconnect(code, message)
   print("disconnecting...")
   self.client:disconnect(0)
   self.client = nil
+  for _, engine in pairs(self.engines) do
+    engine.client = nil
+  end
   local menu = lovr.scenes.menu():insert()
   menu:setMessage(message)
   print("disconnected.")
@@ -321,7 +225,7 @@ end
 
 function NetworkScene:onUpdate(dt)
   if self.client ~= nil then
-    self.client:poll()
+    self.client.client:poll()
     if self.client == nil then
       return route_terminate
     end
@@ -329,7 +233,7 @@ function NetworkScene:onUpdate(dt)
     return route_terminate
   end
 
-  self.client:simulate(dt)
+  self.client.client:simulate(dt)
 
 
   if lovr.headset.wasPressed("hand/right", "b") then

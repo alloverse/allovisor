@@ -6,6 +6,8 @@ cpath = cpath ..
 if lovr.filesystem.getExecutablePath() then
 	cpath = cpath .. lovr.filesystem.getExecutablePath():gsub("lovr.exe", "?.dll")
 end
+path = path ..
+	";alloui/lua/?.lua"
 
 lovr.filesystem.setRequirePath(path, cpath)
 package.cpath = cpath
