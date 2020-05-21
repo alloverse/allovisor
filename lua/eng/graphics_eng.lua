@@ -11,10 +11,13 @@ function GraphicsEng:_init()
 end
 
 function GraphicsEng:onLoad()
-  self.models = {
+  self.hardcoded_models = {
     head = lovr.graphics.newModel('assets/models/mask/mask.glb'),
     lefthand = lovr.graphics.newModel('assets/models/left-hand/left-hand.glb'),
     righthand = lovr.graphics.newModel('assets/models/right-hand/right-hand.glb')
+  }
+
+  self.models_for_eids = {
   }
 
   self.shader = lovr.graphics.newShader('standard', {
@@ -82,11 +85,12 @@ function GraphicsEng:onDraw()
     local geom = entity.components.geometry
     local parent = entity.components.relationships and entity.components.relationships.parent or nil
     local pose = entity.components.intent and entity.components.intent.actuate_pose or nil
-    if trans ~= nil and geom ~= nil and geom.model ~= nil then
+    local model = self.models_for_eids[eid]
+    if trans ~= nil and geom ~= nil and model ~= nil then
       -- don't draw our own head, as it obscures the camera
       if parent ~= self.client.avatar_id or pose ~= "head" then
         local mat = trans:getMatrix()
-        geom.model:draw(mat)
+        model:draw(mat)
       end
     end
   end
@@ -102,64 +106,90 @@ function GraphicsEng:onUpdate(dt)
 
 end
 
+function GraphicsEng:loadComponentModel(component, old_component)
+  local eid = component.getEntity().id
+
+  if component.type == "hardcoded-model" then
+    self.models_for_eids[eid] = self.hardcoded_models[component.name]
+  elseif component.type == "inline" then 
+    self.models_for_eids[eid] = self:createMesh(component, old_component)
+  end
+
+end
+
 function GraphicsEng:onComponentAdded(component_key, component)
   if component_key ~= "geometry" then
     return
   end
 
-  local entity = component:getEntity()
-
-  if component.type == "hardcoded-model" then
-    entity.components.geometry.model = self.models[component.name]
-  elseif component.type == "inline" then 
-    entity.components.geometry.model = createMesh(component)
-  end
-
+  self:loadComponentModel(component, nil)
 end
 
--- function GraphicsEng:onComponentRemoved(component_key, component)
+function GraphicsEng:onComponentChanged(component_key, component, old_component)
+  if component_key ~= "geometry" then
+    return
+  end
 
--- end
+  self:loadComponentModel(component, old_component)
+end
 
-function createMesh(geom)
-  -- convert the flattened zero-based indices list
-  local z_indices = array2d.flatten(geom.triangles)
-  -- convert to 1-based 
-  local indices = tablex.map(function (x) return x + 1 end, z_indices)
-  -- zip together verts, normals, and uv
-  local combined = tablex.zip(
-    geom.vertices, 
-    -- geom.normals, 
-    geom.uvs
-  )
-  -- flatten the inner tables
-  local vertices = tablex.map(function (x) return array2d.flatten(x) end, combined)
+function GraphicsEng:onComponentRemoved(component_key, component)
+  if component_key ~= "geometry" then
+    return
+  end
+  component.model = nil
+end
 
-  -- Setup the mesh
-  local mesh = lovr.graphics.newMesh({
-    { 'lovrPosition', 'float', 3 },
-    -- { 'lovrNormal', 'float', 3 },
-    { 'lovrTexCoord', 'float', 2 }
-  },
-  vertices,
-  'triangles', -- DrawMode
-  'static', -- MeshUsage. dynamic, static, stream
-  false -- do we need to read the data from the mesh later
-)
+function GraphicsEng:createMesh(geom, old_geom)
+  local eid = geom.getEntity().id
+  local mesh = self.models_for_eids[eid]
+  if old_geom then
+    ++print("createMesh", tablex.deepcompare(geom.triangles, old_geom.triangles), tablex.deepcompare(geom.vertices, old_geom.vertices), tablex.deepcompare(geom.uvs, old_geom.uvs))
+  end
 
-  mesh:setVertices(vertices)
-  mesh:setVertexMap(indices)
+  if mesh == nil or not tablex.deepcompare(geom.triangles, old_geom.triangles) or not tablex.deepcompare(geom.vertices, old_geom.vertices) or not tablex.deepcompare(geom.uvs, old_geom.uvs) then
+    print("Creating new mesh from inline model data")
+    -- convert the flattened zero-based indices list
+    local z_indices = array2d.flatten(geom.triangles)
+    -- convert to 1-based 
+    local indices = tablex.map(function (x) return x + 1 end, z_indices)
+    -- zip together verts, normals, and uv
+    local combined = tablex.zip(
+      geom.vertices, 
+      -- geom.normals, 
+      geom.uvs
+    )
+    -- flatten the inner tables
+    local vertices = tablex.map(function (x) return array2d.flatten(x) end, combined)
 
-  -- decode texture data and setup material
-  local data = base64decode(geom.texture)
-  local blob = lovr.data.newBlob(data, "texture")
-  local texture = lovr.graphics.newTexture(blob)
-  local material = lovr.graphics.newMaterial(texture)
-  mesh:setMaterial(material)
+    -- Setup the mesh
+    mesh = lovr.graphics.newMesh({
+      { 'lovrPosition', 'float', 3 },
+      -- { 'lovrNormal', 'float', 3 },
+      { 'lovrTexCoord', 'float', 2 }
+    },
+    vertices,
+    'triangles', -- DrawMode
+    'static', -- MeshUsage. dynamic, static, stream
+    false -- do we need to read the data from the mesh later
+    )
+
+    mesh:setVertices(vertices)
+    mesh:setVertexMap(indices)
+  end
+
+  if old_geom == nil or old_geom.texture ~= geom.texture then
+    print("Creating new texture from inline data")
+    -- decode texture data and setup material
+    local data = base64decode(geom.texture)
+    local blob = lovr.data.newBlob(data, "texture")
+    local texture = lovr.graphics.newTexture(blob)
+    local material = lovr.graphics.newMaterial(texture)
+    mesh:setMaterial(material)
+  end
 
   return mesh
 end
-
 
 -- decoding
 function base64decode(data)
