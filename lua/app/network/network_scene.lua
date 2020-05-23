@@ -128,10 +128,10 @@ function NetworkScene:lookForHead()
   end
 end
 
-function NetworkScene:onInteraction(interaction)
-  if interaction.type == "response" and interaction.body[1] == "announce" then
-    local avatar_id = interaction.body[2]
-    local place_name = interaction.body[3]
+function NetworkScene:onInteraction(interaction, body)
+  if interaction.type == "response" and body[1] == "announce" then
+    local avatar_id = body[2]
+    local place_name = body[3]
     print("Welcome to", place_name, ". You are", avatar_id)
     self.avatar_id = avatar_id
     self:lookForHead()
@@ -140,7 +140,7 @@ end
 
 function NetworkScene:getAvatar()
   if self.avatar_id == "" then	
-	return nil
+    return nil
   end
   return self.state.entities[self.avatar_id]
 end
