@@ -81,7 +81,7 @@ function NetworkScene:_init(displayName, url)
   if self.client:connect(avatar) == false then
     self:onDisconnect(1003, "Failed to connect")
   end
-
+  self:onStateChanged()
   self:super()
 end
 
