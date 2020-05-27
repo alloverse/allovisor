@@ -72,10 +72,10 @@ function PoseEng:onUpdate(dt)
   end
 end
 
-function PoseEng:getAxis(device, control)
-  local x, y = lovr.headset.getAxis(device, control)
+function PoseEng:getAxis(device, axis)
+  local x, y = lovr.headset.getAxis(device, axis)
   if keyboard then
-    if device == "hand/left" and control == "thumbstick" then
+    if device == "hand/left" and axis == "thumbstick" then
       if keyboard.isDown("j") then
         x = -1
       elseif keyboard.isDown("l") then
@@ -86,16 +86,24 @@ function PoseEng:getAxis(device, control)
       elseif keyboard.isDown("k") then
         y = -1
       end
-    elseif device == "hand/right" and control == "thumbstick" then
-      if keyboard.wasPressed("u") then
+    elseif device == "hand/right" and axis == "thumbstick" then
+      if keyboard.isDown("u") then
         x = -1
-      elseif keyboard.wasPressed("o") then
+      elseif keyboard.isDown("o") then
         x = 1
       end
+    elseif device == "hand/left" and axis == "grip" and x == 0 then
+      x = keyboard.isDown("f") and 1.0 or 0.0
     end
   end
   return x, y
 end
+
+function PoseEng:isDown(device, button)
+  local down = lovr.headset.isDown(device, button)
+  return down
+end
+
 
 function PoseEng:updateIntent()
   if self.client.avatar_id == "" then return end
@@ -122,13 +130,25 @@ function PoseEng:updateIntent()
   }
 
   -- child entity positioning
-  for i, device in ipairs({"head", "hand/left", "hand/right"}) do
+  for i, device in ipairs({"hand/left", "hand/right", "head"}) do
     intent.poses[device] = {
-      matrix = pose2matrix(lovr.headset.getPose(device))
+      matrix = pose2matrix(lovr.headset.getPose(device)),
+      grab = self:grabForDevice(i, device)
     }
   end
   
   self.client.client:set_intent(intent)
+end
+
+function PoseEng:grabForDevice(handIndex, device)
+  if device == "head" then return nil end
+  local ray = self.handRays[handIndex]
+  if ray.highlightedEntity == nil then return nil end
+  if self:getAxis(device, "grip") < 0.8 then return nil end
+  return {
+    entity = ray.highlightedEntity.id,
+    held_at = ray.from
+  }
 end
 
 function PoseEng:updatePointing(hand_pose, ray)
@@ -183,7 +203,7 @@ function PoseEng:updatePointing(hand_pose, ray)
       body = {"point", {ray.from.x, ray.from.y, ray.from.z}, {ray.to.x, ray.to.y, ray.to.z}}
     })
 
-    if ray.selectedEntity == nil and lovr.headset.isDown(hand_pose, "trigger") then
+    if ray.selectedEntity == nil and self:isDown(hand_pose, "trigger") then
       ray:selectEntity(ray.highlightedEntity)
       self.client:sendInteraction({
         type = "request",
@@ -193,7 +213,7 @@ function PoseEng:updatePointing(hand_pose, ray)
     end
   end
 
-  if ray.selectedEntity and not lovr.headset.isDown(hand_pose, "trigger") then
+  if ray.selectedEntity and not self:isDown(hand_pose, "trigger") then
     self.client:sendInteraction({
       type = "request",
       receiver_entity_id = ray.selectedEntity.id,
