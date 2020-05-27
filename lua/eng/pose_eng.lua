@@ -72,12 +72,37 @@ function PoseEng:onUpdate(dt)
   end
 end
 
+function PoseEng:getAxis(device, control)
+  local x, y = lovr.headset.getAxis(device, control)
+  if keyboard then
+    if device == "hand/left" and control == "thumbstick" then
+      if keyboard.isDown("j") then
+        x = -1
+      elseif keyboard.isDown("l") then
+        x = 1
+      end
+      if keyboard.isDown("i") then
+        y = 1
+      elseif keyboard.isDown("k") then
+        y = -1
+      end
+    elseif device == "hand/right" and control == "thumbstick" then
+      if keyboard.wasPressed("u") then
+        x = -1
+      elseif keyboard.wasPressed("o") then
+        x = 1
+      end
+    end
+  end
+  return x, y
+end
+
 function PoseEng:updateIntent()
   if self.client.avatar_id == "" then return end
 
   -- root entity movement
-  local mx, my = lovr.headset.getAxis("hand/left", "thumbstick")
-  local tx, ty = lovr.headset.getAxis("hand/right", "thumbstick")
+  local mx, my = self:getAxis("hand/left", "thumbstick")
+  local tx, ty = self:getAxis("hand/right", "thumbstick")
 
   if math.abs(tx) > 0.5 and not self.didTurn then
     self.yaw = self.yaw + allomath.sign(tx) * math.pi/4
@@ -95,25 +120,6 @@ function PoseEng:updateIntent()
     pitch = 0.0,
     poses = {}
   }
-
-  if keyboard then
-    if keyboard.isDown("j") then
-      intent.xmovement = -1
-    elseif keyboard.isDown("l") then
-      intent.xmovement = 1
-    end
-    if keyboard.isDown("i") then
-      intent.zmovement = -1
-    elseif keyboard.isDown("k") then
-      intent.zmovement = 1
-    end
-    if keyboard.wasPressed("u") then
-      intent.yaw = self.yaw - 3.141592 / 4 -- 45deg snap turns
-    elseif keyboard.wasPressed("o") then
-      intent.yaw = self.yaw + 3.141592 / 4 -- 45deg snap turns
-    end
-    self.yaw = intent.yaw
-  end
 
   -- child entity positioning
   for i, device in ipairs({"head", "hand/left", "hand/right"}) do
