@@ -142,14 +142,15 @@ function PoseEng:updateIntent()
   self.client.client:set_intent(intent)
 end
 
+local requiredGripStrength = 0.4
 function PoseEng:grabForDevice(handIndex, device)
   if device == "head" then return nil end
   local ray = self.handRays[handIndex]
   local gripStrength = self:getAxis(device, "grip")
 
-  if ray.heldEntity and gripStrength < 0.8 then
+  if ray.heldEntity and gripStrength < requiredGripStrength then
     ray.heldEntity = nil
-  elseif ray.heldEntity == nil and gripStrength > 0.8 and ray.highlightedEntity then
+  elseif ray.heldEntity == nil and gripStrength > requiredGripStrength and ray.highlightedEntity then
     ray.heldEntity = ray.highlightedEntity
     ray.held_at = ray.from
   end
