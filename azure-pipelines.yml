@@ -42,6 +42,7 @@ jobs:
     displayName: "Visual Studio build"
     inputs:
       msbuildArchitecture: 'x64'
+      vsVersion: 16.0
       createLogFile: true
       solution: 'build\PACKAGE.vcxproj'
       configuration: MinSizeRel # Hangs in CreateWindow in Release????
