@@ -14,7 +14,7 @@ local engines = {
 local OverlayMenuScene = require "app.menu.overlay_menu_scene"
 require "lib.random_string"
 local util = require "util"
---allonet = util.load_allonet()
+allonet = util.load_allonet()
 
 
 -- The responsibilies of NetworkScene are:
