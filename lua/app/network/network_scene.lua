@@ -103,7 +103,9 @@ end
 
 function NetworkScene:onStateChanged()
   -- compatibility with older code
-  self.state = self.client.state
+  if self.client then
+    self.state = self.client.state
+  end
 end
 
 function NetworkScene:onComponentAdded(cname, component)
