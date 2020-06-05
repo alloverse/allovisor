@@ -7,7 +7,8 @@ local MainMenuScene = classNamed("MainMenuScene", MenuScene)
 function MainMenuScene:_init()
   local mainMenuItems = {
     MenuItem("Nevyn's place", function() self:openPlace("alloplace://nevyn.places.alloverse.com") end),
-    MenuItem("Localhost", function() self:openPlace("alloplace://localhost:21338") end),
+    MenuItem("Localhost", function() self:openPlace("alloplace://localhost:21337") end),
+    MenuItem("Standalone", function() self:openPlace("alloplace://localhost:21338") end),
     MenuItem("Debug (off)", function() self:toggleDebug() end),
     MenuItem("Quit", function() lovr.event.quit(0) end),
   }
