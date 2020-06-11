@@ -216,7 +216,7 @@ function NetworkScene:onUpdate(dt)
   self.client.client:simulate(dt)
 
 
-  if lovr.headset.wasPressed("hand/right", "b") then
+  if self.engines.pose:wasPressed("hand/right", "b") then
     OverlayMenuScene(self):insert(self)
   end
 end

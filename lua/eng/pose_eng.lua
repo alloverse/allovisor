@@ -106,6 +106,16 @@ function PoseEng:isDown(device, button)
   return down
 end
 
+function PoseEng:wasPressed(device, button)
+  local down = lovr.headset.wasPressed(device, button)
+  if keyboard then
+    if device == "hand/right" and button == "b" then
+      down = keyboard.wasPressed("r")
+    end
+  end
+  return down
+end
+
 
 function PoseEng:updateIntent()
   if self.client.avatar_id == "" then return end
