@@ -101,12 +101,12 @@ function SoundEng:onHeadAdded(head)
     sender_entity_id = self.parent.head_id,
     receiver_entity_id = "place",
     body = {"allocate_track", "audio", 48000, 1, "opus"}
-  }, function (interaction) 
-    if interaction.body[2] == "ok" then
-      self.track_id = interaction.body[3]
+  }, function (response, body) 
+    if body[2] == "ok" then
+      self.track_id = body[3]
       self.mic:startRecording()
     else
-      print("Failed to allocate track:", interaction.body[3])
+      print("Failed to allocate track:", pretty.write(body))
     end
   end)
 end
@@ -139,7 +139,7 @@ end
 function SoundEng:onUpdate(dt)
   if self.mic ~= nil and self.mic:getSampleCount() >= 960 then
     local sd = lovr.data.newSoundData(16384, 48000, 16, 1)
-    sd = microphone:getData(960, sd, 0)
+    sd = self.mic:getData(960, sd, 0)
     if self.track_id then
       self.client.client:send_audio(self.track_id, sd:getBlob():getString():sub(1, 960))
     end
