@@ -96,6 +96,7 @@ function SoundEng:onHeadAdded(head)
   if self.track_allocation_request_id ~= nil then return end
   if self.mic == nil then return end
 
+  print("Requesting track for mic", self.mic)
   self.track_allocation_request_id = self.client:sendInteraction({
     type = "request",
     sender_entity_id = self.parent.head_id,
@@ -104,6 +105,7 @@ function SoundEng:onHeadAdded(head)
   }, function (response, body) 
     if body[2] == "ok" then
       self.track_id = body[3]
+      print("Our head was allocated track ", self.track_id)
       self.mic:startRecording()
     else
       print("Failed to allocate track:", pretty.write(body))
