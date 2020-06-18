@@ -141,7 +141,7 @@ function SoundEng:onUpdate(dt)
     local sd = lovr.data.newSoundData(16384, 48000, 16, 1)
     sd = self.mic:getData(960, sd, 0)
     if self.track_id then
-      self.client.client:send_audio(self.track_id, sd:getBlob():getString():sub(1, 960))
+      self.client.client:send_audio(self.track_id, sd:getBlob():getString():sub(1, 960*2+1))
     end
   end
 end
