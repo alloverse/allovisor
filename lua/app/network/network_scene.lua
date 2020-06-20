@@ -5,6 +5,7 @@ local tablex = require "pl.tablex"
 local pretty = require "pl.pretty"
 local Client = require "alloui.client"
 
+local ThreadedClient = require("app.network.threaded_client_outer")
 local engines = {
   SoundEng = require "eng.sound_eng",
   GraphicsEng = require "eng.graphics_eng",
@@ -65,7 +66,9 @@ function NetworkScene:_init(displayName, url)
   if lovr.headset.getDriver() == "desktop" then
     table.remove(avatar.children, 2) -- remove right hand as it can't be simulated
   end
-  self.client = Client(url, displayName)
+
+  --local threadedClient = ThreadedClient()
+  self.client = Client(url, displayName, threadedClient)
   
   self.head_id = ""
   self.client.delegates = {
