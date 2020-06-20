@@ -149,7 +149,7 @@ function PoseEng:updateIntent()
     }
   end
   
-  self.client.client:set_intent(intent)
+  self.client:setIntent(intent)
 end
 
 local requiredGripStrength = 0.4

@@ -149,7 +149,7 @@ end
 
 function NetworkScene:onDisconnect(code, message)
   print("disconnecting...")
-  self.client.client:disconnect(0)
+  self.client:disconnect(0)
   self.client = nil
   if self.engines then
     for _, engine in pairs(self.engines) do
@@ -205,7 +205,7 @@ end
 
 function NetworkScene:onUpdate(dt)
   if self.client ~= nil then
-    self.client.client:poll()
+    self.client:poll()
     if self.client == nil then
       return route_terminate
     end
@@ -213,7 +213,7 @@ function NetworkScene:onUpdate(dt)
     return route_terminate
   end
 
-  self.client.client:simulate(dt)
+  self.client:simulate(dt)
 
 
   if self.engines.pose:wasPressed("hand/right", "b") then
