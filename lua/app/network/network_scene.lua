@@ -67,7 +67,7 @@ function NetworkScene:_init(displayName, url)
     table.remove(avatar.children, 2) -- remove right hand as it can't be simulated
   end
 
-  --local threadedClient = ThreadedClient()
+  local threadedClient = ThreadedClient()
   self.client = Client(url, displayName, threadedClient)
   
   self.head_id = ""
