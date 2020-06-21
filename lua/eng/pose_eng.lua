@@ -62,7 +62,7 @@ function pose2matrix(x, y, z, angle, ax, ay, az)
   local mat = lovr.math.mat4()
   mat:translate(x, y, z)
   mat:rotate(angle, ax, ay, az)
-  return mat
+  return {mat:unpack(true)}
 end
 
 function PoseEng:onUpdate(dt)
