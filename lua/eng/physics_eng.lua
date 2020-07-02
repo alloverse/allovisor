@@ -20,9 +20,9 @@ function PhysicsEng:onUpdate(dt)
     local entity = collider:getUserData()
     local matrix = entity.components.transform:getMatrix()
 
-    local position = matrix:mul(lovr.math.vec3())
-    -- todo: rotation
-    collider:setPosition(position:unpack())
+    local x, y, z, sx, sy, sz, a, ax, ay, az = matrix:unpack()
+    collider:setPosition(x, y, z)
+    collider:setOrientation(a, ax, ay, az)
   end
 
 end
@@ -36,9 +36,9 @@ function PhysicsEng:onDraw()
   for eid, collider in pairs(self.colliders) do
     local entity = collider:getUserData()
     local x, y, z = collider:getPosition()
+    local a, ax, ay, az = collider:getOrientation()
     local boxShape = collider:getShapes()[1]
     local w, h, d = boxShape:getDimensions()
-    -- todo: rotation
 
     if entity == self.parent.engines.pose.pokedEntity then
       lovr.graphics.setColor(1.0, 0.2, 0.2, 1)
@@ -51,7 +51,7 @@ function PhysicsEng:onDraw()
     lovr.graphics.box("line",
       x, y, z,
       w, h, d,
-      0, 0, 1, 0 -- rot
+      a, ax, ay, az
     )
   end
 end
