@@ -93,6 +93,11 @@ having to restart the app on your Quest. If that had worked, you'd sync your sou
 ... but that's waiting [for a card on clubhouse](https://app.clubhouse.io/alloverse/story/168/get-lodr-to-work-on-android-for-custom-alloverse-debug-apk)
 to finish before it's possible.
 
+#### Debugging on Android
+
+* Get console log relating to alloverse: `adb logcat LOVR:V openal:V "*:S"`
+* Attach gdb: `~/Library/Android/sdk/ndk-bundle/ndk-gdb --project=deps/lovr-android/LovrApp/Projects/Android`
+
 ## Building Allovisor for distribution
 
 _Note that builds are available on Azure Pipelines CI and you shouldn't need to make distribution builds from your machine. But if you do..._
