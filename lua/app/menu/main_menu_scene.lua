@@ -38,7 +38,7 @@ end
 
 function MainMenuScene:toggleDebug()
   self.debug = not self.debug
-  self.menuItems[3].label = string.format("Debug (%s)", self.debug and "on" or "off")
+  self.menuItems[4].label = string.format("Debug (%s)", self.debug and "on" or "off")
 end
 
 function MainMenuScene:openPlace(url)
