@@ -84,6 +84,19 @@ function PhysicsEng:onComponentRemoved(component_key, component)
   collider:destroy()  
 end
 
+function PhysicsEng:onComponentChanged(component_key, component, old_component)
+  if component_key ~= "collider" then
+    return
+  end
+
+  local eid = component.getEntity().id
+  local collider = self.colliders[eid]
+
+  local boxShape = collider:getShapes()[1]
+  boxShape:setDimensions(component.width, component.height, component.depth)
+
+end
+
 function PhysicsEng:onDisconnect()
   for eid, collider in pairs(self.colliders) do
     collider:setUserData(nil)
