@@ -1,5 +1,6 @@
 #include "resources/boot.lua.h"
 #include "api/api.h"
+#include "modules/event/event.h"
 #include "core/os.h"
 #include "core/util.h"
 #include <stdbool.h>
@@ -14,6 +15,8 @@ int main(int argc, char** argv)
 
   int status;
   bool restart;
+  Variant cookie;
+  cookie.type = TYPE_NIL;
 
   if (argc == 1)
   {
@@ -126,6 +129,11 @@ int main(int argc, char** argv)
 
     restart = lua_type(T, -1) == LUA_TSTRING && !strcmp(lua_tostring(T, -1), "restart");
     status = lua_tonumber(T, -1);
+    luax_checkvariant(T, 2, &cookie);
+    if (cookie.type == TYPE_OBJECT) {
+      cookie.type = TYPE_NIL;
+      memset(&cookie.value, 0, sizeof(cookie.value));
+    }
     lua_close(L);
   } while (restart);
 
