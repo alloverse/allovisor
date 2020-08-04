@@ -4,3 +4,4 @@ lua/liballonet.so
 .vs
 out
 vsbuild
+.vscode
