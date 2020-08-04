@@ -93,10 +93,13 @@ function NetworkScene:onLoad()
     -- Engines. These do the heavy lifting.
     self.engines = {
       graphics = engines.GraphicsEng(),
-      sound = engines.SoundEng(),
       pose = engines.PoseEng(),
       physics = engines.PhysicsEng()
     }
+    if engines.SoundEng.supported() then
+      self.engines.sound = engines.SoundEng()
+    end
+    
     for _, engine in pairs(self.engines) do
       engine.client = self.client
       engine:insert(self)

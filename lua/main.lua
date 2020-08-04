@@ -90,8 +90,10 @@ function lovr.run()
     lovr.headset.update(dt)
     lovr.update(dt)
 
-    lovr.audio.setVelocity(lovr.headset.getVelocity())
-    lovr.audio.update()
+	if lovr.audio then
+	    lovr.audio.setVelocity(lovr.headset.getVelocity())
+		lovr.audio.update()
+	end
 
     lovr.graphics.origin()
     lovr.headset.renderTo(lovr.draw)

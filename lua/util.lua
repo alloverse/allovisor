@@ -30,6 +30,19 @@ function load_allonet()
       error("Failed to load allonet: "..err)
     end
     allonet = pkg()
+  elseif os == "Linux" then
+    -- already loaded into runtime
+    -- except on new threads
+    if allonet == nil then
+      local exepath = lovr.filesystem.getExecutablePath()
+      local dllpath = string.gsub(exepath, "Alloverse", "deps/allonet/liballonet.so")
+      print("loading liballonet from "..dllpath.."...")
+      pkg, err = package.loadlib(dllpath, "luaopen_liballonet")
+      if pkg == nil then
+        error("Failed to load allonet: "..err)
+      end
+      allonet = pkg()
+    end
   else
     error("don't know how to load allonet")
   end

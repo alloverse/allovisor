@@ -3,6 +3,11 @@ namespace("networkscene", "alloverse")
 local pretty = require "pl.pretty"
 
 local SoundEng = classNamed("SoundEng", Ent)
+
+function SoundEng.supported()
+  return lovr.audio ~= nil
+end
+
 function SoundEng:_init()
   self.audio = {}
   self.track_id = 0

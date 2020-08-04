@@ -8,7 +8,7 @@ SET(LOVR_BUILD_SHARED ON CACHE BOOL "Always build lovr as library")
 SET(LOVR_BUILD_BUNDLE ON CACHE BOOL "Always build lovr bundle on mac")
 SET(LOVR_ENABLE_ENET OFF CACHE BOOL "Disable Lovr enet since allonet embeds its own")
 set(ALLONET_USE_LUA ON CACHE BOOL "Request Lua bridge")
-if(!WIN32)
+if(APPLE OR ANDROID)
   set(ALLONET_BUILD_STATIC ON CACHE BOOL "Always build allonet static")
 endif()
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON CACHE BOOL "always export all symbols")
@@ -25,11 +25,15 @@ set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 add_subdirectory (deps/lovr)
 add_subdirectory (deps/allonet)
 
+include_directories(deps/lovr/src)
+include_directories(deps/lovr/deps/luajit/src ${CMAKE_BINARY_DIR}/deps/lovr/luajit)
+
+SET(ALLO_SOURCES src/allonet_loader.c)
+SET(ALLO_LINK_LIBS lovr allonet)
+
 if(WIN32)
-    add_executable (Alloverse src/allonet_loader.c)
-    target_link_libraries (Alloverse lovr allonet)
-    include_directories(deps/lovr/src)
-    include_directories(deps/lovr/deps/luajit/src ${CMAKE_BINARY_DIR}/deps/lovr/luajit)
+    add_executable(Alloverse ${ALLO_SOURCES})
+    target_link_libraries(Alloverse ${ALLO_LINK_LIBS})
 
     add_custom_command(
         TARGET Alloverse POST_BUILD
@@ -84,15 +88,6 @@ elseif(APPLE)
     
     # The icon
     SET(ALLO_ICON "${CMAKE_CURRENT_LIST_DIR}/src/mac/alloverse.icns")
-
-    # The loader
-    SET(ALLO_SOURCES src/allonet_loader.c)
-
-    # Libs to link into the app target
-    SET(ALLO_LINK_LIBS
-        lovr
-        allonet
-    )
     
     # The dir with all the lua code
     SET(ALLO_LUA_SOURCE_DIR
@@ -138,10 +133,6 @@ elseif(APPLE)
         # RESOURCE "${CMAKE_CURRENT_SOURCE_DIR}/src/resources/lovr.icns"
     )
 
-
-    # Include dependencies
-    include_directories(deps/lovr/src)
-    include_directories(deps/lovr/deps/luajit/src ${CMAKE_BINARY_DIR}/deps/lovr/luajit)
 
     # Copy the lua code
     add_custom_command(TARGET Alloverse POST_BUILD
@@ -205,6 +196,7 @@ elseif(ANDROID)
         DEPENDS alloverse-release.apk
     )
 
-elseif(UNIX) # linux unsupported atm
-
+elseif(UNIX)
+    add_executable(Alloverse ${ALLO_SOURCES})
+    target_link_libraries(Alloverse ${ALLO_LINK_LIBS})
 endif()
