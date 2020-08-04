@@ -4,6 +4,12 @@ cmake_policy(SET CMP0079 NEW)
 cmake_policy(SET CMP0068 NEW)
 cmake_policy(SET CMP0042 NEW) # make @rpath default
 
+# Vars defining the contents of the Alloverse target across platforms
+SET(ALLO_SOURCES src/allonet_loader.c)
+SET(ALLO_LINK_LIBS lovr allonet)
+SET(ALLO_LUA_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lua)
+
+# Build settings that need to go before add_subdirectory
 SET(LOVR_BUILD_SHARED ON CACHE BOOL "Always build lovr as library")
 SET(LOVR_BUILD_BUNDLE ON CACHE BOOL "Always build lovr bundle on mac")
 SET(LOVR_ENABLE_ENET OFF CACHE BOOL "Disable Lovr enet since allonet embeds its own")
@@ -12,7 +18,12 @@ if(APPLE OR ANDROID)
   set(ALLONET_BUILD_STATIC ON CACHE BOOL "Always build allonet static")
 endif()
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON CACHE BOOL "always export all symbols")
+SET(ANDROID_ASSETS ${ALLO_LUA_SOURCE_DIR})
 
+include_directories(deps/lovr/src)
+include_directories(deps/lovr/deps/luajit/src ${CMAKE_BINARY_DIR}/deps/lovr/luajit)
+
+# Installer settings (again, before any add_subdirectory)
 set(CPACK_PACKAGE_NAME Alloverse)
 SET(CPACK_PACKAGE_DESCRIPTION_SUMMARY "Create your own classrooms, meeting places or social spaces in the Alloverse and, from inside it, run collaborative apps with your students, colleagues and friends. The Alloverse is an open source 'operating system' for collaborative workspaces in VR.")
 SET(CPACK_PACKAGE_DESCRIPTION_FILE "${CMAKE_CURRENT_SOURCE_DIR}/README.md")
@@ -22,15 +33,11 @@ set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
 set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 
+# Add dependencies' cmakes
 add_subdirectory (deps/lovr)
 add_subdirectory (deps/allonet)
 
-include_directories(deps/lovr/src)
-include_directories(deps/lovr/deps/luajit/src ${CMAKE_BINARY_DIR}/deps/lovr/luajit)
-
-SET(ALLO_SOURCES src/allonet_loader.c)
-SET(ALLO_LINK_LIBS lovr allonet)
-
+# Targets and installers for each platform
 if(WIN32)
     add_executable(Alloverse ${ALLO_SOURCES})
     target_link_libraries(Alloverse ${ALLO_LINK_LIBS})
@@ -88,11 +95,6 @@ elseif(APPLE)
     
     # The icon
     SET(ALLO_ICON "${CMAKE_CURRENT_LIST_DIR}/src/mac/alloverse.icns")
-    
-    # The dir with all the lua code
-    SET(ALLO_LUA_SOURCE_DIR
-        ${CMAKE_CURRENT_SOURCE_DIR}/lua
-    )
 
     ## Setup Info.plist
     # Sets the icon
