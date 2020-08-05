@@ -12,6 +12,7 @@ SET(ALLO_LUA_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lua)
 # Build settings that need to go before add_subdirectory
 SET(LOVR_BUILD_SHARED ON CACHE BOOL "Always build lovr as library")
 SET(LOVR_BUILD_BUNDLE ON CACHE BOOL "Always build lovr bundle on mac")
+SET(BUILD_SHARED_LIBS OFF CACHE BOOL "Default to static linking")
 SET(LOVR_ENABLE_ENET OFF CACHE BOOL "Disable Lovr enet since allonet embeds its own")
 set(ALLONET_USE_LUA ON CACHE BOOL "Request Lua bridge")
 if(APPLE OR ANDROID)
@@ -203,6 +204,7 @@ elseif(ANDROID)
     # TODO: modify manifest with app name etc...
     add_custom_target(
         Alloverse ALL
+        DEPENDS lovr
         BYPRODUCTS ${APKNAME}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_PROPERTY:lovr,BINARY_DIR>/lovr.apk ${CMAKE_CURRENT_BINARY_DIR}/${APKNAME}
     )
