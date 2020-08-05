@@ -21,7 +21,9 @@ set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON CACHE BOOL "always export all symbols")
 
 if(ANDROID)
     SET(BUILD_SHARED_LIBS OFF CACHE BOOL "Default to static linking, otherwise libluajit becomes dynamic??")
+    
     SET(ANDROID_ASSETS ${ALLO_LUA_SOURCE_DIR})
+    set(ANDROID_MANIFEST "${CMAKE_CURRENT_SOURCE_DIR}/src/android/AndroidManifest_${ANDROID_VARIANT}.xml" CACHE STRING "The AndroidManifest.xml file to use")
 
     if(ANDROID_VARIANT STREQUAL "quest")
         set(APKNAME "alloverse-quest.apk")
