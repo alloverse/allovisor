@@ -18,7 +18,20 @@ if(APPLE OR ANDROID)
   set(ALLONET_BUILD_STATIC ON CACHE BOOL "Always build allonet static")
 endif()
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON CACHE BOOL "always export all symbols")
-SET(ANDROID_ASSETS ${ALLO_LUA_SOURCE_DIR})
+
+if(ANDROID)
+    SET(ANDROID_ASSETS ${ALLO_LUA_SOURCE_DIR})
+
+    if(ANDROID_VARIANT STREQUAL "quest")
+        set(APKNAME "alloverse-quest.apk")
+        set(LOVR_USE_VRAPI ON CACHE BOOL "build with vrapi")
+    elseif(ANDROID_VARIANT STREQUAL "pico")
+        set(APKNAME "alloverse-pico.apk")
+        set(LOVR_USE_PICO ON CACHE BOOL "build with pico")
+    else()
+        message(FATAL_ERROR "No ANDROID_VARIANT provided")
+    endif()
+endif()
 
 include_directories(deps/lovr/src)
 include_directories(deps/lovr/deps/luajit/src ${CMAKE_BINARY_DIR}/deps/lovr/luajit)
@@ -187,17 +200,12 @@ elseif(ANDROID)
     # Force-load allonet into lovr exe
     target_link_libraries(lovr "-Wl,--whole-archive" allonet "-Wl,--no-whole-archive" "-ldl")
 
-    add_custom_command(
-        OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/alloverse-release.apk
-        COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/build-android.sh build
-        COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/deps/lovr-android/LovrApp/Projects/Android/build/outputs/apk/debug/alloverse-debug.apk .
-        COMMAND cp ${CMAKE_CURRENT_SOURCE_DIR}/deps/lovr-android/LovrApp/Projects/Android/build/outputs/apk/release/alloverse-release.apk .
-    )
+    # TODO: modify manifest with app name etc...
     add_custom_target(
-        alloverse-dist ALL
-        DEPENDS alloverse-release.apk
+        Alloverse ALL
+        BYPRODUCTS ${APKNAME}
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_PROPERTY:lovr,BINARY_DIR>/lovr.apk ${CMAKE_CURRENT_BINARY_DIR}/${APKNAME}
     )
-
 elseif(UNIX)
     add_executable(Alloverse ${ALLO_SOURCES})
     target_link_libraries(Alloverse ${ALLO_LINK_LIBS})
