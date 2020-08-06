@@ -36,8 +36,6 @@ if(ANDROID)
     endif()
 endif()
 
-include_directories(deps/lovr/src)
-include_directories(deps/lovr/deps/luajit/src ${CMAKE_BINARY_DIR}/deps/lovr/luajit)
 
 # Installer settings (again, before any add_subdirectory)
 set(CPACK_PACKAGE_NAME Alloverse)
@@ -52,6 +50,12 @@ set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 # Add dependencies' cmakes
 add_subdirectory (deps/lovr)
 add_subdirectory (deps/allonet)
+
+# Build settings that go after add_subdirectory (i e only applies
+# to these targets, not dependencies' targets)
+include_directories(deps/lovr/src)
+include_directories(deps/lovr/deps/luajit/src ${CMAKE_BINARY_DIR}/deps/lovr/luajit)
+
 
 # Targets and installers for each platform
 if(WIN32)
