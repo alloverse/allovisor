@@ -1,3 +1,4 @@
+#define LOVR_ENABLE_EVENT 1
 #include "resources/boot.lua.h"
 #include "api/api.h"
 #include "modules/event/event.h"
