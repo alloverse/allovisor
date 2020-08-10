@@ -5,7 +5,7 @@ local pretty = require "pl.pretty"
 local SoundEng = classNamed("SoundEng", Ent)
 
 function SoundEng.supported()
-  return lovr.audio ~= nil
+  return lovr.audio ~= nil and (lovr.headset.getName() ~= "Pico")
 end
 
 function SoundEng:_init()
@@ -122,7 +122,7 @@ function SoundEng:onDraw()
   if self.parent.debug == false then
     return
   end
-  lovr.graphics.setShader()
+  lovr.graphics.setShader(self.parent.engines.graphics.plainShader)
   lovr.graphics.setColor(1.0, 0.0, 1.0, 0.5)
   for track_id, audio in pairs(self.audio) do
     local x, y, z = audio.source:getPosition()

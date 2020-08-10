@@ -26,6 +26,7 @@ allonet = util.load_allonet()
 -- Engines should, in turn, manage roughly one component type.
 local NetworkScene = classNamed("NetworkScene", Ent)
 function NetworkScene:_init(displayName, url)
+  print("Starting network scene as", displayName, "connecting to", url, "on a", lovr.headset.getName())
   local avatar = {
     children = {
       {

@@ -27,7 +27,8 @@ function GraphicsEng:onLoad()
       occlusion = true,
       emissive = true,
       skipTonemap = false
-    }
+    },
+    stereo = (lovr.headset.getName() ~= "Pico") -- turn off stereo on pico: it's not supported
   })
 
   self.factorySkybox = lovr.graphics.newTexture({
