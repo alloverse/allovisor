@@ -99,7 +99,6 @@ end
 
 function MenuScene:drawMenu()
   lovr.graphics.setColor(COLOR_WHITE)
-  self.menuFont:setPixelDensity(32)
 
   lovr.graphics.setFont(self.menuFont)
   

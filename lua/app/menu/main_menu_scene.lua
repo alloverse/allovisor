@@ -14,7 +14,7 @@ function MainMenuScene:_init()
     MenuScene.letters.TextField:new{
       position = lovr.math.newVec3(-0.7, 1.3, -1.5),
       width = 1.1,
-      pixelDensity = 400,
+      fontScale = 0.1,
       font = font,
       onReturn = function() self.elements[2]:makeKey(); return false; end,
       placeholder = "Name"
@@ -22,7 +22,7 @@ function MainMenuScene:_init()
     MenuScene.letters.TextField:new{
       position = lovr.math.newVec3(-0.7, 1.15, -1.5),
       width = 1.1,
-      pixelDensity = 400,
+      fontScale = 0.1,
       font = font,
       onReturn = function() self:connect() return false; end,
       placeholder = "nevyn.places.alloverse.com"
