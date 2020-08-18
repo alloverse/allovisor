@@ -3,7 +3,7 @@ cpath = cpath ..
 	";?.so;?.dll;" ..
 	lovr.filesystem.getSource() .. "/../build/deps/allonet/?.dylib;" ..
 	lovr.filesystem.getSource() .. "/../../build/deps/allonet/?.dylib;"
-if lovr.filesystem.getExecutablePath() then
+if lovr.filesystem.getExecutablePath() and lovr.getOS() == "Windows" then
 	cpath = cpath .. lovr.filesystem.getExecutablePath():gsub("lovr.exe", "?.dll")
 end
 path = path ..
