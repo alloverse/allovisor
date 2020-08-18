@@ -18,7 +18,7 @@ function OverlayMenuScene :_init(networkScene)
     end),
   }
 
-  self:super(overlayItems)
+  self:super(overlayItems, {})
 
   self.drawBackground = false
 end

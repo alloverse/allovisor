@@ -10,3 +10,6 @@
 [submodule "deps/alloui"]
 	path = lua/alloui
 	url = https://github.com/alloverse/alloui-lua.git
+[submodule "lua/lib/letters"]
+	path = lua/lib/letters
+	url = https://github.com/alloverse/lovr-letters

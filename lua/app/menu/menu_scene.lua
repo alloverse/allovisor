@@ -1,8 +1,9 @@
 namespace("menu", "alloverse")
 
 local MenuScene = classNamed("MenuScene", Ent)
+MenuScene.letters = require('lib.letters.letters')
 
-x, y, z = 0, 2.5, -1.5
+x, y, z = 0, 2.8, -1.5
 MENU_ITEM_HEIGHT = .2
 MENU_ITEM_WIDTH = 1
 MENU_ITEM_VERTICAL_PADDING = .1
@@ -48,7 +49,7 @@ function HandRay:getColor()
   end
 end
 
-function MenuScene:_init(items)
+function MenuScene:_init(items, elements)
   self.world = lovr.physics.newWorld()
   skybox = lovr.graphics.newTexture('assets/cloudy-sunset.png')
   self.menuItems = items
@@ -57,13 +58,17 @@ function MenuScene:_init(items)
   end
   self.handRays = {HandRay(), HandRay()}
 
+  self.elements = elements
+
   self.drawBackground = true
 
   self:super()
 end
 
 function MenuScene:onLoad()
-  self.menuFont = lovr.graphics.newFont(16)
+  MenuScene.letters.load()
+  MenuScene.letters.defaultKeyboard = MenuScene.letters.HoverKeyboard
+  self.menuFont = lovr.graphics.newFont(24)
 end
 
 function MenuScene:drawLabel(str, x, y, z)
@@ -94,7 +99,10 @@ end
 
 function MenuScene:drawMenu()
   lovr.graphics.setColor(COLOR_WHITE)
-  lovr.graphics.setFont(menuFont)
+  self.menuFont:setPixelDensity(32)
+
+  lovr.graphics.setFont(self.menuFont)
+  
   local h = (MENU_ITEM_HEIGHT+MENU_ITEM_VERTICAL_PADDING)*#self.menuItems + MENU_ITEM_VERTICAL_PADDING*2
   lovr.graphics.plane('fill', x, y-h/2, z-0.1, 1.2, h)
 
@@ -135,6 +143,11 @@ local function drawHand(ray, hand)
 end
 
 function MenuScene:onDraw()
+  MenuScene.letters.draw()
+  for i, e in ipairs(self.elements) do
+    e:draw()
+  end
+
   if self.drawBackground then
     lovr.graphics.setColor(COLOR_WHITE)
     lovr.graphics.skybox(skybox)
@@ -157,6 +170,11 @@ end
 
 
 function MenuScene:onUpdate(dt)
+  MenuScene.letters.update()
+  for i, e in ipairs(self.elements) do
+    e:update()
+  end
+
   for handIndex, hand in ipairs(lovr.headset.getHands()) do
     local ray = self.handRays[handIndex]
 
