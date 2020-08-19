@@ -123,13 +123,14 @@ int main(int argc, char** argv)
     lua_xmove(L, T, 1);
 
     lovrSetErrorCallback(luax_vthrow, T);
+    lovrSetLogCallback(luax_vlog, T);
 
     while (lua_resume(T, 0) == LUA_YIELD) {
       lovrPlatformSleep(0.);
     }
 
-    restart = lua_type(T, -1) == LUA_TSTRING && !strcmp(lua_tostring(T, -1), "restart");
-    status = lua_tonumber(T, -1);
+    restart = lua_type(T, 1) == LUA_TSTRING && !strcmp(lua_tostring(T, 1), "restart");
+    status = lua_tonumber(T, 1);
     luax_checkvariant(T, 2, &cookie);
     if (cookie.type == TYPE_OBJECT) {
       cookie.type = TYPE_NIL;
