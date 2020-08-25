@@ -16,6 +16,8 @@ function HandRay:_init()
   self.heldPoint = lovr.math.newVec3()
   self.from = lovr.math.newVec3()
   self.to = lovr.math.newVec3()
+  self.hand = nil -- hand entity
+  self.grabber_from_entity_transform = lovr.math.newMat4()
 end
 function HandRay:highlightEntity(entity)
   if self.highlightedEntity ~= nil then
@@ -156,13 +158,20 @@ local requiredGripStrength = 0.4
 function PoseEng:grabForDevice(handIndex, device)
   if device == "head" then return nil end
   local ray = self.handRays[handIndex]
+  if ray.hand == nil then return nil end
+
   local gripStrength = self:getAxis(device, "grip")
 
   if ray.heldEntity and gripStrength < requiredGripStrength then
     ray.heldEntity = nil
   elseif ray.heldEntity == nil and gripStrength > requiredGripStrength and ray.highlightedEntity then
     ray.heldEntity = ray.highlightedEntity
-    ray.held_at = ray.from
+
+    local worldFromHand = ray.hand.components.transform:getMatrix()
+    local handFromWorld = worldFromHand:invert()
+    local worldFromHeld = ray.heldEntity.components.transform:getMatrix()
+
+    ray.grabber_from_entity_transform:set()--set(handFromWorld):mul(worldFromHeld)
   end
 
   if ray.heldEntity == nil then
@@ -170,7 +179,7 @@ function PoseEng:grabForDevice(handIndex, device)
   else 
     return {
       entity = ray.heldEntity.id,
-      held_at = ray.held_at
+      grabber_from_entity_transform = ray.grabber_from_entity_transform
     }
   end
 end
@@ -190,6 +199,7 @@ function PoseEng:updatePointing(hand_pose, ray)
   
   local hand = self.client.state.entities[hand_id]
   if hand == nil then return end
+  ray.hand = hand
 
   local previouslyHighlighted = ray.highlightedEntity
   ray:highlightEntity(nil)
