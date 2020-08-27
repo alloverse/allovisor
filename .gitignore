@@ -1,7 +1,10 @@
 build
 build-*
+*-build
+xcbuild
 lua/liballonet.so
 .vs
 out
 vsbuild
 .vscode
+.DS_Store

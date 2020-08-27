@@ -14,13 +14,16 @@ function GraphicsEng:onLoad()
   self.hardcoded_models = {
     head = lovr.graphics.newModel('assets/models/mask/mask.glb'),
     lefthand = lovr.graphics.newModel('assets/models/left-hand/left-hand.glb'),
-    righthand = lovr.graphics.newModel('assets/models/right-hand/right-hand.glb')
+    righthand = lovr.graphics.newModel('assets/models/right-hand/right-hand.glb'),
+    forest = lovr.graphics.newModel('/assets/models/decorations/forest/PUSHILIN_forest.gltf')
   }
 
   self.models_for_eids = {
   }
 
-  self.shader = lovr.graphics.newShader('standard', {
+  self.shader = lovr.graphics.newShader(
+    'standard', 
+  {
     flags = {
       normalTexture = false,
       indirectLighting = true,
@@ -39,10 +42,13 @@ function GraphicsEng:onLoad()
     back = 'assets/env/pz.png',
     front = 'assets/env/nz.png'
   }, { linear = true })
+
+
+  lovr.graphics.setBackgroundColor(.05, .05, .05)
   self.cloudSkybox = lovr.graphics.newTexture("assets/cloudy-sunset.png")
 
-  local logoTex = lovr.graphics.newTexture("assets/alloverse-logo.png", {})
-  self.logoMat = lovr.graphics.newMaterial(logoTex, 1, 1, 1, 1)
+  local greenTex = lovr.graphics.newTexture("assets/textures/green.png", {})
+  self.greenMat = lovr.graphics.newMaterial(greenTex, 1, 1, 1, 1)
 
   self.environmentMap = lovr.graphics.newTexture(256, 256, { type = 'cube' })
   for mipmap = 1, self.environmentMap:getMipmapCount() do
@@ -55,10 +61,11 @@ function GraphicsEng:onLoad()
 
 
   self.shader:send('lovrLightDirection', { -1, -1, -1 })
-  self.shader:send('lovrLightColor', { .9, .9, .8, 1.0 })
+  self.shader:send('lovrLightColor', { 1.0, 1.0, 1.0, 1.0 })
   self.shader:send('lovrExposure', 2)
   --self.shader:send('lovrSphericalHarmonics', require('assets/env/sphericalHarmonics'))
   self.shader:send('lovrEnvironmentMap', self.environmentMap)
+
 end
 
 function GraphicsEng:onDraw()  
@@ -68,18 +75,24 @@ function GraphicsEng:onDraw()
   
   lovr.graphics.setBackgroundColor(.3, .3, .40)
   lovr.graphics.setCullingEnabled(true)
-  lovr.graphics.setBlendMode()
   lovr.graphics.setColor({1,1,1})
+
+
   lovr.graphics.setShader(self.shader)
 
-  -- Dummy floor until we have something proper
-  lovr.graphics.plane( 
-    self.logoMat,
+  -- lovr.graphics.setShader(self.worldCurveShader)
+  lovr.graphics.circle( 
+    self.greenMat,
     0, 0, 0, -- x y z
-    6, 6,  -- w h
-    -3.141593/2, 1, 0, 0,  -- rotation
-    0, 0, 1, 1 -- u v tw th
+    12,  -- radius
+    -3.14/2, -- angle around axis of rotation
+    1, 0, 0 -- rotation axis (x, y, z)
   )
+
+  lovr.graphics.setShader(self.shader)
+
+  -- Decorates the plane/circle with trees & stuff
+  self:drawDecorations()
 
   for eid, entity in pairs(self.client.state.entities) do
     local trans = entity.components.transform
@@ -207,6 +220,27 @@ function base64decode(data)
       for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end
           return string.char(c)
   end))
+end
+
+function GraphicsEng:drawDecorations()
+  
+  local forestModel = self.hardcoded_models.forest
+  
+  forestModel:draw(0, .5, -10, 2, 0, 0, 1, 0, 1)
+  forestModel:draw(4, .5, -8, 2, 5, 0, 1, 0, 1)
+  forestModel:draw(8, .5, -4, 2, 0, 0, 1, 0, 1)
+  forestModel:draw(10, .5, 0, 2, 1, 0, 1, 0, 1)
+
+  forestModel:draw(8, .5, 4, 2, 0, 0, 1, 0, 1)
+  forestModel:draw(4, .5, 8, 2, 2, 0, 1, 0, 1)
+  forestModel:draw(0, .5, 10, 2, 0, 0, 1, 0, 1)
+  forestModel:draw(-4, .5, 8, 2, 3, 0, 1, 0, 1)
+
+  forestModel:draw(-8, .5, 4, 2, 1, 0, 1, 0, 1)
+  forestModel:draw(-10, .5, 0, 2,  3, 0, 1, 0, 1)
+  forestModel:draw(-8, .5, -4, 2,  4, 0, 1, 0, 1)
+  forestModel:draw(-4, .5, -8, 2,   0, 0, 1, 0, 1)
+
 end
 
 return GraphicsEng
