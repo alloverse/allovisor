@@ -170,8 +170,9 @@ function PoseEng:grabForDevice(handIndex, device)
     local worldFromHand = ray.hand.components.transform:getMatrix()
     local handFromWorld = worldFromHand:invert()
     local worldFromHeld = ray.heldEntity.components.transform:getMatrix()
+    local handFromHeld = handFromWorld * worldFromHeld
 
-    ray.grabber_from_entity_transform:set()--set(handFromWorld):mul(worldFromHeld)
+    ray.grabber_from_entity_transform:set()--handFromHeld)
   end
 
   if ray.heldEntity == nil then
