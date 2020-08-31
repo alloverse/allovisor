@@ -7,11 +7,11 @@ local OverlayMenuScene = classNamed("OverlayMenuScene ", MenuScene)
 function OverlayMenuScene :_init(networkScene)
   local overlayItems = {
     MenuItem("Dismiss", function() 
-      queueDoom(self)
+      self:die()
     end),
     MenuItem("Disconnect", function()
       networkScene:onDisconnect()
-      queueDoom(self)
+      self:die()
     end),
     MenuItem("Quit", function()
       lovr.event.quit(0)

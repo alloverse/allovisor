@@ -166,7 +166,7 @@ function NetworkScene:onDisconnect(code, message)
   local menu = lovr.scenes.menu():insert()
   menu:setMessage(message)
   print("disconnected.")
-  queueDoom(self)
+  self:die()
 end
 
 function NetworkScene:onDraw()

@@ -66,9 +66,18 @@ function MenuScene:_init(items, elements)
 end
 
 function MenuScene:onLoad()
-  MenuScene.letters.load()
-  MenuScene.letters.defaultKeyboard = MenuScene.letters.HoverKeyboard
+  if #MenuScene.letters.hands == 0 then
+    MenuScene.letters.load()
+    MenuScene.letters.defaultKeyboard = MenuScene.letters.HoverKeyboard
+  end
   self.menuFont = lovr.graphics.newFont(24)
+end
+
+function MenuScene:onDie()
+  print("menu died")
+  for _, e in ipairs(self.elements) do
+    e:remove()
+  end
 end
 
 function MenuScene:drawLabel(str, x, y, z)

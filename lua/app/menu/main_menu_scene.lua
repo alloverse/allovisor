@@ -79,7 +79,7 @@ function MainMenuScene:openPlace(url)
   local scene = lovr.scenes.network(displayName, url)
   scene.debug = self.debug
   scene:insert()
-  queueDoom(self)
+  self:die()
 end
 
 
