@@ -9,12 +9,17 @@ function MainMenuScene:_init()
   settings.load()
 
   local mainMenuItems = {
-    MenuItem("Debug (off)", function() self:toggleDebug() end),
+    MenuItem("Debug (off)", function() 
+      settings.d.debug = not settings.d.debug
+      settings.save()
+      self:setDebug(settings.d.debug) 
+    end),
     MenuItem("Quit", function()
       settings.save()
       lovr.event.quit(0) 
     end),
   }
+   
   local elements = {
     MenuScene.letters.TextField:new{
       position = lovr.math.newVec3(-0.7, 1.3, -1.5),
@@ -54,6 +59,7 @@ function MainMenuScene:onLoad()
     righthand = lovr.graphics.newModel('assets/models/right-hand/right-hand.glb'),
     torso = lovr.graphics.newModel('assets/models/torso/torso.glb')
   }
+  self:setDebug(settings.d.debug)
 end
 
 function MainMenuScene:onUpdate()
@@ -70,8 +76,8 @@ function MainMenuScene:onDraw()
 
 end
 
-function MainMenuScene:toggleDebug()
-  self.debug = not self.debug
+function MainMenuScene:setDebug(whether)
+  self.debug = whether
   self.menuItems[1].label = string.format("Debug (%s)", self.debug and "on" or "off")
 end
 
