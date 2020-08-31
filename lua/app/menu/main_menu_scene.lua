@@ -1,14 +1,19 @@
 namespace("menu", "alloverse")
 
-
 local MenuScene = require("app.menu.menu_scene")
 local MenuItem = require("app.menu.menu_item")
+local settings = require("lib.lovr-settings")
 
 local MainMenuScene = classNamed("MainMenuScene", MenuScene)
 function MainMenuScene:_init()
+  settings.load()
+
   local mainMenuItems = {
     MenuItem("Debug (off)", function() self:toggleDebug() end),
-    MenuItem("Quit", function() lovr.event.quit(0) end),
+    MenuItem("Quit", function()
+      settings.save()
+      lovr.event.quit(0) 
+    end),
   }
   local elements = {
     MenuScene.letters.TextField:new{
@@ -16,8 +21,10 @@ function MainMenuScene:_init()
       width = 1.1,
       fontScale = 0.1,
       font = font,
-      onReturn = function() self.elements[2]:makeKey(); return false; end,
-      placeholder = "Name"
+      onReturn = function() settings.save(); self.elements[2]:makeKey(); return false; end,
+      onChange = function(s, old, new) settings.d.username = new; return true end,
+      placeholder = "Name",
+      text = settings.d.username and settings.d.username or ""
     },
     MenuScene.letters.TextField:new{
       position = lovr.math.newVec3(-0.7, 1.15, -1.5),
@@ -75,7 +82,9 @@ function MainMenuScene:connect()
 end
 
 function MainMenuScene:openPlace(url)
-  local displayName = self.elements[1].text ~= "" and self.elements[1].text or "Unnamed"
+  settings.save()
+
+  local displayName = settings.d.username and settings.d.username or "Unnamed"
   local scene = lovr.scenes.network(displayName, url)
   scene.debug = self.debug
   scene:insert()

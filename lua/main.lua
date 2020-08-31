@@ -12,6 +12,8 @@ path = path ..
 lovr.filesystem.setRequirePath(path, cpath)
 package.cpath = cpath
 
+lovr.filesystem.setIdentity("alloverse")
+
 lovr.scenes = {}
 
 namespace = require "engine.namespace"
