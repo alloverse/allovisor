@@ -144,6 +144,8 @@ function SoundEng:onDraw()
 end
 
 function SoundEng:onUpdate(dt)
+  if self.client == nil then return end
+
   if self.mic ~= nil and self.mic:getSampleCount() >= 960 then
     local sd = lovr.data.newSoundData(16384, 48000, 16, 1)
     sd = self.mic:getData(960, sd, 0)
