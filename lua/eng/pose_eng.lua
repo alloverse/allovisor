@@ -126,6 +126,15 @@ function PoseEng:updateIntent()
   local mx, my = self:getAxis("hand/left", "thumbstick")
   local tx, ty = self:getAxis("hand/right", "thumbstick")
 
+  -- It'd be nice if we could have some ownership model, where grabbing "took ownership" of the
+  -- stick so this code wouldn't have to hard-code whether it's allowed to use the sticks or not.
+  if self.handRays[1].heldEntity ~= nil then 
+    mx = 0; my = 0;
+  end
+  if self.handRays[2].heldEntity ~= nil then
+    tx = 0; ty = 0;
+  end
+
   if math.abs(tx) > 0.5 and not self.didTurn then
     self.yaw = self.yaw + allomath.sign(tx) * math.pi/4
     self.didTurn = true
@@ -162,8 +171,11 @@ function PoseEng:grabForDevice(handIndex, device)
 
   local gripStrength = self:getAxis(device, "grip")
 
+  -- released grip button?
   if ray.heldEntity and gripStrength < requiredGripStrength then
     ray.heldEntity = nil
+
+  -- started holding grip button while something is highlighted?
   elseif ray.heldEntity == nil and gripStrength > requiredGripStrength and ray.highlightedEntity then
     ray.heldEntity = ray.highlightedEntity
 
@@ -177,7 +189,19 @@ function PoseEng:grabForDevice(handIndex, device)
 
   if ray.heldEntity == nil then
     return nil
-  else 
+  else
+    -- Move things to/away from hand with stick
+    local stickX, stickY = self:getAxis(device, "thumbstick")
+
+    if math.abs(stickY) > 0.05 then
+      local translation = lovr.math.mat4():translate(0,0,-stickY*0.1)
+      local newOffset = translation * ray.grabber_from_entity_transform
+      if newOffset:mul(lovr.math.vec3()).z < 0 then
+        ray.grabber_from_entity_transform:set(newOffset)
+      end
+    end
+
+    -- return thing to put in intent
     return {
       entity = ray.heldEntity.id,
       grabber_from_entity_transform = ray.grabber_from_entity_transform
