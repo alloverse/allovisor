@@ -12,7 +12,7 @@ end
 
 function GraphicsEng:onLoad()
   self.hardcoded_models = {
-    head = lovr.graphics.newModel('assets/models/mask/mask.glb'),
+    head = lovr.graphics.newModel('assets/models/head/female.glb'),
     lefthand = lovr.graphics.newModel('assets/models/left-hand/left-hand.glb'),
     righthand = lovr.graphics.newModel('assets/models/right-hand/right-hand.glb'),
     forest = lovr.graphics.newModel('/assets/models/decorations/forest/PUSHILIN_forest.gltf')

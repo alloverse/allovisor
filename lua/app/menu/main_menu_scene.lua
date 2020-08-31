@@ -55,7 +55,7 @@ end
 function MainMenuScene:onLoad()
   MenuScene.onLoad(self)
   self.models = {
-    head = lovr.graphics.newModel('assets/models/mask/mask.glb'),
+    head = lovr.graphics.newModel('assets/models/head/female.glb'),
     lefthand = lovr.graphics.newModel('assets/models/left-hand/left-hand.glb'),
     righthand = lovr.graphics.newModel('assets/models/right-hand/right-hand.glb'),
     torso = lovr.graphics.newModel('assets/models/torso/torso.glb')
@@ -70,7 +70,7 @@ end
 function MainMenuScene:onDraw()
   MenuScene.onDraw(self)
   lovr.graphics.setColor({1,1,1})
-  self.models.head:draw(     -1.5, 1.8, -1.2, 1.0, 3.14, 0, 1, 0, 1)
+  self.models.head:draw(     -1.5, 1.8, -1.2, 1.0, 0, 0, 1, 0, 1)
   self.models.torso:draw(     -1.5, 1.2, -1.2, 1.0, 3.14, 0, 1, 0, 1)
   self.models.lefthand:draw( -1.3, 1.2, -1.2, 1.0, 3.14, -0.5, 1, 0, 1)
   self.models.righthand:draw(-1.8, 0.9, -1.4, 1.0, 3.14, 0.5, 1, 1, 1)
