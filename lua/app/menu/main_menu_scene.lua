@@ -37,7 +37,8 @@ function MainMenuScene:_init()
       fontScale = 0.1,
       font = font,
       onReturn = function() self:connect() return false; end,
-      placeholder = settings.d.last_place and settings.d.last_place:gsub("^alloplace://", "") or "nevyn.places.alloverse.com"
+      placeholder = "nevyn.places.alloverse.com",
+      text = settings.d.last_place and settings.d.last_place:gsub("^alloplace://", "") or ""
     },
     MenuScene.letters.Button:new{
       position = lovr.math.newVec3(0.6, 1.2, -1.5),
