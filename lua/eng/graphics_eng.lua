@@ -104,6 +104,7 @@ function GraphicsEng:onDraw()
       -- don't draw our own head, as it obscures the camera
       if parent ~= self.client.avatar_id or pose ~= "head" then
         local mat = trans:getMatrix()
+        if pose == "head" then mat:rotate(3.14, 0, 1, 0) end -- file is wrong
         model:draw(mat)
       end
     end
