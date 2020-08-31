@@ -32,7 +32,7 @@ function MainMenuScene:_init()
       fontScale = 0.1,
       font = font,
       onReturn = function() self:connect() return false; end,
-      placeholder = "nevyn.places.alloverse.com"
+      placeholder = settings.d.last_place and settings.d.last_place:gsub("^alloplace://", "") or "nevyn.places.alloverse.com"
     },
     MenuScene.letters.Button:new{
       position = lovr.math.newVec3(0.6, 1.2, -1.5),
@@ -82,6 +82,7 @@ function MainMenuScene:connect()
 end
 
 function MainMenuScene:openPlace(url)
+  settings.d.last_place = url
   settings.save()
 
   local displayName = settings.d.username and settings.d.username or "Unnamed"
