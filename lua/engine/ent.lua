@@ -55,7 +55,7 @@ function Ent:route(key, ...)
 	if self[key] then
 		result = self[key](self, ...)
 	end
-	if result ~= route_terminate then
+	if result ~= route_terminate and self.kids then
 		for k,v in pairs(self.kids) do
 			v:route(key, ...)
 		end
