@@ -2,6 +2,7 @@ namespace("networkscene", "alloverse")
 
 local json = require "json"
 local tablex = require "pl.tablex"
+local pretty = require "pl.pretty"
 local PhysicsEng = classNamed("PhysicsEng", Ent)
 
 function PhysicsEng:_init()
@@ -21,8 +22,12 @@ function PhysicsEng:onUpdate(dt)
     local matrix = entity.components.transform:getMatrix()
 
     local x, y, z, sx, sy, sz, a, ax, ay, az = matrix:unpack()
-    collider:setPosition(x, y, z)
-    collider:setOrientation(a, ax, ay, az)
+    if x ~= x or a ~= a or ax ~= ax then
+      print("HOOPS broken matrix", pretty.write({matrix:unpack(true)}))
+    else
+      collider:setPosition(x, y, z)
+      collider:setOrientation(a, ax, ay, az)
+    end
   end
 
 end
