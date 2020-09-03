@@ -21,18 +21,74 @@ function GraphicsEng:onLoad()
   self.models_for_eids = {
   }
 
+  customVertex = [[
+    out vec3 FragmentPos;
+    out vec3 Normal;
+
+    vec4 position(mat4 projection, mat4 transform, vec4 vertex)
+    {
+      Normal = lovrNormal * lovrNormalMatrix;
+      FragmentPos = vec3(lovrModel * vertex);
+      
+      return projection * transform * vertex; 
+    }
+  ]]
+
+  customFragment = [[
+    uniform vec4 ambience;
+    
+    uniform vec4 liteColor;
+    uniform vec3 lightPos;
+
+    in vec3 Normal;
+    in vec3 FragmentPos;
+
+    uniform vec3 viewPos;
+    uniform float specularStrength;
+    uniform int metallic;
+
+    vec4 color(vec4 graphicsColor, sampler2D image, vec2 uv) 
+    {
+      //diffuse
+      vec3 norm = normalize(Normal);
+      vec3 lightDir = normalize(lightPos - FragmentPos);
+      float diff = max(dot(norm, lightDir), 0.0);
+      vec4 diffuse = diff * liteColor;
+
+      //specular
+      vec3 viewDir = normalize(viewPos - FragmentPos);
+      vec3 reflectDir = reflect(-lightDir, norm);
+      float spec = pow(max(dot(viewDir, reflectDir), 0.0), metallic);
+      vec4 specular = specularStrength * spec * liteColor;
+      
+      vec4 baseColor = graphicsColor * texture(image, uv);            
+      return baseColor * (ambience + diffuse + specular);
+    }
+  ]]
+  
   self.shader = lovr.graphics.newShader(
-    'standard', 
-  {
-    flags = {
-      normalTexture = false,
-      indirectLighting = true,
-      occlusion = true,
-      emissive = true,
-      skipTonemap = false
-    },
-    stereo = (lovr.headset.getName() ~= "Pico") -- turn off stereo on pico: it's not supported
-  })
+    customVertex, 
+    customFragment, 
+    {
+      flags = {
+        normalTexture = false,
+        indirectLighting = true,
+        occlusion = true,
+        emissive = true,
+        skipTonemap = false
+      },
+        stereo = (lovr.headset.getName() ~= "Pico") -- turn off stereo on pico: it's not supported
+    }
+  )
+
+  
+  self.shader:send('ambience', { .2, .2, .2, 1 })         -- color & alpha of ambient light
+  self.shader:send('liteColor', {1.0, 1.0, 1.0, 1.0})     -- color & alpha of diffuse light
+  self.shader:send('lightPos', {2.0, 5.0, 0.0})           -- position of diffuse light source
+  self.shader:send('specularStrength', 0.5)
+  self.shader:send('metallic', 32.0)
+  self.shader:send('viewPos', {0.0, 0.0, 0.0})
+
 
   self.factorySkybox = lovr.graphics.newTexture({
     left = 'assets/env/nx.png',
@@ -59,39 +115,28 @@ function GraphicsEng:onLoad()
     end
   end
 
-
-  self.shader:send('lovrLightDirection', { -1, -1, -1 })
-  self.shader:send('lovrLightColor', { 1.0, 1.0, 1.0, 1.0 })
-  self.shader:send('lovrExposure', 2)
-  --self.shader:send('lovrSphericalHarmonics', require('assets/env/sphericalHarmonics'))
-  self.shader:send('lovrEnvironmentMap', self.environmentMap)
+  -- self.shader:send('lovrSphericalHarmonics', require('assets/env/sphericalHarmonics'))
+  
+    self.shader:send('lovrLightDirection', { -1, -1, -1 })
+    self.shader:send('lovrLightColor', { 1.0, 1.0, 1.0, 1.0 })
+    self.shader:send('lovrExposure', 2)
+    self.shader:send('lovrEnvironmentMap', self.environmentMap)
 
 end
 
-function GraphicsEng:onDraw()  
+function GraphicsEng:onDraw() 
   lovr.graphics.setShader()
-  lovr.graphics.setColor(1,1,1)
+
   lovr.graphics.skybox(self.cloudSkybox)
-  
+
+  lovr.graphics.setShader(self.shader)
+
   lovr.graphics.setBackgroundColor(.3, .3, .40)
+  lovr.graphics.setColor(1,1,1)
+  
   lovr.graphics.setCullingEnabled(true)
-  lovr.graphics.setColor({1,1,1})
-
-
-  lovr.graphics.setShader(self.shader)
-
-  -- lovr.graphics.setShader(self.worldCurveShader)
-  lovr.graphics.circle( 
-    self.greenMat,
-    0, 0, 0, -- x y z
-    12,  -- radius
-    -3.14/2, -- angle around axis of rotation
-    1, 0, 0 -- rotation axis (x, y, z)
-  )
-
-  lovr.graphics.setShader(self.shader)
-
-  -- Decorates the plane/circle with trees & stuff
+  
+  -- Draws plane & decorates it with trees
   self:drawDecorations()
 
   for eid, entity in pairs(self.client.state.entities) do
@@ -113,12 +158,16 @@ function GraphicsEng:onDraw()
   for _, ray in ipairs(self.parent.engines.pose.handRays) do
     lovr.graphics.setColor(ray:getColor())
     lovr.graphics.line(ray.from, ray.to)
-    lovr.graphics.setColor({1,1,1})
   end
+
+  lovr.graphics.setColor({1,1,1})
 end
 
 function GraphicsEng:onUpdate(dt)
-
+  if lovr.headset then 
+    hx, hy, hz = lovr.headset.getPosition()
+    self.shader:send('viewPos', { hx, hy, hz } )
+  end
 end
 
 function GraphicsEng:loadComponentModel(component, old_component)
@@ -224,6 +273,14 @@ function base64decode(data)
 end
 
 function GraphicsEng:drawDecorations()
+  -- "Floorplate"
+  lovr.graphics.circle( 
+    self.greenMat,
+    0, 0, 0, -- x y z
+    12,  -- radius
+    -3.14/2, -- angle around axis of rotation
+    1, 0, 0 -- rotation axis (x, y, z)
+  )
   
   local forestModel = self.hardcoded_models.forest
   
