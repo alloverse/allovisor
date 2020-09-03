@@ -61,6 +61,73 @@ function MainMenuScene:onLoad()
     torso = lovr.graphics.newModel('assets/models/torso/torso.glb')
   }
   self:setDebug(settings.d.debug)
+
+  customVertex = [[
+    out vec3 FragmentPos;
+    out vec3 Normal;
+
+    vec4 position(mat4 projection, mat4 transform, vec4 vertex)
+    {
+      Normal = lovrNormal * lovrNormalMatrix;
+      FragmentPos = vec3(lovrModel * vertex);
+      
+      return projection * transform * vertex; 
+    }
+  ]]
+
+  customFragment = [[
+    uniform vec4 ambience;
+    
+    uniform vec4 liteColor;
+    uniform vec3 lightPos;
+
+    in vec3 Normal;
+    in vec3 FragmentPos;
+
+    uniform vec3 viewPos;
+    uniform float specularStrength;
+    uniform int metallic;
+
+    vec4 color(vec4 graphicsColor, sampler2D image, vec2 uv) 
+    {
+      //diffuse
+      vec3 norm = normalize(Normal);
+      vec3 lightDir = normalize(lightPos - FragmentPos);
+      float diff = max(dot(norm, lightDir), 0.0);
+      vec4 diffuse = diff * liteColor;
+
+      //specular
+      vec3 viewDir = normalize(viewPos - FragmentPos);
+      vec3 reflectDir = reflect(-lightDir, norm);
+      float spec = pow(max(dot(viewDir, reflectDir), 0.0), metallic);
+      vec4 specular = specularStrength * spec * liteColor;
+      
+      vec4 baseColor = graphicsColor * texture(image, uv);            
+      return baseColor * (ambience + diffuse + specular);
+    }
+  ]]
+  
+  self.shader = lovr.graphics.newShader(
+    customVertex, 
+    customFragment, 
+    {
+      flags = {
+        normalTexture = false,
+        indirectLighting = true,
+        occlusion = true,
+        emissive = true,
+        skipTonemap = false
+      },
+        stereo = (lovr.headset.getName() ~= "Pico") -- turn off stereo on pico: it's not supported
+    }
+  )
+
+  self.shader:send('ambience', { .2, .2, .2, 1 })         -- color & alpha of ambient light
+  self.shader:send('liteColor', {1.0, 1.0, 1.0, 1.0})     -- color & alpha of diffuse light
+  self.shader:send('lightPos', {2.0, 5.0, 0.0})           -- position of diffuse light source
+  self.shader:send('specularStrength', 0.5)
+  self.shader:send('metallic', 32.0)
+  self.shader:send('viewPos', {0.0, 0.0, 0.0})
 end
 
 function MainMenuScene:onUpdate()
@@ -68,8 +135,12 @@ function MainMenuScene:onUpdate()
 end
 
 function MainMenuScene:onDraw()
+  lovr.graphics.setShader()
+  
   MenuScene.onDraw(self)
   lovr.graphics.setColor({1,1,1})
+
+  lovr.graphics.setShader(self.shader)
   self.models.head:draw(     -1.5, 1.8, -1.2, 1.0, 0, 0, 1, 0, 1)
   self.models.torso:draw(     -1.5, 1.2, -1.2, 1.0, 3.14, 0, 1, 0, 1)
   self.models.lefthand:draw( -1.3, 1.2, -1.2, 1.0, 3.14, -0.5, 1, 0, 1)
