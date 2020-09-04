@@ -51,8 +51,9 @@ function lovr.load()
 	local menuServerThread = lovr.thread.newThread("menuserv_main.lua")
 	menuServerThread:start()
 	ent.root = LoaderEnt({
-  "app.menu.main_menu_scene",
-		"app/debug/fps"
+--    "app.menu.netmenu_scene",
+    "app.menu.main_menu_scene",
+    "app/debug/fps"
 	})
 
 	ent.root:route("onBoot") -- This will only be sent once
