@@ -89,6 +89,20 @@ function GraphicsEng:onLoad()
   self.shader:send('metallic', 32.0)
   self.shader:send('viewPos', {0.0, 0.0, 0.0})
 
+  self.pbrShader = lovr.graphics.newShader(
+    'standard',
+    {
+      flags = {
+        normalTexture = false,
+        indirectLighting = true,
+        occlusion = true,
+        emissive = true,
+        skipTonemap = false
+      },
+      stereo = (lovr.headset.getName() ~= "Pico") -- turn off stereo on pico: it's not supported
+    }
+  )
+
 
   self.factorySkybox = lovr.graphics.newTexture({
     left = 'assets/env/nx.png',
@@ -114,6 +128,11 @@ function GraphicsEng:onLoad()
       self.environmentMap:replacePixels(image, 0, 0, face, mipmap)
     end
   end
+
+  self.pbrShader:send('lovrLightDirection', { -1, -1, -1 })
+  self.pbrShader:send('lovrLightColor', { 1.0, 1.0, 1.0, 1.0 })
+  self.pbrShader:send('lovrExposure', 2)
+  self.pbrShader:send('lovrEnvironmentMap', self.environmentMap)
 
   -- self.shader:send('lovrSphericalHarmonics', require('assets/env/sphericalHarmonics'))
   
@@ -149,7 +168,14 @@ function GraphicsEng:onDraw()
       -- don't draw our own head, as it obscures the camera
       if parent ~= self.client.avatar_id or pose ~= "head" then
         local mat = trans:getMatrix()
-        if pose == "head" then mat:rotate(3.14, 0, 1, 0) end -- file is wrong
+        -- special case avatars to get PBR shading and face them towards negative Z
+        if pose ~= nil then 
+          mat:rotate(3.14, 0, 1, 0)
+          -- todo: set shader based on 'material' component instead of hard-coding for avatar
+          lovr.graphics.setShader(self.pbrShader)
+        else
+          lovr.graphics.setShader(self.shader)
+        end
         model:draw(mat)
       end
     end

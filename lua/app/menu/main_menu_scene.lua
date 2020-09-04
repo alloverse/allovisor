@@ -107,7 +107,33 @@ function MainMenuScene:onLoad()
     }
   ]]
   
-  self.shader = lovr.graphics.newShader(
+  self.pbrShader = lovr.graphics.newShader(
+    'standard',
+    {
+      flags = {
+        normalTexture = false,
+        indirectLighting = true,
+        occlusion = true,
+        emissive = true,
+        skipTonemap = false
+      },
+      stereo = (lovr.headset.getName() ~= "Pico") -- turn off stereo on pico: it's not supported
+    }
+  )
+  self.environmentMap = lovr.graphics.newTexture(256, 256, { type = 'cube' })
+  for mipmap = 1, self.environmentMap:getMipmapCount() do
+    for face, dir in ipairs({ 'px', 'nx', 'py', 'ny', 'pz', 'nz' }) do
+      local filename = ('assets/env/m%d_%s.png'):format(mipmap - 1, dir)
+      local image = lovr.data.newTextureData(filename, false)
+      self.environmentMap:replacePixels(image, 0, 0, face, mipmap)
+    end
+  end
+  self.pbrShader:send('lovrLightDirection', { -1, -1, -1 })
+  self.pbrShader:send('lovrLightColor', { 1.0, 1.0, 1.0, 1.0 })
+  self.pbrShader:send('lovrExposure', 2)
+  self.pbrShader:send('lovrEnvironmentMap', self.environmentMap)
+
+  self.plainShader = lovr.graphics.newShader(
     customVertex, 
     customFragment, 
     {
@@ -122,12 +148,12 @@ function MainMenuScene:onLoad()
     }
   )
 
-  self.shader:send('ambience', { .2, .2, .2, 1 })         -- color & alpha of ambient light
-  self.shader:send('liteColor', {1.0, 1.0, 1.0, 1.0})     -- color & alpha of diffuse light
-  self.shader:send('lightPos', {2.0, 5.0, 0.0})           -- position of diffuse light source
-  self.shader:send('specularStrength', 0.5)
-  self.shader:send('metallic', 32.0)
-  self.shader:send('viewPos', {0.0, 0.0, 0.0})
+  self.plainShader:send('ambience', { .2, .2, .2, 1 })         -- color & alpha of ambient light
+  self.plainShader:send('liteColor', {1.0, 1.0, 1.0, 1.0})     -- color & alpha of diffuse light
+  self.plainShader:send('lightPos', {2.0, 5.0, 0.0})           -- position of diffuse light source
+  self.plainShader:send('specularStrength', 0.5)
+  self.plainShader:send('metallic', 32.0)
+  self.plainShader:send('viewPos', {0.0, 0.0, 0.0})
 end
 
 function MainMenuScene:onUpdate()
@@ -140,7 +166,7 @@ function MainMenuScene:onDraw()
   MenuScene.onDraw(self)
   lovr.graphics.setColor({1,1,1})
 
-  lovr.graphics.setShader(self.shader)
+  lovr.graphics.setShader(self.pbrShader)
   self.models.head:draw(     -1.5, 1.8, -1.2, 1.0, 0, 0, 1, 0, 1)
   self.models.torso:draw(     -1.5, 1.2, -1.2, 1.0, 3.14, 0, 1, 0, 1)
   self.models.lefthand:draw( -1.3, 1.2, -1.2, 1.0, 3.14, -0.5, 1, 0, 1)
