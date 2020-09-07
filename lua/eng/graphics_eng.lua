@@ -136,11 +136,12 @@ function GraphicsEng:onLoad()
 
   -- self.shader:send('lovrSphericalHarmonics', require('assets/env/sphericalHarmonics'))
   
-    self.shader:send('lovrLightDirection', { -1, -1, -1 })
-    self.shader:send('lovrLightColor', { 1.0, 1.0, 1.0, 1.0 })
-    self.shader:send('lovrExposure', 2)
-    self.shader:send('lovrEnvironmentMap', self.environmentMap)
+  self.shader:send('lovrLightDirection', { -1, -1, -1 })
+  self.shader:send('lovrLightColor', { 1.0, 1.0, 1.0, 1.0 })
+  self.shader:send('lovrExposure', 2)
+  self.shader:send('lovrEnvironmentMap', self.environmentMap)
 
+  self.font = lovr.graphics.newFont(32)
 end
 
 function GraphicsEng:onDraw() 
@@ -154,31 +155,51 @@ function GraphicsEng:onDraw()
   lovr.graphics.setColor(1,1,1)
   
   lovr.graphics.setCullingEnabled(true)
+
+  self.font:setPixelDensity(32)
+  lovr.graphics.setFont(self.font)
   
   -- Draws plane & decorates it with trees
   self:drawDecorations()
 
   for eid, entity in pairs(self.client.state.entities) do
     local trans = entity.components.transform
+    local mat = trans:getMatrix()
     local geom = entity.components.geometry
+    local text = entity.components.text
     local parent = entity.components.relationships and entity.components.relationships.parent or nil
     local pose = entity.components.intent and entity.components.intent.actuate_pose or nil
     local model = self.models_for_eids[eid]
+
+    lovr.graphics.push()
+    lovr.graphics.transform(mat)
     if trans ~= nil and geom ~= nil and model ~= nil then
       -- don't draw our own head, as it obscures the camera
       if parent ~= self.client.avatar_id or pose ~= "head" then
-        local mat = trans:getMatrix()
         -- special case avatars to get PBR shading and face them towards negative Z
         if pose ~= nil then 
-          mat:rotate(3.14, 0, 1, 0)
+          lovr.graphics.rotate(3.14, 0, 1, 0)
           -- todo: set shader based on 'material' component instead of hard-coding for avatar
           lovr.graphics.setShader(self.pbrShader)
         else
           lovr.graphics.setShader(self.shader)
         end
-        model:draw(mat)
+        model:draw()
+      end
+
+      if text ~= nil then
+        lovr.graphics.setShader()
+        lovr.graphics.print(
+          text.string,
+          0, 0, 0.01,
+          text.height and text.height or 1.0, 
+          0, 0, 0, 0,
+          text.wrap and text.wrap / (text.height and text.height or 1) or 0,
+          text.halign and text.halign or "center"
+        )
       end
     end
+    lovr.graphics.pop()
   end
 
   for _, ray in ipairs(self.parent.engines.pose.handRays) do
@@ -269,7 +290,6 @@ function GraphicsEng:createMesh(geom, old_geom)
   end
 
   if old_geom == nil or old_geom.texture ~= geom.texture then
-    print("Creating new texture from inline data")
     -- decode texture data and setup material
     local data = base64decode(geom.texture)
     local blob = lovr.data.newBlob(data, "texture")
