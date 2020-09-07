@@ -4,6 +4,8 @@ local json = require "json"
 local array2d = require "pl.array2d"
 local tablex = require "pl.tablex"
 local pretty = require "pl.pretty"
+local alloBasicShader = require "shader/alloBasicShader"
+local alloPbrShader = require "shader/alloPbrShader"
 
 local GraphicsEng = classNamed("GraphicsEng", Ent)
 function GraphicsEng:_init()
@@ -21,105 +23,6 @@ function GraphicsEng:onLoad()
   self.models_for_eids = {
   }
 
-  customVertex = [[
-    out vec3 FragmentPos;
-    out vec3 Normal;
-
-    vec4 position(mat4 projection, mat4 transform, vec4 vertex)
-    {
-      Normal = lovrNormal * lovrNormalMatrix;
-      FragmentPos = vec3(lovrModel * vertex);
-      
-      return projection * transform * vertex; 
-    }
-  ]]
-
-  customFragment = [[
-    uniform vec4 ambience;
-    
-    uniform vec4 liteColor;
-    uniform vec3 lightPos;
-
-    in vec3 Normal;
-    in vec3 FragmentPos;
-
-    uniform vec3 viewPos;
-    uniform float specularStrength;
-    uniform int metallic;
-
-    vec4 color(vec4 graphicsColor, sampler2D image, vec2 uv) 
-    {
-      //diffuse
-      vec3 norm = normalize(Normal);
-      vec3 lightDir = normalize(lightPos - FragmentPos);
-      float diff = max(dot(norm, lightDir), 0.0);
-      vec4 diffuse = diff * liteColor;
-
-      //specular
-      vec3 viewDir = normalize(viewPos - FragmentPos);
-      vec3 reflectDir = reflect(-lightDir, norm);
-      float spec = pow(max(dot(viewDir, reflectDir), 0.0), metallic);
-      vec4 specular = specularStrength * spec * liteColor;
-      
-      vec4 baseColor = graphicsColor * texture(image, uv);            
-      return baseColor * (ambience + diffuse + specular);
-    }
-  ]]
-  
-  self.shader = lovr.graphics.newShader(
-    customVertex, 
-    customFragment, 
-    {
-      flags = {
-        normalTexture = false,
-        indirectLighting = true,
-        occlusion = true,
-        emissive = true,
-        skipTonemap = false
-      },
-        stereo = (lovr.headset.getName() ~= "Pico") -- turn off stereo on pico: it's not supported
-    }
-  )
-
-  
-  self.shader:send('ambience', { .2, .2, .2, 1 })         -- color & alpha of ambient light
-  self.shader:send('liteColor', {1.0, 1.0, 1.0, 1.0})     -- color & alpha of diffuse light
-  self.shader:send('lightPos', {2.0, 5.0, 0.0})           -- position of diffuse light source
-  self.shader:send('specularStrength', 0.5)
-  self.shader:send('metallic', 32.0)
-  self.shader:send('viewPos', {0.0, 0.0, 0.0})
-
-  self.pbrShader = lovr.graphics.newShader(
-    'standard',
-    {
-      flags = {
-        normalTexture = false,
-        indirectLighting = true,
-        occlusion = true,
-        emissive = true,
-        skipTonemap = false
-      },
-      stereo = (lovr.headset.getName() ~= "Pico") -- turn off stereo on pico: it's not supported
-    }
-  )
-
-
-  self.factorySkybox = lovr.graphics.newTexture({
-    left = 'assets/env/nx.png',
-    right = 'assets/env/px.png',
-    top = 'assets/env/py.png',
-    bottom = 'assets/env/ny.png',
-    back = 'assets/env/pz.png',
-    front = 'assets/env/nz.png'
-  }, { linear = true })
-
-
-  lovr.graphics.setBackgroundColor(.05, .05, .05)
-  self.cloudSkybox = lovr.graphics.newTexture("assets/cloudy-sunset.png")
-
-  local greenTex = lovr.graphics.newTexture("assets/textures/green.png", {})
-  self.greenMat = lovr.graphics.newMaterial(greenTex, 1, 1, 1, 1)
-
   self.environmentMap = lovr.graphics.newTexture(256, 256, { type = 'cube' })
   for mipmap = 1, self.environmentMap:getMipmapCount() do
     for face, dir in ipairs({ 'px', 'nx', 'py', 'ny', 'pz', 'nz' }) do
@@ -128,18 +31,40 @@ function GraphicsEng:onLoad()
       self.environmentMap:replacePixels(image, 0, 0, face, mipmap)
     end
   end
+  
+  self.basicShader = alloBasicShader
 
+  self.basicShader:send('ambience', { .2, .2, .2, 1 })         -- color & alpha of ambient light
+  self.basicShader:send('liteColor', {1.0, 1.0, 1.0, 1.0})     -- color & alpha of diffuse light
+  self.basicShader:send('lightPos', {2.0, 5.0, 0.0})           -- position of diffuse light source
+  self.basicShader:send('specularStrength', 0.5)
+  self.basicShader:send('metallic', 32.0)
+  self.basicShader:send('viewPos', {0.0, 0.0, 0.0})
+
+  self.basicShader:send('lovrLightDirection', { -1, -1, -1 })
+  self.basicShader:send('lovrLightColor', { 1.0, 1.0, 1.0, 1.0 })
+  self.basicShader:send('lovrExposure', 2)
+  self.basicShader:send('lovrEnvironmentMap', self.environmentMap)
+
+  self.pbrShader = alloPbrShader
+
+  self.pbrShader:send('ambience', { .2, .2, .2, 1 })         -- color & alpha of ambient light
+  self.pbrShader:send('liteColor', {1.0, 1.0, 1.0, 1.0})     -- color & alpha of diffuse light
+  self.pbrShader:send('lightPos', {2.0, 5.0, 0.0})           -- position of diffuse light source
+  self.pbrShader:send('specularStrength', 0.5)
+  self.pbrShader:send('metallic', 32.0)
+  self.pbrShader:send('viewPos', {0.0, 0.0, 0.0})
+  
   self.pbrShader:send('lovrLightDirection', { -1, -1, -1 })
   self.pbrShader:send('lovrLightColor', { 1.0, 1.0, 1.0, 1.0 })
   self.pbrShader:send('lovrExposure', 2)
   self.pbrShader:send('lovrEnvironmentMap', self.environmentMap)
 
-  -- self.shader:send('lovrSphericalHarmonics', require('assets/env/sphericalHarmonics'))
-  
-  self.shader:send('lovrLightDirection', { -1, -1, -1 })
-  self.shader:send('lovrLightColor', { 1.0, 1.0, 1.0, 1.0 })
-  self.shader:send('lovrExposure', 2)
-  self.shader:send('lovrEnvironmentMap', self.environmentMap)
+  lovr.graphics.setBackgroundColor(.05, .05, .05)
+  self.cloudSkybox = lovr.graphics.newTexture("assets/cloudy-sunset.png")
+
+  local greenTex = lovr.graphics.newTexture("assets/textures/green.png", {})
+  self.greenMat = lovr.graphics.newMaterial(greenTex, 1, 1, 1, 1)
 
   self.font = lovr.graphics.newFont(32)
 end
@@ -149,7 +74,7 @@ function GraphicsEng:onDraw()
 
   lovr.graphics.skybox(self.cloudSkybox)
 
-  lovr.graphics.setShader(self.shader)
+  lovr.graphics.setShader(self.basicShader)
 
   lovr.graphics.setBackgroundColor(.3, .3, .40)
   lovr.graphics.setColor(1,1,1)
@@ -182,7 +107,7 @@ function GraphicsEng:onDraw()
           -- todo: set shader based on 'material' component instead of hard-coding for avatar
           lovr.graphics.setShader(self.pbrShader)
         else
-          lovr.graphics.setShader(self.shader)
+          lovr.graphics.setShader(self.basicShader)
         end
         model:draw()
       end
@@ -213,7 +138,8 @@ end
 function GraphicsEng:onUpdate(dt)
   if lovr.headset then 
     hx, hy, hz = lovr.headset.getPosition()
-    self.shader:send('viewPos', { hx, hy, hz } )
+    self.basicShader:send('viewPos', { hx, hy, hz } )
+    self.pbrShader:send('viewPos', { hx, hy, hz } )
   end
 end
 
