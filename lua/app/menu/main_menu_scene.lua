@@ -167,10 +167,10 @@ function MainMenuScene:onDraw()
   lovr.graphics.setColor({1,1,1})
 
   lovr.graphics.setShader(self.pbrShader)
-  self.models.head:draw(     -1.5, 1.8, -1.2, 1.0, 0, 0, 1, 0, 1)
-  self.models.torso:draw(     -1.5, 1.2, -1.2, 1.0, 3.14, 0, 1, 0, 1)
-  self.models.lefthand:draw( -1.3, 1.2, -1.2, 1.0, 3.14, -0.5, 1, 0, 1)
-  self.models.righthand:draw(-1.8, 0.9, -1.4, 1.0, 3.14, 0.5, 1, 1, 1)
+  self.models.head:draw(     -1.5, 1.8,  -1.2, 1.0, 0, 0, 1, 0, 1)
+  self.models.torso:draw(    -1.5, 1.45, -1.2, 1.0, 0, 0, 1, 0, 1)
+  self.models.lefthand:draw( -1.3, 1.4,  -1.0, 1.0, 0, 1, 0, 0, 1)
+  self.models.righthand:draw(-1.7, 1.2,  -1.1, 1.0, 3.14/2, 1, 0, 0, 1)
 
 end
 
