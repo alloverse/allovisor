@@ -3,6 +3,8 @@ namespace("menu", "alloverse")
 local MenuScene = require("app.menu.menu_scene")
 local MenuItem = require("app.menu.menu_item")
 local settings = require("lib.lovr-settings")
+local alloBasicShader = require("shader/alloBasicShader")
+local alloPbrShader = require("shader/alloPbrShader")
 
 local MainMenuScene = classNamed("MainMenuScene", MenuScene)
 function MainMenuScene:_init()
@@ -61,65 +63,9 @@ function MainMenuScene:onLoad()
     torso = lovr.graphics.newModel('assets/models/torso/torso.glb')
   }
   self:setDebug(settings.d.debug)
-
-  customVertex = [[
-    out vec3 FragmentPos;
-    out vec3 Normal;
-
-    vec4 position(mat4 projection, mat4 transform, vec4 vertex)
-    {
-      Normal = lovrNormal * lovrNormalMatrix;
-      FragmentPos = vec3(lovrModel * vertex);
-      
-      return projection * transform * vertex; 
-    }
-  ]]
-
-  customFragment = [[
-    uniform vec4 ambience;
-    
-    uniform vec4 liteColor;
-    uniform vec3 lightPos;
-
-    in vec3 Normal;
-    in vec3 FragmentPos;
-
-    uniform vec3 viewPos;
-    uniform float specularStrength;
-    uniform int metallic;
-
-    vec4 color(vec4 graphicsColor, sampler2D image, vec2 uv) 
-    {
-      //diffuse
-      vec3 norm = normalize(Normal);
-      vec3 lightDir = normalize(lightPos - FragmentPos);
-      float diff = max(dot(norm, lightDir), 0.0);
-      vec4 diffuse = diff * liteColor;
-
-      //specular
-      vec3 viewDir = normalize(viewPos - FragmentPos);
-      vec3 reflectDir = reflect(-lightDir, norm);
-      float spec = pow(max(dot(viewDir, reflectDir), 0.0), metallic);
-      vec4 specular = specularStrength * spec * liteColor;
-      
-      vec4 baseColor = graphicsColor * texture(image, uv);            
-      return baseColor * (ambience + diffuse + specular);
-    }
-  ]]
   
-  self.pbrShader = lovr.graphics.newShader(
-    'standard',
-    {
-      flags = {
-        normalTexture = false,
-        indirectLighting = true,
-        occlusion = true,
-        emissive = true,
-        skipTonemap = false
-      },
-      stereo = (lovr.headset.getName() ~= "Pico") -- turn off stereo on pico: it's not supported
-    }
-  )
+  self.pbrShader = alloPbrShader
+  
   self.environmentMap = lovr.graphics.newTexture(256, 256, { type = 'cube' })
   for mipmap = 1, self.environmentMap:getMipmapCount() do
     for face, dir in ipairs({ 'px', 'nx', 'py', 'ny', 'pz', 'nz' }) do
@@ -128,36 +74,30 @@ function MainMenuScene:onLoad()
       self.environmentMap:replacePixels(image, 0, 0, face, mipmap)
     end
   end
+
   self.pbrShader:send('lovrLightDirection', { -1, -1, -1 })
   self.pbrShader:send('lovrLightColor', { 1.0, 1.0, 1.0, 1.0 })
   self.pbrShader:send('lovrExposure', 2)
   self.pbrShader:send('lovrEnvironmentMap', self.environmentMap)
 
-  self.plainShader = lovr.graphics.newShader(
-    customVertex, 
-    customFragment, 
-    {
-      flags = {
-        normalTexture = false,
-        indirectLighting = true,
-        occlusion = true,
-        emissive = true,
-        skipTonemap = false
-      },
-        stereo = (lovr.headset.getName() ~= "Pico") -- turn off stereo on pico: it's not supported
-    }
-  )
+  self.basicShader = alloBasicShader
 
-  self.plainShader:send('ambience', { .2, .2, .2, 1 })         -- color & alpha of ambient light
-  self.plainShader:send('liteColor', {1.0, 1.0, 1.0, 1.0})     -- color & alpha of diffuse light
-  self.plainShader:send('lightPos', {2.0, 5.0, 0.0})           -- position of diffuse light source
-  self.plainShader:send('specularStrength', 0.5)
-  self.plainShader:send('metallic', 32.0)
-  self.plainShader:send('viewPos', {0.0, 0.0, 0.0})
+  self.basicShader:send('ambience', { .2, .2, .2, 1 })         -- color & alpha of ambient light
+  self.basicShader:send('liteColor', {1.0, 1.0, 1.0, 1.0})     -- color & alpha of diffuse light
+  self.basicShader:send('lightPos', {2.0, 5.0, 0.0})           -- position of diffuse light source
+  self.basicShader:send('specularStrength', 0.5)
+  self.basicShader:send('metallic', 32.0)
+  self.basicShader:send('viewPos', {0.0, 0.0, 0.0})
 end
 
 function MainMenuScene:onUpdate()
   MenuScene.onUpdate(self)
+
+  if lovr.headset then 
+    hx, hy, hz = lovr.headset.getPosition()
+    self.basicShader:send('viewPos', { hx, hy, hz } )
+    self.pbrShader:send('viewPos', { hx, hy, hz } )
+  end
 end
 
 function MainMenuScene:onDraw()
