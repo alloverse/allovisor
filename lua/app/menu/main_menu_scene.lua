@@ -65,29 +65,8 @@ function MainMenuScene:onLoad()
   self:setDebug(settings.d.debug)
   
   self.pbrShader = alloPbrShader
-  
-  self.environmentMap = lovr.graphics.newTexture(256, 256, { type = 'cube' })
-  for mipmap = 1, self.environmentMap:getMipmapCount() do
-    for face, dir in ipairs({ 'px', 'nx', 'py', 'ny', 'pz', 'nz' }) do
-      local filename = ('assets/env/m%d_%s.png'):format(mipmap - 1, dir)
-      local image = lovr.data.newTextureData(filename, false)
-      self.environmentMap:replacePixels(image, 0, 0, face, mipmap)
-    end
-  end
-
-  self.pbrShader:send('lovrLightDirection', { -1, -1, -1 })
-  self.pbrShader:send('lovrLightColor', { 1.0, 1.0, 1.0, 1.0 })
-  self.pbrShader:send('lovrExposure', 2)
-  self.pbrShader:send('lovrEnvironmentMap', self.environmentMap)
-
   self.basicShader = alloBasicShader
 
-  self.basicShader:send('ambience', { .2, .2, .2, 1 })         -- color & alpha of ambient light
-  self.basicShader:send('liteColor', {1.0, 1.0, 1.0, 1.0})     -- color & alpha of diffuse light
-  self.basicShader:send('lightPos', {2.0, 5.0, 0.0})           -- position of diffuse light source
-  self.basicShader:send('specularStrength', 0.5)
-  self.basicShader:send('metallic', 32.0)
-  self.basicShader:send('viewPos', {0.0, 0.0, 0.0})
 end
 
 function MainMenuScene:onUpdate()
