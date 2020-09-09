@@ -18,7 +18,10 @@ function Menu:new(o)
   )
   o.app = App(o.client)
   o.app.mainView = o:createUI()
-  o.app:connect()
+  if o.app:connect() == false then
+    print("menu alloapp failed to connect to menuserv")
+    return nil
+  end
   return o
 end
 

@@ -7,7 +7,8 @@ if lovr.filesystem.getExecutablePath() and lovr.getOS() == "Windows" then
 	cpath = cpath .. lovr.filesystem.getExecutablePath():gsub("lovr.exe", "?.dll")
 end
 path = path ..
-	";alloui/lua/?.lua"
+	";alloui/lua/?.lua;" ..
+	";alloui/lib/cpml/?.lua"
 
 lovr.filesystem.setRequirePath(path, cpath)
 package.cpath = cpath
@@ -50,6 +51,11 @@ namespace "standard"
 function lovr.load()
 	local menuServerThread = lovr.thread.newThread("menuserv_main.lua")
 	menuServerThread:start()
+
+	local menuAppSthread = lovr.thread.newThread("menuapps_main.lua")
+	menuAppSthread:start()
+
+
 	ent.root = LoaderEnt({
 --    "app.menu.netmenu_scene",
     "app.menu.main_menu_scene",
