@@ -54,15 +54,6 @@ local alloBasicShader = lovr.graphics.newShader(
   }
 )
 
-local environmentMap = lovr.graphics.newTexture(256, 256, { type = 'cube' })
-for mipmap = 1, environmentMap:getMipmapCount() do
-  for face, dir in ipairs({ 'px', 'nx', 'py', 'ny', 'pz', 'nz' }) do
-    local filename = ('assets/env/m%d_%s.png'):format(mipmap - 1, dir)
-    local image = lovr.data.newTextureData(filename, false)
-    environmentMap:replacePixels(image, 0, 0, face, mipmap)
-  end
-end
-
 alloBasicShader:send('ambience', { 0.2, 0.2, 0.2, 1.0 })    -- color & alpha of ambient light
 alloBasicShader:send('liteColor', {1.0, 1.0, 1.0, 1.0})     -- color & alpha of diffuse light
 alloBasicShader:send('lightPos', {2.0, 5.0, 0.0})           -- position of diffuse light source
@@ -73,6 +64,5 @@ alloBasicShader:send('viewPos', {0.0, 0.0, 0.0})
 alloBasicShader:send('lovrLightDirection', { -1, -1, -1 })
 alloBasicShader:send('lovrLightColor', { 1.0, 1.0, 1.0, 1.0 })
 alloBasicShader:send('lovrExposure', 2)
-alloBasicShader:send('lovrEnvironmentMap', environmentMap)
 
 return alloBasicShader
