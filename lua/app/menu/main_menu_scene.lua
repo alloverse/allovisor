@@ -60,7 +60,8 @@ function MainMenuScene:onLoad()
     head = lovr.graphics.newModel('assets/models/head/female.glb'),
     lefthand = lovr.graphics.newModel('assets/models/left-hand/left-hand.glb'),
     righthand = lovr.graphics.newModel('assets/models/right-hand/right-hand.glb'),
-    torso = lovr.graphics.newModel('assets/models/torso/torso.glb')
+    torso = lovr.graphics.newModel('assets/models/torso/torso.glb'),
+    helmet = lovr.graphics.newModel('assets/models/DamagedHelmet.glb')
   }
   self:setDebug(settings.d.debug)
   
@@ -90,6 +91,10 @@ function MainMenuScene:onDraw()
   self.models.torso:draw(    -1.5, 1.45, -1.2, 1.0, 0, 0, 1, 0, 1)
   self.models.lefthand:draw( -1.3, 1.4,  -1.0, 1.0, 0, 1, 0, 0, 1)
   self.models.righthand:draw(-1.7, 1.2,  -1.1, 1.0, 3.14/2, 1, 0, 0, 1)
+
+  if self.debug then
+    self.models.helmet:draw(1.7, 1.8,  -1.1, 0.5, lovr.timer.getTime()/4, 0, 1, 0, 1)
+  end
 
 end
 

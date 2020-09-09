@@ -2,6 +2,7 @@ local alloPbrShader = lovr.graphics.newShader(
   'standard',
   {
     flags = {
+      normalMap = true,
       normalTexture = false,
       indirectLighting = true,
       occlusion = true,
