@@ -3,17 +3,19 @@ lovr.filesystem, lovr.thread = require 'lovr.filesystem', require 'lovr.thread'
 
 local util = require "util"
 local allonet = util.load_allonet()
-print("starting menu server", allonet, allonet.standalone_server_count())
+local allosocket = allonet.last_allosocket()
 
-if allonet.standalone_server_count() == 0 then
-  local allosocket = allonet.start_standalone_server(21338)
-
-  local running = true
-  while running do
-    print("poll")
-    running = allonet.poll_standalone_server(allosocket)
-  end
-  print("menu server shutting down", allonet)
+if allosocket == -1 then
+  print("starting menu server")
+  allosocket = allonet.start_standalone_server(21338)
 else
-  print("menu server already running")
+  print("yielding to existing menu server at", allosocket)
+  return
 end
+
+local running = true
+local chan = lovr.thread.getChannel("menuserv")
+while running do
+  running = allonet.poll_standalone_server(allosocket)
+end
+print("menu server shutting down", allonet)
