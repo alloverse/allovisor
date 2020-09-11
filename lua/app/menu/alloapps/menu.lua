@@ -1,5 +1,6 @@
-Client = require("alloui.client")
-ui = require("alloui.ui")
+local Client = require("alloui.client")
+local ui = require("alloui.ui")
+local pretty = require("pl.pretty")
 
 local Menu = {
 }
@@ -14,6 +15,17 @@ function Menu:new(o)
     "menu"
   )
   o.app = App(o.client)
+  local chain = o.client.delegates.onComponentAdded
+  o.client.delegates.onComponentAdded = function(k, v) 
+    o:onComponentAdded(k, v)
+    chain(k, v)
+  end
+  local chain = o.client.delegates.onInteraction
+  o.client.delegates.onInteraction = function(inter, body, receiver, sender) 
+    o:onInteraction(inter, body, receiver, sender)
+    chain(inter, body, receiver, sender)
+  end
+
   o.app.mainView = o:createUI()
   if o.app:connect() == false then
     print("menu alloapp failed to connect to menuserv")
@@ -35,16 +47,47 @@ function Menu:createUI()
   connectButton.onActivated = function() self:actuate({"connect", "alloplace://nevyn.places.alloverse.com"}) end
   plate:addSubview(connectButton)
 
-  local debugButton = ui.Button(ui.Bounds(0, 0.1, 0.01,     1.4, 0.2, 0.1))
-  debugButton.label = "Debug (off)"
-  debugButton.onActivated = function() self:actuate({"toggleDebug"}) end
-  plate:addSubview(debugButton)
+  self.debugButton = ui.Button(ui.Bounds(0, 0.1, 0.01,     1.4, 0.2, 0.1))
+  self.debugButton.label = "Toggle Debug"
+  self.debugButton.onActivated = function() self:actuate({"toggleDebug"}) end
+  plate:addSubview(self.debugButton)
 
   return plate
 end
 
-function Menu:actuate(what)
+function Menu:onComponentAdded(key, comp)
+  if key == "visor" then
+    self.visor = comp.getEntity()
+    self.app.client:sendInteraction({
+      receiver_entity_id = self.visor.id,
+      type = "oneway",
+      body = {
+          "menu_says_hello",
+      }
+    })
+  end
+end
 
+function Menu:actuate(what)
+  if self.app.client == nil or self.visor == nil or self.app.mainView.entity == nil then
+    print("can't actuate")
+    return
+  end
+  self.app.client:sendInteraction({
+    sender_entity_id = self.app.mainView.entity.id,
+    receiver_entity_id = self.visor.id,
+    type = "oneway",
+    body = {
+        "menu_selection",
+        what
+    }
+  })
+end
+
+function Menu:onInteraction(interaction, body, receiver, sender)
+  if body[1] == "updateDebugTitle" then
+   self.debugButton:setLabel(body[2] and "Debug (On)" or "Debug (Off)")
+  end
 end
 
 function Menu:update()

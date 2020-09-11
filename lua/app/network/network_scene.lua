@@ -28,6 +28,9 @@ local NetworkScene = classNamed("NetworkScene", Ent)
 function NetworkScene:_init(displayName, url)
   print("Starting network scene as", displayName, "connecting to", url, "on a", lovr.headset.getName())
   local avatar = {
+    visor = {
+      display_name = displayName,
+    },
     children = {
       {
         geometry = {
@@ -137,7 +140,7 @@ function NetworkScene:lookForHead()
   end
 end
 
-function NetworkScene:onInteraction(interaction, body)
+function NetworkScene:onInteraction(interaction, body, receiver, sender)
   if interaction.type == "response" and body[1] == "announce" then
     local avatar_id = body[2]
     local place_name = body[3]
