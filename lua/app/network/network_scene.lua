@@ -212,7 +212,7 @@ end
 
 function NetworkScene:onUpdate(dt)
   if self.client ~= nil then
-    self.client:poll()
+    self.client:poll(1.0/40.0)
     if self.client == nil then
       return route_terminate
     end

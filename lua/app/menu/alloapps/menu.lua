@@ -48,7 +48,7 @@ function Menu:actuate(what)
 end
 
 function Menu:update()
-  self.app:runOnce()
+  self.app:runOnce(1.0/40.0)
 end
 
 

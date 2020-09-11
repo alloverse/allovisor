@@ -80,14 +80,14 @@ function ThreadedClient:_send(f, a)
   return self.outchannel:push(jcmd)
 end
 
-function ThreadedClient:poll()
+function ThreadedClient:poll(timeout)
   self:_handleIncoming()
   if self.lastPoll then
     if self.outchannel:hasRead(self.lastPoll) == false then
       return
     end
   end
-  self.lastPoll = self:_send("poll", {})
+  self.lastPoll = self:_send("poll", {timeout})
 end
 
 function ThreadedClient:_handleIncoming()
