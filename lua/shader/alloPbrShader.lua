@@ -13,7 +13,9 @@ local alloPbrShader = lovr.graphics.newShader(
   }
 )
 
-local environmentMap = lovr.graphics.newTexture(256, 256, { type = 'cube' })
+-- global, not local! leak this so it lives as long as the shader. 
+-- otherwise, it's deallocated before shader is used.
+environmentMap = lovr.graphics.newTexture(256, 256, 6, { type = 'cube' })
 
 for mipmap = 1, environmentMap:getMipmapCount() do
   for face, dir in ipairs({ 'px', 'nx', 'py', 'ny', 'pz', 'nz' }) do
