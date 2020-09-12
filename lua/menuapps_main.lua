@@ -1,3 +1,5 @@
+print("Booting allomenu apps")
+
 lovr = require 'lovr'
 lovr.filesystem, lovr.thread = require 'lovr.filesystem', require 'lovr.thread'
 local json = require("json")
@@ -9,8 +11,8 @@ local apps = {
    require("app.menu.alloapps.menu"):new{}
 }
 
-print("Booting allomenu apps")
 
+chan:push("booted", 2.0)
 while running do
   for _, app in ipairs(apps) do
     app:update()
