@@ -9,13 +9,17 @@ if allosocket == -1 then
   print("starting menu server")
   allosocket = allonet.start_standalone_server(21338)
 else
-  print("yielding to existing menu server at", allosocket)
+  assert(false, "menu serv already exists, which is bad")
   return
 end
 
 local running = true
+local chan = lovr.thread.getChannel("menuserv")
 while running do
-  running = allonet.poll_standalone_server(allosocket)
+  local ok = allonet.poll_standalone_server(allosocket)
+  assert(ok, "standalone server failed")
+  local m = chan:pop()
+  if m == "exit" then running = false end
 end
 print("menu server shutting down", allonet)
 

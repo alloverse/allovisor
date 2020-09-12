@@ -4,6 +4,7 @@ local json = require("json")
 local util = require "util"
 local allonet = util.load_allonet()
 local running = true
+local chan = lovr.thread.getChannel("appserv")
 local apps = {
    require("app.menu.alloapps.menu"):new{}
 }
@@ -14,6 +15,8 @@ while running do
   for _, app in ipairs(apps) do
     app:update()
   end
+  local m = chan:pop()
+  if m == "exit" then running = false end
 end
 
 print("Allomenu apps ending")

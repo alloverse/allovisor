@@ -49,11 +49,11 @@ end)
 namespace "standard"
 
 function lovr.load()
-	local menuServerThread = lovr.thread.newThread("menuserv_main.lua")
+	menuServerThread = lovr.thread.newThread("menuserv_main.lua")
 	menuServerThread:start()
 
-	local menuAppSthread = lovr.thread.newThread("menuapps_main.lua")
-	menuAppSthread:start()
+	menuAppsThread = lovr.thread.newThread("menuapps_main.lua")
+	menuAppsThread:start()
 
 
 	ent.root = LoaderEnt({
@@ -64,6 +64,16 @@ function lovr.load()
 
 	ent.root:route("onBoot") -- This will only be sent once
 	ent.root:insert()
+end
+
+function lovr.restart()
+  print("Shutting down threads...")
+  lovr.thread.getChannel("menuserv"):push("exit", true)
+  lovr.thread.getChannel("appserv"):push("exit", true)
+  menuServerThread:wait()
+  menuAppsThread:wait()
+  print("Done, restarting.")
+  return true
 end
 
 
@@ -100,29 +110,29 @@ function lovr.run()
     end
     local dt = lovr.timer.step()
     if lovr.headset then
-    lovr.headset.update(dt)
+      lovr.headset.update(dt)
     end
-	if lovr.audio then
+    if lovr.audio then
       lovr.audio.update()
       if lovr.headset then
-	    lovr.audio.setVelocity(lovr.headset.getVelocity())
+        lovr.audio.setVelocity(lovr.headset.getVelocity())
       end
-	end
+    end
     if lovr.update then lovr.update(dt) end
     if lovr.graphics then
-    lovr.graphics.origin()
+      lovr.graphics.origin()
       if lovr.draw then
         if lovr.headset then
-    lovr.headset.renderTo(lovr.draw)
+          lovr.headset.renderTo(lovr.draw)
         end
-    if lovr.graphics.hasWindow() then
-      lovr.mirror()
-    end
+        if lovr.graphics.hasWindow() then
+          lovr.mirror()
+        end
       end
-    lovr.graphics.present()
+      lovr.graphics.present()
     end
     if lovr.math then
-		lovr.math.drain()
+      lovr.math.drain()
+    end
   end
-end
 end
