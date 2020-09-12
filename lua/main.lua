@@ -52,11 +52,11 @@ function lovr.load()
   print("lovr.load()")
 	menuServerThread = lovr.thread.newThread("menuserv_main.lua")
   menuServerThread:start()
-  assert(lovr.thread.getChannel("menuserv"):pop(5.0) == "booted", "menuserv didn't start in time")
+  assert(lovr.thread.getChannel("menuserv"):pop(6.0) == "booted", "menuserv didn't start in time")
 
 	menuAppsThread = lovr.thread.newThread("menuapps_main.lua")
   menuAppsThread:start()
-  assert(lovr.thread.getChannel("appserv"):pop(5.0) == "booted", "menuapps didn't start in time")
+  assert(lovr.thread.getChannel("appserv"):pop(6.0) == "booted", "menuapps didn't start in time")
 
 
 	ent.root = LoaderEnt({
