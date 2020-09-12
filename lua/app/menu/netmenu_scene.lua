@@ -53,7 +53,9 @@ function NetMenuScene:updateDebugTitle()
 end
 
 function NetMenuScene:setMessage(message)
-  self:sendToApp({"updateMessage", message})
+  if message then
+    self:sendToApp({"updateMessage", message})
+  end
 end
 
 function NetMenuScene:sendToApp(body)

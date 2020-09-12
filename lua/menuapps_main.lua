@@ -11,7 +11,7 @@ local apps = {
    require("app.menu.alloapps.menu"):new{}
 }
 
-
+print("allomenu apps started")
 chan:push("booted", 2.0)
 while running do
   for _, app in ipairs(apps) do

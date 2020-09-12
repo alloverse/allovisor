@@ -52,6 +52,12 @@ function Menu:createUI()
   self.debugButton.onActivated = function() self:actuate({"toggleDebug"}) end
   plate:addSubview(self.debugButton)
 
+  self.messageLabel = ui.Label{
+    bounds = ui.Bounds(0, -0.1, 0.01,     1.4, 0.1, 0.1),
+    text = "Welcome to Alloverse",
+  }
+  plate:addSubview(self.messageLabel)
+
   return plate
 end
 
@@ -87,6 +93,8 @@ end
 function Menu:onInteraction(interaction, body, receiver, sender)
   if body[1] == "updateDebugTitle" then
    self.debugButton:setLabel(body[2] and "Debug (On)" or "Debug (Off)")
+  elseif body[1] == "updateMessage" then
+    self.messageLabel:setText(body[2])
   end
 end
 

@@ -169,7 +169,7 @@ function NetworkScene:onDisconnect(code, message)
     end
   end
   local menu = lovr.scenes.menu():insert()
-  menu:setMessage(message)
+  menu:setMessage(message and message or "Disconnected.")
   print("disconnected.")
   self:die()
 end
