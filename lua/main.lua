@@ -73,8 +73,9 @@ function lovr.restart()
   print("Shutting down threads...")
   lovr.thread.getChannel("menuserv"):push("exit", true)
   lovr.thread.getChannel("appserv"):push("exit", true)
-  menuServerThread:wait()
-  menuAppsThread:wait()
+  -- wait() crashes on windows. and anyways if "exit" is pop()d, we know thread is done
+  -- menuServerThread:wait()
+  -- menuAppsThread:wait()
   print("Done, restarting.")
   return true
 end
