@@ -10,7 +10,8 @@ local engines = {
   SoundEng = require "eng.sound_eng",
   GraphicsEng = require "eng.graphics_eng",
   PoseEng = require "eng.pose_eng",
-  PhysicsEng = require "eng.physics_eng"
+  PhysicsEng = require "eng.physics_eng",
+  TextEng = require "eng.text_eng",
 }
 local OverlayMenuScene = require "app.menu.overlay_menu_scene"
 require "lib.random_string"
@@ -98,7 +99,8 @@ function NetworkScene:onLoad()
     self.engines = {
       graphics = engines.GraphicsEng(),
       pose = engines.PoseEng(),
-      physics = engines.PhysicsEng()
+      physics = engines.PhysicsEng(),
+      text = engines.TextEng(),
     }
     if engines.SoundEng.supported() then
       self.engines.sound = engines.SoundEng()

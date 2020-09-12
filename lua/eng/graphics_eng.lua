@@ -30,8 +30,6 @@ function GraphicsEng:onLoad()
 
   local greenTex = lovr.graphics.newTexture("assets/textures/green.png", {})
   self.greenMat = lovr.graphics.newMaterial(greenTex, 1, 1, 1, 1)
-
-  self.font = lovr.graphics.newFont(32)
 end
 
 function GraphicsEng:onDraw() 
@@ -46,8 +44,6 @@ function GraphicsEng:onDraw()
   
   lovr.graphics.setCullingEnabled(true)
 
-  self.font:setPixelDensity(32)
-  lovr.graphics.setFont(self.font)
   
   -- Draws plane & decorates it with trees
   self:drawDecorations()
@@ -75,18 +71,6 @@ function GraphicsEng:onDraw()
           lovr.graphics.setShader(self.basicShader)
         end
         model:draw()
-      end
-
-      if text ~= nil then
-        lovr.graphics.setShader()
-        lovr.graphics.print(
-          text.string,
-          0, 0, 0.01,
-          text.height and text.height or 1.0, 
-          0, 0, 0, 0,
-          text.wrap and text.wrap / (text.height and text.height or 1) or 0,
-          text.halign and text.halign or "center"
-        )
       end
     end
     lovr.graphics.pop()
