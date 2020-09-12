@@ -11,7 +11,9 @@ local settings = require("lib.lovr-settings")
 
 
 function NetMenuScene:_init()
+  self.sendQueue = {}
   settings.load()
+  self:updateDebugTitle()
   self:super()
 end
 
@@ -42,27 +44,45 @@ end
 
 function NetMenuScene:toggleDebug(url, sender)
   settings.d.debug = not settings.d.debug
+  settings:save()
   self:updateDebugTitle()
 end
 
 function NetMenuScene:updateDebugTitle()
+  self:sendToApp({"updateDebugTitle", settings.d.debug})
+end
+
+function NetMenuScene:setMessage(message)
+  self:sendToApp({"updateMessage", message})
+end
+
+function NetMenuScene:sendToApp(body)
+  if self.appe == nil then
+    table.insert(self.sendQueue, body)
+    return
+  end
   self.net.client:sendInteraction({
     type = "one-way",
     receiver_entity_id = self.appe.id,
-    body = {"updateDebugTitle", settings.d.debug}
+    body = body
   })
 end
+
 
 
 function MenuInteractor:onInteraction(interaction, body, receiver, sender)
   if body[1] == "menu_says_hello" then
     self.netmenu.appe = sender
-    self.netmenu:updateDebugTitle()
+    for _, body in ipairs(self.netmenu.sendQueue) do
+      self.netmenu:sendToApp(body)
+    end
   end
   if body[1] ~= "menu_selection" then return end
   local action = body[2]
   local verb = table.remove(action, 1)
   self.netmenu[verb](self.netmenu, unpack(action), sender)
 end
+
+lovr.scenes.menu = NetMenuScene
 
 return NetMenuScene
