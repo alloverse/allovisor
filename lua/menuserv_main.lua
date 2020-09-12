@@ -20,4 +20,5 @@ while running do
   if m == "exit" then running = false end
 end
 print("menu server shutting down", allonet)
+allonet.stop_standalone_server()
 
