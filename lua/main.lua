@@ -52,12 +52,10 @@ function lovr.load()
   print("lovr.load()")
 	menuServerThread = lovr.thread.newThread("menuserv_main.lua")
   menuServerThread:start()
-  assert(lovr.thread.getChannel("menuserv"):pop(6.0) == "booted", "menuserv didn't start in time")
-
+  _checkthread(menuServerThread, "menuserv")
 	menuAppsThread = lovr.thread.newThread("menuapps_main.lua")
   menuAppsThread:start()
-  assert(lovr.thread.getChannel("appserv"):pop(6.0) == "booted", "menuapps didn't start in time")
-
+  _checkthread(menuAppsThread, "appserv")
 
 	ent.root = LoaderEnt({
 --    "app.menu.netmenu_scene",
@@ -67,6 +65,25 @@ function lovr.load()
 
 	ent.root:route("onBoot") -- This will only be sent once
 	ent.root:insert()
+end
+
+function _checkthread(thread, channelName)
+  local deadline = lovr.timer.getTime() + 2
+  local chan = lovr.thread.getChannel(channelName)
+  while lovr.timer.getTime() < deadline do
+    local m = chan:pop(0.1)
+    if m == "booted" then
+      return true
+    end
+    -- todo: instead, wait for these threads to respond async and then start LoaderEnt
+    lovr.event.pump()
+    for name, a, b, c, d in lovr.event.poll() do
+      if name == "threaderror" then
+        lovr.threaderror(a, b)
+      end -- arrgh discarding events
+    end
+  end
+  assert(channelName.." didn't start in time")
 end
 
 function lovr.restart()
@@ -109,6 +126,9 @@ function lovr.run()
         return 'restart', cookie
       elseif name == 'quit' and (not lovr.quit or not lovr.quit(a)) then
         return a or 0
+      elseif name == 'threaderror' and lovr.threaderror then
+        print("THREAD ERROR!!!")
+        lovr.threaderror(a, b)
       end
       if lovr.handlers[name] then lovr.handlers[name](a, b, c, d) end
     end
