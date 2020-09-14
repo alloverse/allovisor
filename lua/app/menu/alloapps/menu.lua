@@ -9,12 +9,11 @@ function Menu:new(o)
     o = o or {}
   setmetatable(o, self)
   self.__index = self
-
   o.client = Client(
     "alloplace://localhost:21338", 
     "menu"
   )
-  o.app = App(o.client)
+  o.app = ui.App(o.client)
   local chain = o.client.delegates.onComponentAdded
   o.client.delegates.onComponentAdded = function(k, v) 
     o:onComponentAdded(k, v)
