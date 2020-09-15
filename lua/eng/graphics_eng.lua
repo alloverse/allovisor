@@ -52,23 +52,29 @@ function GraphicsEng:onDraw()
 
   for eid, entity in pairs(self.client.state.entities) do
     local trans = entity.components.transform
-    local mat = trans:getMatrix()
+    local m = trans:getMatrix()
     local geom = entity.components.geometry
     local text = entity.components.text
     local parent = entity.components.relationships and entity.components.relationships.parent or nil
     local pose = entity.components.intent and entity.components.intent.actuate_pose or nil
     local model = self.models_for_eids[eid]
     local shader = self.shaders_for_eids[eid]
+    local mat = self.materials_for_eids[eid]
     if shader == nil then shader = self.basicShader end
 
     lovr.graphics.push()
-    lovr.graphics.transform(mat)
+    lovr.graphics.transform(m)
     if trans ~= nil and geom ~= nil and model ~= nil then
       -- don't draw our own head, as it obscures the camera
       if parent ~= self.client.avatar_id or pose ~= "head" then
         -- special case avatars to get PBR shading and face them towards negative Z
         if pose ~= nil then 
           lovr.graphics.rotate(3.14, 0, 1, 0)
+        end
+        if mat and mat:getColor() ~= nil then
+          lovr.graphics.setColor(mat:getColor())
+        else
+          lovr.graphics.setColor(1,1,1,1)
         end
         lovr.graphics.setShader(shader)
         model:draw()
@@ -124,6 +130,7 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
     local data = base64decode(component.texture)
     local blob = lovr.data.newBlob(data, "texture")
     local texture = lovr.graphics.newTexture(blob)
+    mat:setTexture(texture)
   end
   self.materials_for_eids[eid] = mat
 
@@ -198,7 +205,7 @@ function GraphicsEng:createMesh(geom, old_geom)
     mesh:setVertexMap(indices)
   end
 
-  if old_geom == nil or old_geom.texture ~= geom.texture then
+  if (old_geom == nil or old_geom.texture ~= geom.texture) and geom.texture then
     -- decode texture data and setup material
     local data = base64decode(geom.texture)
     local blob = lovr.data.newBlob(data, "texture")

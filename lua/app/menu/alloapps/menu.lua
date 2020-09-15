@@ -35,7 +35,7 @@ end
 
 function Menu:createUI()
   local plate = ui.Surface(ui.Bounds(0, 1.6, -2,   1.6, 1.2, 0.1))
-  plate:setTexture("iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAIAAACQd1PeAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAMSURBVBhXY/j//z8ABf4C/qc1gYQAAAAASUVORK5CYII=")
+  plate:setColor({1,1,1,1})
   local quitButton = ui.Button(ui.Bounds(0, -0.4, 0.01,     1.4, 0.2, 0.1))
   quitButton.label = "Quit"
   quitButton.onActivated = function() self:actuate({"quit"}) end
@@ -52,8 +52,9 @@ function Menu:createUI()
   plate:addSubview(self.debugButton)
 
   self.messageLabel = ui.Label{
-    bounds = ui.Bounds(0, -0.1, 0.01,     1.4, 0.1, 0.1),
+    bounds = ui.Bounds(0, 0.8, 0.01,     1.4, 0.1, 0.1),
     text = "Welcome to Alloverse",
+    color = {0,0,0,1}
   }
   plate:addSubview(self.messageLabel)
 
