@@ -19,6 +19,12 @@ function TextEng:onDraw()
   for eid, entity in pairs(self.client.state.entities) do
     local text = entity.components.text
     if text ~= nil then
+      local mat = self.parent.engines.graphics.materials_for_eids[eid]
+      if mat then
+        lovr.graphics.setColor(mat:getColor())
+      else
+        lovr.graphics.setColor(1,1,1,1)
+      end
       lovr.graphics.push()
       lovr.graphics.transform(entity.components.transform:getMatrix())
       lovr.graphics.print(

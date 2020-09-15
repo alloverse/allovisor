@@ -21,6 +21,8 @@ function GraphicsEng:onLoad()
   }
 
   self.models_for_eids = {}
+  self.materials_for_eids = {}
+  self.shaders_for_eids = {}
   
   self.basicShader = alloBasicShader
   self.pbrShader = alloPbrShader
@@ -56,6 +58,8 @@ function GraphicsEng:onDraw()
     local parent = entity.components.relationships and entity.components.relationships.parent or nil
     local pose = entity.components.intent and entity.components.intent.actuate_pose or nil
     local model = self.models_for_eids[eid]
+    local shader = self.shaders_for_eids[eid]
+    if shader == nil then shader = self.basicShader end
 
     lovr.graphics.push()
     lovr.graphics.transform(mat)
@@ -65,11 +69,8 @@ function GraphicsEng:onDraw()
         -- special case avatars to get PBR shading and face them towards negative Z
         if pose ~= nil then 
           lovr.graphics.rotate(3.14, 0, 1, 0)
-          -- todo: set shader based on 'material' component instead of hard-coding for avatar
-          lovr.graphics.setShader(self.pbrShader)
-        else
-          lovr.graphics.setShader(self.basicShader)
         end
+        lovr.graphics.setShader(shader)
         model:draw()
       end
     end
@@ -101,29 +102,62 @@ function GraphicsEng:loadComponentModel(component, old_component)
     self.models_for_eids[eid] = self:createMesh(component, old_component)
   end
 
+  -- after loading, apply material if already loaded
+  local mat = self.materials_for_eids[eid]
+  if mat ~= nil then
+    self.models_for_eids[eid]:setMaterial(mat)
+  end
+end
+
+function GraphicsEng:loadComponentMaterial(component, old_component)
+  local eid = component.getEntity().id
+  local mat = lovr.graphics.newMaterial()
+  if component.color ~= nil then
+    mat:setColor("diffuse", component.color[1], component.color[2], component.color[3], component.color[4])
+  end
+  if component.shader_name == "plain" then
+    self.shaders_for_eids[eid] = self.basicShader
+  elseif component.shader_name == "pbr" then
+    self.shaders_for_eids[eid] = self.pbrShader
+  end
+  if component.texture ~= nil then
+    local data = base64decode(component.texture)
+    local blob = lovr.data.newBlob(data, "texture")
+    local texture = lovr.graphics.newTexture(blob)
+  end
+  self.materials_for_eids[eid] = mat
+
+  -- apply the material to matching mesh, if loaded
+  local mesh = self.models_for_eids[eid]
+  if mesh then
+    mesh:setMaterial(mat)
+  end
 end
 
 function GraphicsEng:onComponentAdded(component_key, component)
-  if component_key ~= "geometry" then
-    return
+  if component_key == "geometry" then
+    self:loadComponentModel(component, nil)
+  elseif component_key == "material" then
+    self:loadComponentMaterial(component, nil)
   end
-
-  self:loadComponentModel(component, nil)
 end
 
 function GraphicsEng:onComponentChanged(component_key, component, old_component)
-  if component_key ~= "geometry" then
-    return
+  if component_key == "geometry" then
+    self:loadComponentModel(component, old_component)
+  elseif component_key == "material" then
+    self:loadComponentMaterial(component, old_component)
   end
-
-  self:loadComponentModel(component, old_component)
 end
 
 function GraphicsEng:onComponentRemoved(component_key, component)
-  if component_key ~= "geometry" then
-    return
+  local eid = component.getEntity().id
+  if component_key == "geometry" then
+    self.models_for_eids[eid] = nil
+  elseif component_key == "material" then
+    self.materials_for_eids[eid] = nil
+    self.shaders_for_eids[eid] = nil
   end
-  component.model = nil
 end
 
 function GraphicsEng:createMesh(geom, old_geom)
