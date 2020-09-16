@@ -2,7 +2,7 @@ local Client = require("alloui.client")
 local ui = require("alloui.ui")
 local pretty = require("pl.pretty")
 local class = require("pl.class")
-local EmbeddedApp = require("app.menu.alloapps.embedded_app")
+local EmbeddedApp = require("alloapps.embedded_app")
 
 class.Menu(EmbeddedApp)
 function Menu:_init()
