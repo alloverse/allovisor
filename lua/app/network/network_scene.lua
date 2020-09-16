@@ -36,7 +36,7 @@ function NetworkScene:_init(displayName, url)
       {
         geometry = {
           type = "hardcoded-model",
-          name = "lefthand"
+          name = "avatars/female/left-hand"
         },
         intent = {
           actuate_pose = "hand/left"
@@ -45,7 +45,7 @@ function NetworkScene:_init(displayName, url)
       {
         geometry = {
           type = "hardcoded-model",
-          name = "righthand"
+          name = "avatars/female/right-hand"
         },
         intent = {
           actuate_pose = "hand/right"
@@ -54,7 +54,7 @@ function NetworkScene:_init(displayName, url)
       {
         geometry = {
           type = "hardcoded-model",
-          name = "head"
+          name = "avatars/female/head"
         },
         collider = {
           type = "box",

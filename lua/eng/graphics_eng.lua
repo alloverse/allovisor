@@ -14,9 +14,6 @@ end
 
 function GraphicsEng:onLoad()
   self.hardcoded_models = {
-    head = lovr.graphics.newModel('assets/models/head/female.glb'),
-    lefthand = lovr.graphics.newModel('assets/models/left-hand/left-hand.glb'),
-    righthand = lovr.graphics.newModel('assets/models/right-hand/right-hand.glb'),
     forest = lovr.graphics.newModel('/assets/models/decorations/forest/PUSHILIN_forest.gltf')
   }
 
@@ -103,7 +100,7 @@ function GraphicsEng:loadComponentModel(component, old_component)
   local eid = component.getEntity().id
 
   if component.type == "hardcoded-model" then
-    self.models_for_eids[eid] = self.hardcoded_models[component.name]
+    self.models_for_eids[eid] = self:cachedHardcodedModel(component.name)
   elseif component.type == "inline" then 
     self.models_for_eids[eid] = self:createMesh(component, old_component)
   end
@@ -113,6 +110,16 @@ function GraphicsEng:loadComponentModel(component, old_component)
   if mat ~= nil then
     self.models_for_eids[eid]:setMaterial(mat)
   end
+end
+
+function GraphicsEng:cachedHardcodedModel(name)
+  local model = self.hardcoded_models[name]
+  if model then
+    return model
+  end
+  model = lovr.graphics.newModel('/assets/models/'..name..'.glb')
+  self.hardcoded_models[name] = model
+  return model
 end
 
 function GraphicsEng:loadComponentMaterial(component, old_component)

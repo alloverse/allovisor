@@ -73,18 +73,16 @@ function NetMenuScene:sendToApp(appname, body)
   })
 end
 
-function cleartable(t)
-  while #t ~= 0 do rawset(t, #t, nil) end
-end
-
 function MenuInteractor:onInteraction(interaction, body, receiver, sender)
   if body[1] == "menuapp_says_hello" then
     local appname = body[2]
     self.netmenu.apps[appname] = sender
-    for _, body in ipairs(self.netmenu.sendQueue[appname]) do
-      self.netmenu:sendToApp(appname, body)
+    if self.netmenu.sendQueue[appname] then
+      for _, body in ipairs(self.netmenu.sendQueue[appname]) do
+        self.netmenu:sendToApp(appname, body)
+      end
+      self.netmenu.sendQueue[appname] = nil
     end
-    cleartable(self.netmenu.sendQueue[appname])
   end
   if body[1] ~= "menu_selection" then return end
   local appname = body[2]
