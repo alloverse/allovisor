@@ -12,6 +12,7 @@ local settings = require("lib.lovr-settings")
 
 function NetMenuScene:_init()
   self.sendQueue = {}
+  self.apps = {}
   settings.load()
   self:updateDebugTitle()
   self:super()
@@ -42,45 +43,52 @@ function NetMenuScene:quit(url)
   lovr.event.quit(0)
 end
 
-function NetMenuScene:toggleDebug(url, sender)
+function NetMenuScene:toggleDebug(sender)
   settings.d.debug = not settings.d.debug
   settings:save()
   self:updateDebugTitle()
 end
 
 function NetMenuScene:updateDebugTitle()
-  self:sendToApp({"updateDebugTitle", settings.d.debug})
+  self:sendToApp("mainmenu", {"updateDebugTitle", settings.d.debug})
 end
 
 function NetMenuScene:setMessage(message)
   if message then
-    self:sendToApp({"updateMessage", message})
+    self:sendToApp("mainmenu", {"updateMessage", message})
   end
 end
 
-function NetMenuScene:sendToApp(body)
-  if self.appe == nil then
-    table.insert(self.sendQueue, body)
+function NetMenuScene:sendToApp(appname, body)
+  local appEnt = self.apps[appname]
+  if appEnt == nil then
+    if self.sendQueue[appname] == nil then self.sendQueue[appname] = {} end
+    table.insert(self.sendQueue[appname], body)
     return
   end
   self.net.client:sendInteraction({
     type = "one-way",
-    receiver_entity_id = self.appe.id,
+    receiver_entity_id = appEnt.id,
     body = body
   })
 end
 
-
+function cleartable(t)
+  while #t ~= 0 do rawset(t, #t, nil) end
+end
 
 function MenuInteractor:onInteraction(interaction, body, receiver, sender)
-  if body[1] == "menu_says_hello" then
-    self.netmenu.appe = sender
-    for _, body in ipairs(self.netmenu.sendQueue) do
-      self.netmenu:sendToApp(body)
+  if body[1] == "menuapp_says_hello" then
+    local appname = body[2]
+    self.netmenu.apps[appname] = sender
+    for _, body in ipairs(self.netmenu.sendQueue[appname]) do
+      self.netmenu:sendToApp(appname, body)
     end
+    cleartable(self.netmenu.sendQueue[appname])
   end
   if body[1] ~= "menu_selection" then return end
-  local action = body[2]
+  local appname = body[2]
+  local action = body[3]
   local verb = table.remove(action, 1)
   self.netmenu[verb](self.netmenu, unpack(action), sender)
 end

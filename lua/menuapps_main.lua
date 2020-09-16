@@ -8,7 +8,7 @@ local allonet = util.load_allonet()
 local running = true
 local chan = lovr.thread.getChannel("appserv")
 local apps = {
-   require("app.menu.alloapps.menu"):new{}
+   require("app.menu.alloapps.menu")()
 }
 
 print("allomenu apps started")
