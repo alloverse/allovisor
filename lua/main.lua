@@ -58,8 +58,8 @@ function lovr.load()
   _checkthread(menuAppsThread, "appserv")
 
 	ent.root = LoaderEnt({
---    "app.menu.netmenu_scene",
-    "app.menu.main_menu_scene",
+    "app.menu.netmenu_scene",
+--    "app.menu.main_menu_scene",
     "app/debug/fps"
 	})
 
