@@ -8,6 +8,7 @@ namespace "standard"
 
 local flat = require "engine.flat"
 local ui2 = {}
+local vec2 = require "cpml.modules.vec2"
 
 local function fontHeight()
 	return flat.font:getHeight()*flat.fontscale
