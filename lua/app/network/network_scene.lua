@@ -26,7 +26,7 @@ allonet = util.load_allonet()
 --
 -- Engines should, in turn, manage roughly one component type.
 local NetworkScene = classNamed("NetworkScene", Ent)
-function NetworkScene:_init(displayName, url)
+function NetworkScene:_init(displayName, url, avatarName)
   print("Starting network scene as", displayName, "connecting to", url, "on a", lovr.headset.getName())
   local avatar = {
     visor = {
@@ -36,7 +36,7 @@ function NetworkScene:_init(displayName, url)
       {
         geometry = {
           type = "hardcoded-model",
-          name = "avatars/female/left-hand"
+          name = "avatars/"..avatarName.."/left-hand"
         },
         intent = {
           actuate_pose = "hand/left"
@@ -45,7 +45,7 @@ function NetworkScene:_init(displayName, url)
       {
         geometry = {
           type = "hardcoded-model",
-          name = "avatars/female/right-hand"
+          name = "avatars/"..avatarName.."/right-hand"
         },
         intent = {
           actuate_pose = "hand/right"
@@ -54,7 +54,7 @@ function NetworkScene:_init(displayName, url)
       {
         geometry = {
           type = "hardcoded-model",
-          name = "avatars/female/head"
+          name = "avatars/"..avatarName.."/head"
         },
         collider = {
           type = "box",
