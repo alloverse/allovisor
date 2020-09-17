@@ -14,12 +14,13 @@ function NetMenuScene:_init()
   self.sendQueue = {}
   self.apps = {}
   settings.load()
+  self:setupAvatars()
   self:updateDebugTitle()
   self:super()
 end
 
 function NetMenuScene:onLoad()
-  self.net = lovr.scenes.network("owner", "alloplace://localhost:21338")
+  self.net = lovr.scenes.network("owner", "alloplace://localhost:21338", settings.d.avatarName)
   self.net.debug = false
   self.net:insert(self)
 
@@ -33,10 +34,23 @@ function NetMenuScene:connect(url)
   settings.save()
 
   local displayName = settings.d.username and settings.d.username or "Unnamed"
-  local net = lovr.scenes.network(displayName, url)
+  local net = lovr.scenes.network(displayName, url, settings.d.avatarName, settings.d.avatarName)
   net.debug = settings.d.debug
   net:insert()
   self:die()
+end
+
+function NetMenuScene:setupAvatars()
+  self.avatarNames = {}
+  for _, avatarName in ipairs(lovr.filesystem.getDirectoryItems("assets/models/avatars")) do
+    table.insert(self.avatarNames, avatarName)
+  end
+  local i = tablex.find(self.avatarNames, settings.d.avatarName)
+  if settings.d.avatarName == nil or i == -1 then
+    settings.d.avatarName = self.avatarNames[1]
+    settings.save()
+  end
+  self:sendToApp("avatarchooser", {"showAvatar", settings.d.avatarName})
 end
 
 function NetMenuScene:quit(url)
@@ -57,6 +71,14 @@ function NetMenuScene:setMessage(message)
   if message then
     self:sendToApp("mainmenu", {"updateMessage", message})
   end
+end
+
+function NetMenuScene:changeAvatar(direction, sender)
+  local i = tablex.find(self.avatarNames, settings.d.avatarName)
+  local newI = ((i + direction - 1) % #self.avatarNames) + 1
+  settings.d.avatarName = self.avatarNames[newI]
+  settings.save()
+  self:sendToApp("avatarchooser", {"showAvatar", settings.d.avatarName})
 end
 
 function NetMenuScene:sendToApp(appname, body)

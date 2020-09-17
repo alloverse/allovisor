@@ -23,6 +23,14 @@ function BodyPart:specification()
   return mySpec
 end
 
+function BodyPart:setAvatar(avatarName)
+  self.avatarName = avatarName
+  if self:isAwake() then
+    local spec = self:specification()
+    self:updateComponents(spec)
+  end
+end
+
 class.AvatarChooser(EmbeddedApp)
 function AvatarChooser:_init()
   self.avatarName = "female"
@@ -44,9 +52,11 @@ function AvatarChooser:createUI()
 
   self.prevButton = ui.Button(ui.Bounds(-0.55, 0.0, 0.01,     0.15, 0.15, 0.05))
   self.prevButton.label.text = "<"
+  self.prevButton.onActivated = function() self:actuate({"changeAvatar", -1}) end
   controls:addSubview(self.prevButton)
   self.nextButton = ui.Button(ui.Bounds( 0.55, 0.0, 0.01,     0.15, 0.15, 0.05))
   self.nextButton.label.text = ">"
+  self.nextButton.onActivated = function() self:actuate({"changeAvatar", 1}) end
   controls:addSubview(self.nextButton)
 
   self.head = BodyPart(     ui.Bounds( 0.0, 1.80, 0.0,   0.2, 0.2, 0.2), self.avatarName, "head", "head")
@@ -67,9 +77,13 @@ function AvatarChooser:createUI()
 end
 
 function AvatarChooser:onInteraction(interaction, body, receiver, sender)
-  if body[1] == "viewAvatar" then
+  if body[1] == "showAvatar" then
     local avatarName = body[2]
-    -- ...
+    self.avatarName = avatarName
+    for _, part in ipairs({self.head, self.torso, self.leftHand, self.rightHand}) do
+      part:setAvatar(self.avatarName)
+      self.nameLabel:setText("Avatar: "..self.avatarName)
+    end
   end
 end
 
