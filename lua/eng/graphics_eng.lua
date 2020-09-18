@@ -14,7 +14,8 @@ end
 
 function GraphicsEng:onLoad()
   self.hardcoded_models = {
-    forest = lovr.graphics.newModel('/assets/models/decorations/forest/PUSHILIN_forest.gltf')
+    forest = lovr.graphics.newModel('/assets/models/decorations/forest/PUSHILIN_forest.gltf'),
+    broken = lovr.graphics.newModel('/assets/models/broken.glb'),
   }
 
   self.models_for_eids = {}
@@ -117,9 +118,14 @@ function GraphicsEng:cachedHardcodedModel(name)
   if model then
     return model
   end
-  model = lovr.graphics.newModel('/assets/models/'..name..'.glb')
+  status, model = pcall(lovr.graphics.newModel, '/assets/models/'..name..'.glb')
+  if model == nil or status == false then
+    print("Failed to load model", name, ":", model)
+    self.hardcoded_models[name] = self.hardcoded_models["broken"]
+   else
   self.hardcoded_models[name] = model
-  return model
+  end
+  return self.hardcoded_models[name]
 end
 
 function GraphicsEng:loadComponentMaterial(component, old_component)
