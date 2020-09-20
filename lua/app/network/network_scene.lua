@@ -161,7 +161,9 @@ end
 
 function NetworkScene:onDisconnect(code, message)
   print("disconnecting...")
-  self.client:disconnect(0)
+  if self.client then
+    self.client:disconnect(0)
+  end
   self.client = nil
   if self.engines then
     for _, engine in pairs(self.engines) do
