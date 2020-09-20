@@ -89,6 +89,29 @@ function GraphicsEng:onDraw()
   lovr.graphics.setColor({1,1,1})
 end
 
+function GraphicsEng:onMirror()
+  drawMode()
+  lovr.graphics.reset()
+  lovr.graphics.origin()
+  local pixwidth = lovr.graphics.getWidth()
+  local pixheight = lovr.graphics.getHeight()
+  local aspect = pixwidth/pixheight
+  local proj = lovr.math.mat4():perspective(0.01, 100, 67*(3.14/180), aspect)
+  lovr.graphics.setProjection(proj)
+	lovr.graphics.setShader(nil)
+	lovr.graphics.setColor(1,1,1,1)
+  lovr.graphics.clear()
+
+  if self.parent.head_id then
+    local head = self.client.state.entities[self.parent.head_id]
+    if head then
+      lovr.graphics.transform(head.components.transform:getMatrix():invert())
+      lovr.draw(true)
+    end
+  end
+
+end
+
 function GraphicsEng:onUpdate(dt)
   if lovr.headset then 
     hx, hy, hz = lovr.headset.getPosition()

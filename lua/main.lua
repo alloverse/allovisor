@@ -103,14 +103,23 @@ function lovr.update(dt)
 	entity_cleanup()
 end
 
-function lovr.draw()
+function lovr.draw(isMirror)
+  if (lovr.headset == nil or lovr.headset.getDriver() == "desktop" ) and isMirror == false then
+    return
+  end
 	drawMode()
 	ent.root:route("onDraw")
 end
 
-local mirror = lovr.mirror
+
 function lovr.mirror()
-	mirror()
+  lovr.graphics.reset()
+  lovr.graphics.origin()
+  local pixwidth = lovr.graphics.getWidth()   -- Window pixel width and height
+  local pixheight = lovr.graphics.getHeight()
+  local aspect = pixwidth/pixheight
+  local proj = lovr.math.mat4():perspective(0.01, 100, 67*(3.14/180), aspect)
+  lovr.graphics.setProjection(proj)
 	ent.root:route("onMirror")
 end
 

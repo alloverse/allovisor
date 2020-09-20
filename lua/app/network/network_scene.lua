@@ -175,6 +175,7 @@ function NetworkScene:onDisconnect(code, message)
 end
 
 function NetworkScene:onDraw()
+  drawMode()
   -- Move camera to root entity of avatar. Lovr's standard projection
   -- matrix will then move it to the head (while allonet's pose application
   -- will also move the head entity to the same location).
