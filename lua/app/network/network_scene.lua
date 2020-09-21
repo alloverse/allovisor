@@ -159,6 +159,13 @@ function NetworkScene:getAvatar()
   return self.state.entities[self.avatar_id]
 end
 
+function NetworkScene:getHead()
+  if self.head_id == "" then	
+    return nil
+  end
+  return self.state.entities[self.head_id]
+end
+
 function NetworkScene:onDisconnect(code, message)
   print("disconnecting...")
   if self.client then
@@ -178,15 +185,11 @@ end
 
 function NetworkScene:onDraw()
   drawMode()
-  -- Move camera to root entity of avatar. Lovr's standard projection
-  -- matrix will then move it to the head (while allonet's pose application
-  -- will also move the head entity to the same location).
-  -- If this ends up not working, we could also set the projection matrix
-  -- to use the avatar's head entity as the base for the camera.
+  -- Move camera to head, as if we're looking out the head's eyes.
   -- Do this before any sub-engines start trying to draw anything.
-  local avatar = self:getAvatar()
-  if avatar then
-    lovr.graphics.transform(avatar.components.transform:getMatrix():invert())
+  local head = self:getHead()
+  if head then
+    lovr.graphics.transform(head.components.transform:getMatrix():invert())
   end
 
 

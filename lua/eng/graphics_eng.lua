@@ -4,6 +4,7 @@ local json = require "json"
 local array2d = require "pl.array2d"
 local tablex = require "pl.tablex"
 local pretty = require "pl.pretty"
+local allomath = require("lib.allomath")
 local alloBasicShader = require "shader/alloBasicShader"
 local alloPbrShader = require "shader/alloPbrShader"
 
@@ -64,7 +65,7 @@ function GraphicsEng:onDraw()
     lovr.graphics.transform(m)
     if trans ~= nil and geom ~= nil and model ~= nil then
       -- don't draw our own head, as it obscures the camera
-      if parent ~= self.client.avatar_id or pose ~= "head" then
+      if eid ~= self.parent.head_id then
         -- special case avatars to get PBR shading and face them towards negative Z
         if pose ~= nil then 
           lovr.graphics.rotate(3.14, 0, 1, 0)
@@ -102,14 +103,7 @@ function GraphicsEng:onMirror()
 	lovr.graphics.setColor(1,1,1,1)
   lovr.graphics.clear()
 
-  if self.parent.head_id then
-    local head = self.client.state.entities[self.parent.head_id]
-    if head then
-      lovr.graphics.transform(head.components.transform:getMatrix():invert())
-      lovr.draw(true)
-    end
-  end
-
+  lovr.draw(true)
 end
 
 function GraphicsEng:onUpdate(dt)
