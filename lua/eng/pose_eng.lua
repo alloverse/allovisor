@@ -76,20 +76,20 @@ function PoseEng:getAxis(device, axis)
   end
   if keyboard then
     if device == "hand/left" and axis == "thumbstick" then
-      if keyboard.isDown("j") then
+      if keyboard.isDown("a") then
         x = -1
-      elseif keyboard.isDown("l") then
+      elseif keyboard.isDown("d") then
         x = 1
       end
-      if keyboard.isDown("i") then
+      if keyboard.isDown("w") then
         y = 1
-      elseif keyboard.isDown("k") then
+      elseif keyboard.isDown("s") then
         y = -1
       end
     elseif device == "hand/right" and axis == "thumbstick" then
-      if keyboard.isDown("u") then
+      if keyboard.isDown("q") then
         x = -1
-      elseif keyboard.isDown("o") then
+      elseif keyboard.isDown("e") then
         x = 1
       end
     elseif device == "hand/left" and axis == "grip" and x == 0 then
@@ -124,6 +124,10 @@ function PoseEng:getPose(device)
   local pose = lovr.math.mat4()
   if lovr.headset then
     pose = lovr.math.mat4(lovr.headset.getPose(device))
+  else
+    if device == "head" then
+      pose:translate(0, 1.7, 0)
+    end
   end
   return pose
 end
@@ -165,7 +169,7 @@ function PoseEng:updateIntent()
   -- child entity positioning
   for i, device in ipairs({"hand/left", "hand/right", "head"}) do
     intent.poses[device] = {
-      matrix = self:getPose(device),
+      matrix = {self:getPose(device):unpack(true)},
       grab = self:grabForDevice(i, device)
     }
   end
