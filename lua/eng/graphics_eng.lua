@@ -113,8 +113,9 @@ function GraphicsEng:onMirror()
 end
 
 function GraphicsEng:onUpdate(dt)
-  if lovr.headset then 
-    hx, hy, hz = lovr.headset.getPosition()
+  local head = self.client.state.entities[self.parent.head_id]
+  if head then
+    local hx, hy, hz = (head.components.transform:getMatrix() * lovr.math.vec3()):unpack()
     self.basicShader:send('viewPos', { hx, hy, hz } )
     self.pbrShader:send('viewPos', { hx, hy, hz } )
   end
