@@ -5,6 +5,7 @@ local tablex = require "pl.tablex"
 local pretty = require "pl.pretty"
 local allomath = require "lib.allomath"
 local keyboard = (lovr.getOS() == "Windows" or lovr.getOS() == "macOS") and require "lib.lovr-keyboard" or nil
+local mouse = (lovr.getOS() == "Windows" or lovr.getOS() == "macOS") and require "lib.lovr-mouse" or nil
 
 
 local HandRay = classNamed("HandRay")
@@ -52,6 +53,7 @@ local PoseEng = classNamed("PoseEng", Ent)
 function PoseEng:_init()
   self.yaw = 0.0
   self.handRays = {HandRay(), HandRay()}
+  self.isFocused = true
 
   self:super()
 end
@@ -120,6 +122,23 @@ function PoseEng:wasPressed(device, button)
   return down
 end
 
+function PoseEng:onFocus(focused)
+  self.isFocused = focused
+end
+
+function PoseEng:getMouseLocationInWorld()
+  local x, y = -1, -1; if mouse then x, y = mouse.getPosition() end
+
+  local w, h = lovr.graphics.getWidth(), lovr.graphics.getHeight()
+  if self.isFocused == false or x < 0 or y < 0 or x > w or y > h then
+    return nil
+  end
+
+  -- https://antongerdelan.net/opengl/raycasting.html
+
+
+end
+
 function PoseEng:getPose(device)
   local pose = lovr.math.mat4()
   if lovr.headset then
@@ -127,6 +146,10 @@ function PoseEng:getPose(device)
   else
     if device == "head" then
       pose:translate(0, 1.7, 0)
+    elseif device == "hand/left" then
+      pose:translate(-0.2, 1.4, 0)
+      -- todo: use getMouseLocationInWorld and mat4:lookAt
+      -- todo: let this location override headset if not tracking too
     end
   end
   return pose

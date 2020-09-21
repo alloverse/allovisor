@@ -123,6 +123,11 @@ function lovr.mirror()
 	ent.root:route("onMirror")
 end
 
+function lovr.focus(focused)
+  ent.root:route("onFocus", focused)
+end
+
+
 -- need a custom lovr.run to disable built-in lovr.audio.setPose
 function lovr.run()
   lovr.timer.step()
