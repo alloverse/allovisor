@@ -1,3 +1,12 @@
+function tablefind(tab,el)
+    for index, value in pairs(tab) do
+        if value == el then
+            return index
+        end
+    end
+    return -1
+end
+
 function poparg(needle)
   local argn = #arg
   for j=1, argn do
@@ -13,7 +22,11 @@ end
 
 function lovr.conf(t)
   -- Pass --desktop at startup (after asset path) to force desktop/fake driver
-  if poparg("--desktop") then
-    t.headset.drivers = {"desktop"}
+  if poparg("--disablevr") then
+    t.headset.drivers = {}
+    t.modules.headset = false
+  else
+    local desktopi = tablefind(t.headset.drivers, "desktop")
+    table.remove(t.headset.drivers, desktopi)
   end
 end

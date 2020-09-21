@@ -60,24 +60,20 @@ function PoseEng:onLoad()
   
 end
 
-function pose2matrix(x, y, z, angle, ax, ay, az)
-  local mat = lovr.math.mat4()
-  mat:translate(x, y, z)
-  mat:rotate(angle, ax, ay, az)
-  return {mat:unpack(true)}
-end
-
 function PoseEng:onUpdate(dt)
   if self.client == nil then return end
 
   self:updateIntent()
-  for handIndex, hand in ipairs(lovr.headset.getHands()) do
+  for handIndex, hand in ipairs({"hand/left", "hand/right"}) do
     self:updatePointing(hand, self.handRays[handIndex])
   end
 end
 
 function PoseEng:getAxis(device, axis)
-  local x, y = lovr.headset.getAxis(device, axis)
+  local x, y = 0, 0
+  if lovr.headset then
+    x, y = lovr.headset.getAxis(device, axis)
+  end
   if keyboard then
     if device == "hand/left" and axis == "thumbstick" then
       if keyboard.isDown("j") then
@@ -104,18 +100,32 @@ function PoseEng:getAxis(device, axis)
 end
 
 function PoseEng:isDown(device, button)
-  local down = lovr.headset.isDown(device, button)
+  local down = false
+  if lovr.headset then
+    down = lovr.headset.isDown(device, button)
+  end
   return down
 end
 
 function PoseEng:wasPressed(device, button)
-  local down = lovr.headset.wasPressed(device, button)
+  local down = false
+  if lovr.headset then
+    down = lovr.headset.wasPressed(device, button)
+  end
   if keyboard then
     if device == "hand/right" and button == "b" then
       down = keyboard.wasPressed("r")
     end
   end
   return down
+end
+
+function PoseEng:getPose(device)
+  local pose = lovr.math.mat4()
+  if lovr.headset then
+    pose = lovr.math.mat4(lovr.headset.getPose(device))
+  end
+  return pose
 end
 
 
@@ -155,7 +165,7 @@ function PoseEng:updateIntent()
   -- child entity positioning
   for i, device in ipairs({"hand/left", "hand/right", "head"}) do
     intent.poses[device] = {
-      matrix = pose2matrix(lovr.headset.getPose(device)),
+      matrix = self:getPose(device),
       grab = self:grabForDevice(i, device)
     }
   end

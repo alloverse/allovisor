@@ -27,7 +27,7 @@ allonet = util.load_allonet()
 -- Engines should, in turn, manage roughly one component type.
 local NetworkScene = classNamed("NetworkScene", Ent)
 function NetworkScene:_init(displayName, url, avatarName)
-  print("Starting network scene as", displayName, "connecting to", url, "on a", lovr.headset.getName())
+  print("Starting network scene as", displayName, "connecting to", url, "on a", (lovr.headset and lovr.headset.getName() or "desktop"))
   local avatar = {
     visor = {
       display_name = displayName,
@@ -68,7 +68,7 @@ function NetworkScene:_init(displayName, url, avatarName)
       }
     }
   }
-  if lovr.headset.getDriver() == "desktop" then
+  if lovr.headset == nil or lovr.headset.getDriver() == "desktop" then
     table.remove(avatar.children, 2) -- remove right hand as it can't be simulated
   end
 
