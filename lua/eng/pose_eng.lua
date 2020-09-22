@@ -128,15 +128,36 @@ end
 
 function PoseEng:getMouseLocationInWorld()
   local x, y = -1, -1; if mouse then x, y = mouse.getPosition() end
-
+  local head = self.parent:getHead()
   local w, h = lovr.graphics.getWidth(), lovr.graphics.getHeight()
-  if self.isFocused == false or x < 0 or y < 0 or x > w or y > h then
+  if self.isFocused == false or x < 0 or y < 0 or x > w or y > h or head == nil then
     return nil
   end
 
   -- https://antongerdelan.net/opengl/raycasting.html
+  -- Unproject from world space
+  local projection = lovr.graphics.getProjection()
+  local model = head.components.transform:getMatrix()
+  -- local view = ??
+  local mvp = projection * model
+  local matrix = mvp:invert()
+  local ndcX = -1 + x/w * 2 -- Normalized Device Coordinates
+  local ndcY = 1 - y/h * 2 -- Note: Mouse coordinates have y+ down but OpenGL NDCs are y+ up
+  local near = matrix:mul( lovr.math.vec3(ndcX, ndcY, 0) ) -- Where you clicked, touching the screen
+  local far  = matrix:mul( lovr.math.vec3(ndcX, ndcY, 1) ) -- Where you clicked, touching the clip plane
 
-
+  -- Project onto z-plane
+  -- (Because we call this inside the push..pop the drawing grid IS the z-plane, and the math is easier)
+  local ray = (far-near):normalize()
+  local normal = lovr.math.vec3(0,0,1) -- Normal to z plane
+  local distanceDenominator = ray:dot(normal)
+  if distanceDenominator ~= 0 then
+	  local origin = lovr.math.vec3(0,0,0) -- Origin of z plane
+	  local distance = (origin - near):dot(normal)/distanceDenominator -- How far from near to z-plane?
+	  local pointAt = near + ray*distance  -- Where click ray intersects z plane
+    return pointAt
+  end
+  return nil
 end
 
 function PoseEng:getPose(device)
@@ -148,6 +169,8 @@ function PoseEng:getPose(device)
       pose:translate(0, 1.7, 0)
     elseif device == "hand/left" then
       pose:translate(-0.2, 1.4, 0)
+      local clickedPoint = self:getMouseLocationInWorld()
+      print("Point at", clickedPoint)
       -- todo: use getMouseLocationInWorld and mat4:lookAt
       -- todo: let this location override headset if not tracking too
     end
