@@ -54,6 +54,7 @@ function PoseEng:_init()
   self.yaw = 0.0
   self.handRays = {HandRay(), HandRay()}
   self.isFocused = true
+  self.mvp = lovr.math.newMat4()
 
   self:super()
 end
@@ -69,6 +70,19 @@ function PoseEng:onUpdate(dt)
   for handIndex, hand in ipairs({"hand/left", "hand/right"}) do
     self:updatePointing(hand, self.handRays[handIndex])
   end
+end
+
+function PoseEng:onDraw()
+  -- Gotta pick up the MVP at the time of drawing so it matches the transform applied in network scene
+  local mvp, _ =  lovr.graphics.getTransforms("mvp")
+  self.mvp:set(unpack(mvp))
+
+  if true then
+    local p = self:getMouseLocationInWorld()
+    lovr.graphics.setColor(1,0,0,0.5)
+    lovr.graphics.sphere(p, 0.05)
+  end
+
 end
 
 function PoseEng:getAxis(device, axis)
@@ -135,29 +149,17 @@ function PoseEng:getMouseLocationInWorld()
   end
 
   -- https://antongerdelan.net/opengl/raycasting.html
+  -- https://github.com/bjornbytes/lovr/pull/237
   -- Unproject from world space
-  local projection = lovr.graphics.getProjection()
-  local model = head.components.transform:getMatrix()
-  -- local view = ??
-  local mvp = projection * model
-  local matrix = mvp:invert()
+  local matrix = lovr.math.mat4(self.mvp):invert()
   local ndcX = -1 + x/w * 2 -- Normalized Device Coordinates
   local ndcY = 1 - y/h * 2 -- Note: Mouse coordinates have y+ down but OpenGL NDCs are y+ up
   local near = matrix:mul( lovr.math.vec3(ndcX, ndcY, 0) ) -- Where you clicked, touching the screen
   local far  = matrix:mul( lovr.math.vec3(ndcX, ndcY, 1) ) -- Where you clicked, touching the clip plane
-
-  -- Project onto z-plane
-  -- (Because we call this inside the push..pop the drawing grid IS the z-plane, and the math is easier)
   local ray = (far-near):normalize()
-  local normal = lovr.math.vec3(0,0,1) -- Normal to z plane
-  local distanceDenominator = ray:dot(normal)
-  if distanceDenominator ~= 0 then
-	  local origin = lovr.math.vec3(0,0,0) -- Origin of z plane
-	  local distance = (origin - near):dot(normal)/distanceDenominator -- How far from near to z-plane?
-	  local pointAt = near + ray*distance  -- Where click ray intersects z plane
-    return pointAt
-  end
-  return nil
+
+  -- point 3 meters into the world
+  return near + ray*3
 end
 
 function PoseEng:getPose(device)
@@ -168,9 +170,14 @@ function PoseEng:getPose(device)
     if device == "head" then
       pose:translate(0, 1.7, 0)
     elseif device == "hand/left" then
-      pose:translate(-0.2, 1.4, 0)
-      local clickedPoint = self:getMouseLocationInWorld()
-      print("Point at", clickedPoint)
+      pose:translate(-0.15, 1.6, -0.2)
+      local hoveredPoint = self:getMouseLocationInWorld()
+      if hoveredPoint then
+        local ava = self.parent:getAvatar()
+        local root = ava.components.transform:getMatrix()
+        local lookAt = lovr.math.mat4():lookAt(root*pose*lovr.math.vec3(), hoveredPoint)
+        pose:mul(lookAt)
+      end
       -- todo: use getMouseLocationInWorld and mat4:lookAt
       -- todo: let this location override headset if not tracking too
     end
