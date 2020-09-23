@@ -131,7 +131,8 @@ function GraphicsEng:loadComponentModel(component, old_component)
 
   -- after loading, apply material if already loaded
   local mat = self.materials_for_eids[eid]
-  if mat ~= nil then
+  local mod = self.models_for_eids[eid]
+  if mat ~= nil and mod ~= nil and mod.setMaterial ~= nil then
     self.models_for_eids[eid]:setMaterial(mat)
   end
 end
@@ -172,7 +173,7 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
 
   -- apply the material to matching mesh, if loaded
   local mesh = self.models_for_eids[eid]
-  if mesh then
+  if mesh and mesh.setMaterial then
     mesh:setMaterial(mat)
   end
 end

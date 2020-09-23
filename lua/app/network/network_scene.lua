@@ -40,6 +40,9 @@ function NetworkScene:_init(displayName, url, avatarName)
         },
         intent = {
           actuate_pose = "hand/left"
+        },
+        material= {
+          shader_name= "pbr"
         }
       },
       {
@@ -49,12 +52,18 @@ function NetworkScene:_init(displayName, url, avatarName)
         },
         intent = {
           actuate_pose = "hand/right"
+        },
+        material= {
+          shader_name= "pbr"
         }
       },
       {
         geometry = {
           type = "hardcoded-model",
           name = "avatars/"..avatarName.."/head"
+        },
+        material= {
+          shader_name= "pbr"
         },
         collider = {
           type = "box",
