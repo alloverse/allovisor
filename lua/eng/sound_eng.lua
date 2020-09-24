@@ -5,7 +5,7 @@ local pretty = require "pl.pretty"
 local SoundEng = classNamed("SoundEng", Ent)
 
 function SoundEng.supported()
-  return lovr.audio ~= nil and lovr.headset == nil or (lovr.headset.getName() ~= "Pico")
+  return lovr.audio ~= nil and (lovr.headset == nil or (lovr.headset.getName() ~= "Pico"))
 end
 
 function SoundEng:_init()

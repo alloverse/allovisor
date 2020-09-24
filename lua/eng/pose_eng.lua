@@ -4,8 +4,9 @@ local json = require "json"
 local tablex = require "pl.tablex"
 local pretty = require "pl.pretty"
 local allomath = require "lib.allomath"
-local keyboard = (lovr.getOS() == "Windows" or lovr.getOS() == "macOS") and require "lib.lovr-keyboard" or nil
-local mouse = (lovr.getOS() == "Windows" or lovr.getOS() == "macOS") and require "lib.lovr-mouse" or nil
+local isDesktop = (lovr.getOS() == "Windows" or lovr.getOS() == "macOS" or lovr.getOS() == "Linux")
+local keyboard = isDesktop and require "lib.lovr-keyboard" or nil
+local mouse = isDesktop and require "lib.lovr-mouse" or nil
 
 
 local HandRay = classNamed("HandRay")
