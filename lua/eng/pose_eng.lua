@@ -121,6 +121,9 @@ function PoseEng:isDown(device, button)
   if lovr.headset then
     down = lovr.headset.isDown(device, button)
   end
+  if device == "hand/left" and mouse and down == false then
+    down = mouse.isDown(1)
+  end
   return down
 end
 
