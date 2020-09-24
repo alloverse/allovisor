@@ -171,15 +171,17 @@ function PoseEng:getPose(device)
     if device == "head" then
       pose:translate(0, 1.7, 0)
     elseif device == "hand/left" then
-      pose:translate(-0.15, 1.6, -0.2)
+      pose:translate(-0.18, 1.55, -0.1)
       local hoveredPoint = self:getMouseLocationInWorld()
       if hoveredPoint then
         local ava = self.parent:getAvatar()
         local root = ava.components.transform:getMatrix()
-        local lookAt = lovr.math.mat4():lookAt(root*pose*lovr.math.vec3(), hoveredPoint)
-        pose:mul(lookAt)
+        local from = root:mul(pose):mul(lovr.math.vec3())
+        local direction = (hoveredPoint - from):normalize()
+        local rotation = lovr.math.quat(lovr.math.vec3(0,0,-1), direction)
+        pose:rotate(rotation)
+        pose:translate(0, 0, -0.2)
       end
-      -- todo: use getMouseLocationInWorld and mat4:lookAt
       -- todo: let this location override headset if not tracking too
     end
   end
