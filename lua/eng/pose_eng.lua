@@ -66,7 +66,8 @@ end
 
 function PoseEng:onUpdate(dt)
   if self.client == nil then return end
-
+  
+  self:updateMouse()
   self:updateIntent()
   for handIndex, hand in ipairs({"hand/left", "hand/right"}) do
     self:updatePointing(hand, self.handRays[handIndex])
@@ -78,10 +79,9 @@ function PoseEng:onDraw()
   local mvp, _ =  lovr.graphics.getTransforms("mvp")
   self.mvp:set(unpack(mvp))
 
-  if true then
-    local p = self:getMouseLocationInWorld()
+  if self.mouseInWorld then
     lovr.graphics.setColor(1,0,0,0.5)
-    lovr.graphics.sphere(p, 0.05)
+    lovr.graphics.sphere(self.mouseInWorld, 0.05)
   end
 
 end
@@ -144,12 +144,40 @@ function PoseEng:onFocus(focused)
   self.isFocused = focused
 end
 
-function PoseEng:getMouseLocationInWorld()
+function PoseEng:getPose(device)
+  local pose = lovr.math.mat4()
+  if lovr.headset then
+    pose = lovr.math.mat4(lovr.headset.getPose(device))
+  else
+    if device == "head" then
+      pose:translate(0, 1.7, 0)
+    elseif device == "hand/left" then
+      pose:translate(-0.18, 1.55, -0.1)
+      if self.mouseInWorld then
+        local ava = self.parent:getAvatar()
+        local root = ava.components.transform:getMatrix()
+        local from = root:mul(pose):mul(lovr.math.vec3())
+        local direction = (self.mouseInWorld - from):normalize()
+        local avarot = lovr.math.quat(root)
+        local rotation = lovr.math.quat(avarot:mul(lovr.math.vec3(0,0,-1)), direction)
+        pose:rotate(rotation)
+        pose:translate(0, 0, -0.2)
+      end
+      -- todo: let this location override headset if not tracking too
+    end
+  end
+  return pose
+end
+
+function PoseEng:updateMouse()
+  -- figure out where in the world the mouse is...
   local x, y = -1, -1; if mouse then x, y = mouse.getPosition() end
   local head = self.parent:getHead()
   local w, h = lovr.graphics.getWidth(), lovr.graphics.getHeight()
   if self.isFocused == false or x < 0 or y < 0 or x > w or y > h or head == nil then
-    return nil
+    self.mouseInWorld = nil
+    self.mouseMode = "move"
+    return
   end
 
   -- https://antongerdelan.net/opengl/raycasting.html
@@ -163,33 +191,25 @@ function PoseEng:getMouseLocationInWorld()
   local ray = (far-near):normalize()
 
   -- point 3 meters into the world
-  return near + ray*3
-end
+  local mouseInWorld = near + ray*3
 
-function PoseEng:getPose(device)
-  local pose = lovr.math.mat4()
-  if lovr.headset then
-    pose = lovr.math.mat4(lovr.headset.getPose(device))
-  else
-    if device == "head" then
-      pose:translate(0, 1.7, 0)
-    elseif device == "hand/left" then
-      pose:translate(-0.18, 1.55, -0.1)
-      local hoveredPoint = self:getMouseLocationInWorld()
-      if hoveredPoint then
-        local ava = self.parent:getAvatar()
-        local root = ava.components.transform:getMatrix()
-        local from = root:mul(pose):mul(lovr.math.vec3())
-        local direction = (hoveredPoint - from):normalize()
-        local avarot = lovr.math.quat(root)
-        local rotation = lovr.math.quat(avarot:mul(lovr.math.vec3(0,0,-1)), direction)
-        pose:rotate(rotation)
-        pose:translate(0, 0, -0.2)
-      end
-      -- todo: let this location override headset if not tracking too
+  -- see if we hit something closer than that, and if so move 3d mouse there
+  local nearestHit = nil
+  local nearestDistance = 10000
+  self.parent.engines.physics.world:raycast(near.x, near.y, near.z, mouseInWorld.x, mouseInWorld.y, mouseInWorld.z, function(shape, hx, hy, hz)
+    local newHit = shape:getCollider():getUserData()
+    local newLocation = newHit.components.transform:getMatrix():mul(lovr.math.vec3(0,0,0))
+    local newDistance = (newLocation - near):length()
+    if newDistance < nearestDistance then
+      nearestHit = newHit
+      nearestDistance = newDistance
+      mouseInWorld = lovr.math.vec3(hx, hy, hz)
     end
-  end
-  return pose
+  end)
+  
+  self.mouseInWorld = mouseInWorld
+  
+
 end
 
 
