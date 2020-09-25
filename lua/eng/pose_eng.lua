@@ -57,6 +57,7 @@ function PoseEng:_init()
   self.isFocused = true
   self.mvp = lovr.math.newMat4()
   self.oldMousePos = lovr.math.newVec2()
+  self.fakeMousePos = lovr.math.newVec2()
 
   self:super()
 end
@@ -154,8 +155,8 @@ function PoseEng:getPose(device)
       pose:translate(0, 1.7, 0)
     elseif device == "hand/left" then
       pose:translate(-0.18, 1.55, -0.1)
-      if self.mouseInWorld then
-        local ava = self.parent:getAvatar()
+      local ava = self.parent:getAvatar()
+      if self.mouseInWorld and ava then
         local root = ava.components.transform:getMatrix()
         local from = root:mul(pose):mul(lovr.math.vec3())
         local direction = (self.mouseInWorld - from):normalize()
@@ -170,19 +171,7 @@ function PoseEng:getPose(device)
   return pose
 end
 
-function PoseEng:updateMouse()
-  -- figure out where in the world the mouse is...
-  local x, y = -1, -1; if mouse then x, y = mouse.getPosition() end
-  local head = self.parent:getHead()
-  local w, h = lovr.graphics.getWidth(), lovr.graphics.getHeight()
-  local isOutOfBounds = x < 0 or y < 0 or x > w or y > h
-  if self.isFocused == false or head == nil or (self.mouseIsDown == false and isOutOfBounds) then
-    self.mouseInWorld = nil
-    self.mouseMode = "move"
-    self.mouseIsDown = false
-    return
-  end
-
+function PoseEng:_recalculateMouseInWorld(x, y, w, h)
   -- https://antongerdelan.net/opengl/raycasting.html
   -- https://github.com/bjornbytes/lovr/pull/237
   -- Unproject from world space
@@ -211,6 +200,27 @@ function PoseEng:updateMouse()
   end)
   
   self.mouseInWorld = mouseInWorld
+  self.mouseTouchesEntity = nearestHit ~= nil
+end
+
+function PoseEng:updateMouse()
+  -- figure out where in the world the mouse is...
+  local x, y = -1, -1; if mouse then x, y = mouse.getPosition() end
+  local w, h = lovr.graphics.getWidth(), lovr.graphics.getHeight()
+  local isOutOfBounds = x < 0 or y < 0 or x > w or y > h
+  if self.isFocused == false or (self.mouseIsDown == false and isOutOfBounds) then
+    self.mouseInWorld = nil
+    self.mouseMode = "move"
+    self.mouseIsDown = false
+    return
+  end
+
+  if self.mouseMode == "move" and self.mouseIsDown then
+    -- make it look like cursor is fixed in place, since lovr-mouse fakes relative movement by hiding cursor
+    self:_recalculateMouseInWorld(self.fakeMousePos.x, self.fakeMousePos.y, w, h)
+  else
+    self:_recalculateMouseInWorld(x, y, w, h)
+  end
 
   -- okay great, we know where the mouse is.
   -- Now figure out what to do with mouse buttons.
@@ -218,11 +228,12 @@ function PoseEng:updateMouse()
 
   -- started clicking/dragging; choose mousing mode
   if not self.mouseIsDown and mouseIsDown then
-    if nearestHit then
+    if self.mouseTouchesEntity then
       self.mouseMode = "interact"
     else
       self.mouseMode = "move"
       self.oldMousePos:set(x, y)
+      self.fakeMousePos:set(x, y)
       mouse.setRelativeMode(true)
     end
   end
