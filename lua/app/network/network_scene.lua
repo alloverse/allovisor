@@ -56,12 +56,6 @@ function NetworkScene:_init(displayName, url, avatarName)
           type = "hardcoded-model",
           name = "avatars/"..avatarName.."/head"
         },
-        collider = {
-          type = "box",
-          width = 0.1,
-          height = 0.1,
-          depth = 0.1
-        },
         intent = {
           actuate_pose = "head"
         }
