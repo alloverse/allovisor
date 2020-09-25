@@ -56,6 +56,7 @@ function PoseEng:_init()
   self.handRays = {HandRay(), HandRay()}
   self.isFocused = true
   self.mvp = lovr.math.newMat4()
+  self.oldMousePos = lovr.math.newVec2()
 
   self:super()
 end
@@ -122,7 +123,7 @@ function PoseEng:isDown(device, button)
     down = lovr.headset.isDown(device, button)
   end
   if device == "hand/left" and mouse and down == false then
-    down = mouse.isDown(1)
+    down = self.mouseIsDown and self.mouseMode == "interact"
   end
   return down
 end
@@ -174,9 +175,11 @@ function PoseEng:updateMouse()
   local x, y = -1, -1; if mouse then x, y = mouse.getPosition() end
   local head = self.parent:getHead()
   local w, h = lovr.graphics.getWidth(), lovr.graphics.getHeight()
-  if self.isFocused == false or x < 0 or y < 0 or x > w or y > h or head == nil then
+  local isOutOfBounds = x < 0 or y < 0 or x > w or y > h
+  if self.isFocused == false or head == nil or (self.mouseIsDown == false and isOutOfBounds) then
     self.mouseInWorld = nil
     self.mouseMode = "move"
+    self.mouseIsDown = false
     return
   end
 
@@ -190,7 +193,7 @@ function PoseEng:updateMouse()
   local far  = matrix:mul( lovr.math.vec3(ndcX, ndcY, 1) ) -- Where you clicked, touching the clip plane
   local ray = (far-near):normalize()
 
-  -- point 3 meters into the world
+  -- point 3 meters into the world by default
   local mouseInWorld = near + ray*3
 
   -- see if we hit something closer than that, and if so move 3d mouse there
@@ -208,8 +211,33 @@ function PoseEng:updateMouse()
   end)
   
   self.mouseInWorld = mouseInWorld
-  
 
+  -- okay great, we know where the mouse is.
+  -- Now figure out what to do with mouse buttons.
+  local mouseIsDown = mouse.isDown(1)
+
+  -- started clicking/dragging; choose mousing mode
+  if not self.mouseIsDown and mouseIsDown then
+    if nearestHit then
+      self.mouseMode = "interact"
+    else
+      self.mouseMode = "move"
+      self.oldMousePos:set(x, y)
+      mouse.setRelativeMode(true)
+    end
+  end
+  self.mouseIsDown = mouseIsDown
+  if self.mouseMode == "move" and not mouseIsDown then
+    mouse.setRelativeMode(false)
+  end
+
+
+  if self.mouseIsDown and self.mouseMode == "move" then
+    local newMousePos = lovr.math.vec2(x, y)
+    local delta = lovr.math.vec2(newMousePos) - self.oldMousePos
+    self.yaw = self.yaw + (delta.x/500)
+    self.oldMousePos:set(newMousePos)
+  end
 end
 
 
