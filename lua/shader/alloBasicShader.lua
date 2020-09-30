@@ -29,13 +29,13 @@ local alloBasicShader = lovr.graphics.newShader(
     //diffuse
     vec3 norm = normalize(Normal);
     vec3 lightDir = normalize(lightPos - FragmentPos);
-    float diff = max(dot(norm, lightDir), 0.0);
+    float diff = max(dot(norm, lightDir), 0.0f);
     vec4 diffuse = diff * liteColor;
 
     //specular
     vec3 viewDir = normalize(viewPos - FragmentPos);
     vec3 reflectDir = reflect(-lightDir, norm);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0), metallic);
+    float spec = pow(max(dot(viewDir, reflectDir), 0.0f), metallic);
     vec4 specular = specularStrength * spec * liteColor;
     
     vec4 baseColor = graphicsColor * texture(image, uv);            

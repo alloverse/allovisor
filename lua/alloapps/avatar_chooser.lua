@@ -18,6 +18,9 @@ function BodyPart:specification()
       geometry= {
         type= "hardcoded-model",
         name= "avatars/" .. self.avatarName .. "/" .. self.partName
+      },
+      material= {
+        shader_name= "pbr"
       }
   })
   return mySpec

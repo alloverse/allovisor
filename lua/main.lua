@@ -60,7 +60,8 @@ function lovr.load()
 	ent.root = LoaderEnt({
     "app.menu.netmenu_scene",
 --    "app.menu.main_menu_scene",
-    "app/debug/fps"
+    "app/debug/fps",
+    "app/test/controlsOverlay"
 	})
 
 	ent.root:route("onBoot") -- This will only be sent once

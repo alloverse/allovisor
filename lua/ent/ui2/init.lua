@@ -167,6 +167,80 @@ function ui2.PileLayout:layout(relayout)
 	self.placedTo = mn
 end
 
+
+
+
+ui2.AlloCustomLayout = classNamed("AlloCustomLayout", ui2.Layout)
+-- Perform all layout at once. If true, re-lay-out things already laid out
+function ui2.AlloCustomLayout:layout(relayout)
+	-- Constants: Logic
+	local moveright, moveup = ui2.anchorBools(self.anchor) -- Which direction are we moving?
+	local mn = #self.managed -- Number of managed items
+	local startAt = relayout and 1 or (self.placedTo+1) -- From what button do we begin laying out?
+
+	-- Constants: Metrics
+	local fh = fontHeight() -- Raw height of font
+	local screenmargin = (fh + margin*2)/2 -- Space between edge of screen and buttons. Tunable
+	local spacing = margin
+
+	-- Logic constants
+	local leftedge = -flat.xspan + screenmargin -- Start lines on left
+	local rightedge = -leftedge        -- Wrap around on right
+	local bottomedge = -flat.yspan + screenmargin -- Start render on bottom
+	local topedge = -bottomedge
+	local xface = self.face == "x"
+	local axis = vec2(moveright and 1 or -1, moveup and 1 or -1) -- Only thing anchor impacts
+
+	-- State
+	local okoverflow = toboolean(self.cursor) -- Overflows should be ignored
+	self.cursor = self.cursor or vec2(leftedge, bottomedge) -- Placement cursor (start at bottom left)
+
+	for i = startAt,mn do -- Lay out everything not laid out
+		local e = self.managed[i] -- Entity to place
+		
+		-- Item Metrics
+		local buttonsize = e:sizeHint(margin)
+		local w, h = buttonsize:unpack()
+		local to = self.cursor + buttonsize -- Upper right of button
+
+		-- Wrap
+		local didoverflow = okoverflow and (
+			(xface and to.x > rightedge) or (not xface and to.y > topedge)
+		)
+		if didoverflow then
+			if xface then
+				self.cursor = vec2(leftedge, to.y + spacing)
+			else
+				self.cursor = vec2(self.cursor.x + self.linemax + spacing, bottomedge)
+				self.linemax = 0
+			end
+			to = self.cursor + buttonsize
+		else
+			okoverflow = true
+		end
+
+		local bound = bound2.at(self.cursor*axis, to*axis) -- Button bounds
+		e.bound = bound
+		if xface then
+			self.cursor = vec2(self.cursor.x + w + spacing, self.cursor.y) -- Move cursor
+		else
+			self.cursor = vec2(self.cursor.x, self.cursor.y + h + spacing) -- Move cursor
+			self.linemax = math.max(self.linemax or 0, buttonsize.x)
+		end
+		if e.onLayout then e:onLayout() end
+		if i > self.managedTo then self:manage(e) end
+	end
+	self.managedTo = mn
+	self.placedTo = mn
+end
+
+
+
+
+
+
+
+
 -- Mouse support
 local RouteMouseEnt = classNamed("RouteMouseEnt", Ent)
 local routeMouseEnt
@@ -248,6 +322,87 @@ function ui2.UiEnt:onMirror()
 	lovr.graphics.setFont(flat.font)
 	lovr.graphics.print(self.label, center.x, center.y, 0, flat.fontscale)
 end
+
+
+
+
+
+
+
+ui2.AlloLabelUiEnt = classNamed("AlloLabelUiEnt", ui2.UiBaseEnt)
+
+function ui2.AlloLabelUiEnt:sizeHint(margin, overrideText)
+	local label = overrideText or self.label
+	if not label then error("Button without label") end -- TODO: This may be too restrictive
+
+	local fh = fontHeight() -- Raw height of font
+	local h = fh + margin*2 -- Height of a button
+	local fw = flat.font:getWidth(label)*flat.fontscale -- Text width
+	local w = fw + margin*2 -- Button width
+	return vec2(w, h)
+end
+
+function ui2.AlloLabelUiEnt:onMirror()
+	local center = self.bound:center()
+	local size = self.bound:size()
+
+  lovr.graphics.setColor(0,0,0,0.15)
+  lovr.graphics.plane('fill', center.x, center.y, 0, size.x, size.y)
+
+  lovr.graphics.setFont(flat.font)
+  lovr.graphics.setColor(1,1,1,1)
+	lovr.graphics.print(self.label, center.x, center.y, 0, flat.fontscale)
+end
+
+
+
+ui2.AlloButtonEnt = classNamed("AlloButtonEnt", ui2.UiEnt) -- Expects in spec: bounds=, label=
+
+local whiteBtnTex = lovr.graphics.newTexture("assets/textures/white-button.png", {})
+local whiteBtnMat = lovr.graphics.newMaterial(whiteBtnTex, 1, 1, 1, 1)
+local whiteBtnDownTex = lovr.graphics.newTexture("assets/textures/white-button-down.png")
+local whiteBtnDownMat = lovr.graphics.newMaterial(whiteBtnDownTex, 1, 1, 1, 1)
+
+function ui2.AlloButtonEnt:onPress(at)
+	if self.bound:contains(at) then
+		self.down = true
+	end
+end
+
+function ui2.AlloButtonEnt:onRelease(at)
+	if self.bound:contains(at) then
+		self:onButton(at) -- FIXME: Is it weird this is an "on" but it does not route?
+	end
+	self.down = false
+end
+
+function ui2.AlloButtonEnt:onButton()
+end
+
+function ui2.AlloButtonEnt:onMirror()
+	local center = self.bound:center()
+  local size = self.bound:size()
+
+	-- local gray = self.down and 0.5 or 0.8
+	-- lovr.graphics.setColor(gray,gray,gray,0.8)
+  -- lovr.graphics.plane('fill', center.x, center.y, 0, size.x, size.y)
+  
+  
+
+  --local buttonMat = self.down and self.whiteBtnDownMat or self.whiteBtnMat
+
+  lovr.graphics.plane(self.down and whiteBtnDownMat or whiteBtnMat, center.x, center.y, 0, size.x, size.y)
+
+	ui2.UiEnt.onMirror(self)
+end
+
+
+
+
+
+
+
+
 
 ui2.ButtonEnt = classNamed("ButtonEnt", ui2.UiEnt) -- Expects in spec: bounds=, label=
 
