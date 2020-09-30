@@ -67,7 +67,7 @@ ui2.Layout = classNamed("Layout")
 function ui2.Layout:_init(spec)
 	pull(self, {managedTo = 0, placedTo=0})
 	pull(self, spec)
-	self.managed = self.managed or {}
+  self.managed = self.managed or {}
 end
 
 function ui2.Layout:add(e) -- Call to manage another item
@@ -87,6 +87,7 @@ function ui2.Layout:prelayout()
 	end
 	self.managedTo = mn
 end
+
 
 ui2.PileLayout = classNamed("PileLayout", ui2.Layout)
 
@@ -168,9 +169,22 @@ function ui2.PileLayout:layout(relayout)
 end
 
 
-
-
 ui2.AlloCustomLayout = classNamed("AlloCustomLayout", ui2.Layout)
+
+-- spec:
+--     face: "x" or "y" -- default "x"
+--     anchor: any combination of "tblr", default "lb"
+-- members:
+--     cursor: Next place to put a button
+--     linemax (optional): greatest width of a button this line
+function ui2.AlloCustomLayout:_init(spec)
+	pull(self, {face="x"})
+	self:super(spec)
+	self.anchor = "lb" .. (self.anchor or "")
+end
+
+local margin = 0.05 -- Margin around text. Tunable 
+
 -- Perform all layout at once. If true, re-lay-out things already laid out
 function ui2.AlloCustomLayout:layout(relayout)
 	-- Constants: Logic
@@ -181,7 +195,7 @@ function ui2.AlloCustomLayout:layout(relayout)
 	-- Constants: Metrics
 	local fh = fontHeight() -- Raw height of font
 	local screenmargin = (fh + margin*2)/2 -- Space between edge of screen and buttons. Tunable
-	local spacing = margin
+	local spacing = 0 -- spacing is baked into the button due to drop shadow being part of the asset
 
 	-- Logic constants
 	local leftedge = -flat.xspan + screenmargin -- Start lines on left
@@ -191,54 +205,69 @@ function ui2.AlloCustomLayout:layout(relayout)
 	local xface = self.face == "x"
 	local axis = vec2(moveright and 1 or -1, moveup and 1 or -1) -- Only thing anchor impacts
 
-	-- State
-	local okoverflow = toboolean(self.cursor) -- Overflows should be ignored
-	self.cursor = self.cursor or vec2(leftedge, bottomedge) -- Placement cursor (start at bottom left)
 
 	for i = startAt,mn do -- Lay out everything not laid out
-		local e = self.managed[i] -- Entity to place
-		
-		-- Item Metrics
-		local buttonsize = e:sizeHint(margin)
-		local w, h = buttonsize:unpack()
-		local to = self.cursor + buttonsize -- Upper right of button
+    local e = self.managed[i] -- Entity to place
 
-		-- Wrap
-		local didoverflow = okoverflow and (
-			(xface and to.x > rightedge) or (not xface and to.y > topedge)
-		)
-		if didoverflow then
-			if xface then
-				self.cursor = vec2(leftedge, to.y + spacing)
-			else
-				self.cursor = vec2(self.cursor.x + self.linemax + spacing, bottomedge)
-				self.linemax = 0
-			end
-			to = self.cursor + buttonsize
-		else
-			okoverflow = true
-		end
+    local buttonWidth = 0.2
+    local buttonHeight = 0.2
+    local labelHeight = 0.1
+    local labelSpacing = 0.02 -- vertical spacing between label and button
 
-		local bound = bound2.at(self.cursor*axis, to*axis) -- Button bounds
-		e.bound = bound
-		if xface then
-			self.cursor = vec2(self.cursor.x + w + spacing, self.cursor.y) -- Move cursor
-		else
-			self.cursor = vec2(self.cursor.x, self.cursor.y + h + spacing) -- Move cursor
-			self.linemax = math.max(self.linemax or 0, buttonsize.x)
-		end
-		if e.onLayout then e:onLayout() end
-		if i > self.managedTo then self:manage(e) end
-	end
-	self.managedTo = mn
-	self.placedTo = mn
+    local mouseButtonWidth = 0.15
+    local mouseButtonHeight = 0.3
+
+    local bound
+    if e.label == "W" then
+      print("layouting W")
+      bound = bound2(vec2(leftedge+spacing+buttonWidth, bottomedge-labelHeight/2+labelHeight+labelSpacing+spacing*2+buttonHeight), vec2(leftedge+spacing+buttonWidth+0.2, bottomedge-labelHeight/2+labelHeight+labelSpacing+spacing*3+buttonHeight*2))
+    elseif e.label == "A" then
+      print("layouting A")
+      bound = bound2(vec2(leftedge, bottomedge-labelHeight/2+labelHeight+labelSpacing+spacing), vec2(leftedge+buttonWidth, bottomedge-labelHeight/2+spacing+labelHeight+labelSpacing+buttonHeight))
+    elseif e.label == "S" then
+      print("layouting S")
+      bound = bound2(vec2(leftedge+spacing+buttonWidth, bottomedge-labelHeight/2+labelHeight+labelSpacing+spacing), vec2(leftedge+spacing+buttonWidth*2, bottomedge-labelHeight/2+spacing+labelHeight+labelSpacing+buttonHeight))  
+    elseif e.label == "D" then
+      print("layouting D")
+      bound = bound2(vec2(leftedge+spacing*2+buttonWidth*2, bottomedge-labelHeight/2+labelHeight+labelSpacing+spacing), vec2(leftedge+spacing*2+buttonWidth*3, bottomedge-labelHeight/2+spacing+labelHeight+labelSpacing+buttonHeight))
+    elseif e.label == "Move" then
+      print("layouting Move Label")
+      bound = bound2(vec2(leftedge+buttonWidth, bottomedge-labelHeight/2), vec2(leftedge+spacing+buttonWidth*2, bottomedge-labelHeight/2+labelHeight))
+
+    elseif e.label == "esc" then
+      print("layouting esc")
+      bound = bound2(vec2(leftedge, topedge-buttonHeight), vec2(leftedge+buttonWidth, topedge))
+    elseif e.label == "Close" then
+      print("layouting Close Label")
+      bound = bound2(vec2(leftedge, topedge-buttonHeight-labelHeight-labelSpacing-spacing), vec2(leftedge+buttonWidth, topedge-buttonHeight-labelSpacing-spacing))
+
+    elseif e.label == "F" then
+      print("layouting esc")
+      bound = bound2(vec2(.8+leftedge, bottomedge-labelHeight/2+labelHeight+labelSpacing), vec2(.8+leftedge+buttonWidth, bottomedge-labelHeight/2+buttonHeight+labelHeight+labelSpacing))
+    elseif e.label == "Grab" then
+      print("layouting Grab Label")
+      bound = bound2(vec2(.8+leftedge, bottomedge-labelHeight/2), vec2(.8+leftedge+buttonWidth, bottomedge-labelHeight/2+labelHeight))
+
+    elseif e.label == "lmb" then
+      print("layouting Left Mouse Button")
+      bound = bound2(vec2(rightedge-mouseButtonWidth, bottomedge-labelHeight/2+labelHeight+labelSpacing), vec2(rightEdge, bottomedge-labelHeight/2+buttonHeight+labelHeight+labelSpacing))
+    elseif e.label == "rmb" then
+      print("layouting Right Mouse Button")
+      bound = bound2(vec2(rightedge-mouseButtonWidth, bottomedge), vec2(rightEdge, bottomedge-.3))
+
+    else
+      print("layouting something else")
+      bound = bound2(vec2(0,0), vec2(0.2,0.2))
+    end
+    e.bound = bound
+
+    self:manage(e)
+
+  end
+
+  self.managedTo = mn
+  self.placedTo = mn
 end
-
-
-
-
-
-
 
 
 -- Mouse support
@@ -258,7 +287,8 @@ function RouteMouseEnt:onLoad()
 
 	lovr.handlers['mousereleased'] = function(x,y)
 		route("onRelease", x, y)
-	end
+  end
+
 end
 
 function ui2.routeMouse()
@@ -346,8 +376,10 @@ function ui2.AlloLabelUiEnt:onMirror()
 	local center = self.bound:center()
 	local size = self.bound:size()
 
-  lovr.graphics.setColor(0,0,0,0.15)
+  lovr.graphics.setColor(0,0,0,0.30)
   lovr.graphics.plane('fill', center.x, center.y, 0, size.x, size.y)
+  lovr.graphics.arc('fill', 'pie', center.x+size.x/2, center.y, 0, size.x/4, 0, 0, 1, 0, -math.pi/2, math.pi/2, 32)
+  lovr.graphics.arc('fill', 'pie', center.x-size.x/2, center.y, 0, size.x/4, 0, 0, 1, 0, math.pi/2, math.pi*1.5, 32)
 
   lovr.graphics.setFont(flat.font)
   lovr.graphics.setColor(1,1,1,1)
@@ -356,44 +388,66 @@ end
 
 
 
-ui2.AlloButtonEnt = classNamed("AlloButtonEnt", ui2.UiEnt) -- Expects in spec: bounds=, label=
+ui2.AlloKeyEnt = classNamed("AlloKeyEnt", ui2.UiBaseEnt) -- Expects in spec: bounds=, label=
 
-local whiteBtnTex = lovr.graphics.newTexture("assets/textures/white-button.png", {})
+local whiteBtnTex = lovr.graphics.newTexture("assets/textures/key.png", {})
 local whiteBtnMat = lovr.graphics.newMaterial(whiteBtnTex, 1, 1, 1, 1)
-local whiteBtnDownTex = lovr.graphics.newTexture("assets/textures/white-button-down.png")
+local whiteBtnDownTex = lovr.graphics.newTexture("assets/textures/key-down.png")
 local whiteBtnDownMat = lovr.graphics.newMaterial(whiteBtnDownTex, 1, 1, 1, 1)
 
-function ui2.AlloButtonEnt:onPress(at)
+function ui2.AlloKeyEnt:onLoad()
+end
+
+function ui2.AlloKeyEnt:sizeHint(margin, overrideText)
+  -- hardcodes AlloKeyEnt size instead of dynamically setting it from text height & width
+  return vec2(0.2, 0.2)
+end
+
+function ui2.AlloKeyEnt:onKeyPress(code)
+  -- print("label:", string.lower(self.label))
+  -- print("code:", code)
+  if code == string.lower(self.label) then
+    self.down = true
+  end
+end
+
+function ui2.AlloKeyEnt:onKeyReleased(code)
+  if code == string.lower(self.label) then
+    self.down = false
+  end
+end
+
+function ui2.AlloKeyEnt:onPress(at)
 	if self.bound:contains(at) then
 		self.down = true
 	end
 end
 
-function ui2.AlloButtonEnt:onRelease(at)
+function ui2.AlloKeyEnt:onRelease(at)
 	if self.bound:contains(at) then
 		self:onButton(at) -- FIXME: Is it weird this is an "on" but it does not route?
 	end
 	self.down = false
 end
 
-function ui2.AlloButtonEnt:onButton()
+function ui2.AlloKeyEnt:onButton()
+  print("AlloKeyEnt:onButton()")
 end
 
-function ui2.AlloButtonEnt:onMirror()
+function ui2.AlloKeyEnt:onMirror()
+  ui2.UiEnt.onMirror(self)
+
 	local center = self.bound:center()
   local size = self.bound:size()
-
-	-- local gray = self.down and 0.5 or 0.8
-	-- lovr.graphics.setColor(gray,gray,gray,0.8)
-  -- lovr.graphics.plane('fill', center.x, center.y, 0, size.x, size.y)
-  
-  
-
-  --local buttonMat = self.down and self.whiteBtnDownMat or self.whiteBtnMat
-
+	
+  -- set button texture (technically, material) based on button being down or not
   lovr.graphics.plane(self.down and whiteBtnDownMat or whiteBtnMat, center.x, center.y, 0, size.x, size.y)
 
-	ui2.UiEnt.onMirror(self)
+  -- set font color based on button being down or not  
+  local buttonLabelColor = self.down and 1.0 or 0.0
+  lovr.graphics.setFont(flat.font)
+  lovr.graphics.setColor(buttonLabelColor,buttonLabelColor,buttonLabelColor,1)
+  lovr.graphics.print(self.label, center.x, center.y, 0, flat.fontscale)
 end
 
 
@@ -443,85 +497,6 @@ end
 function ui2.ToggleEnt:onRelease(at)
 end
 
--- Draggable slider
--- spec:
---     lineWidth: recommended line width float
---     handleWidth: recommended handle width+height
---     wholeWidth: recommended size of entire line
---     minRange, maxRange: span of underlying value range (default 0,1)
--- members:
---	   value: value minRange-maxRange (so 0-1 by default)
---     disabled: if true hide handle
-
-ui2.SliderEnt = classNamed("SliderEnt", ui2.UiBaseEnt)
-
-function ui2.SliderEnt:_init(spec) -- Note by allowing wholeWidth I made my life really hard
-	self:super(tableConcat({value=0, minRange=0, maxRange=1}, spec))
-	if self.lineWidth and self.handleWidth and self.wholeWidth then
-		error("Can only specify two of lineWidth, handleWidth, wholeWidth")
-	end
-	if self.handleWidth and self.wholeWidth then
-		self.lineWidth = self.wholeWidth-self.handleWidth
-	else
-		self.lineWidth = self.lineWidth or 0.3
-	end
-	if self.wholeWidth then
-		if self.lineWidth >= self.wholeWidth then error ("wholeWidth too small") end
-		self.handleWidth = self.wholeWidth - self.lineWidth
-	else
-		if not self.handleWidth then
-			self.handleWidth = fontHeight()
-		end
-		self.wholeWidth = self.lineWidth+self.handleWidth
-	end
-end
-
-function ui2.SliderEnt:sizeHint(margin)
-	return vec2(self.wholeWidth,self.handleWidth+margin*2)
-end
-
-function ui2.SliderEnt:onMirror()
-	local center = self.bound:center()
-	local zoff = 0.125
-	lovr.graphics.setColor(0,1,1,1)
-	lovr.graphics.line(center.x - self.lineWidth/2, center.y, -zoff, center.x + self.lineWidth/2, center.y, -zoff)
-	if not self.disabled and self.value then
-		local across = (self.value-self.minRange) / (self.maxRange - self.minRange)
-		across = center.x + self.lineWidth * (across - 0.5)
-		lovr.graphics.setColor(0.2,0.2,0.2,0.8)
-		lovr.graphics.plane('fill', across, center.y, 0, self.handleWidth, self.handleWidth)
-		lovr.graphics.setColor(1,1,1,1)
-		lovr.graphics.line(across, center.y-self.handleWidth/2, zoff, across, center.y+self.handleWidth/2, zoff)
-	end
-end
-
-function ui2.SliderEnt:onPress(at)
-	if not self.disabled and self.bound:contains(at) then
-		local halfline = self.lineWidth/2
-		self.value = utils.clamp(
-			(at.x - (self.bound.min.x + self.handleWidth/2))/self.lineWidth,
-			0,1
-		) * (self.maxRange-self.minRange) + self.minRange
-		if self.onChange then self:onChange(self.value) end -- See also: self:onButton "is it weird"?
-	end
-end
-
--- Draggable slider
--- spec:
---     watch: SliderEnt to watch
--- Problem: Will not properly handle relayouts
-
-ui2.SliderWatcherEnt = classNamed("SliderWatcherEnt", ui2.UiEnt)
-
-function ui2.SliderWatcherEnt:sizeHint(margin, overrideText)
-	return ui2.UiEnt.sizeHint(self, margin, overrideText or "8.88")
-end
-
-function ui2.SliderWatcherEnt:onMirror()
-	self.label = (not self.disabled and self.watch.value) and string.format("%.2f", self.watch.value) or ""
-	return ui2.UiEnt.onMirror(self)
-end
-
 -- Ent which acts as a container for other objects
 -- spec:
 --     layout: a Layout object (required)
@@ -563,46 +538,6 @@ function ui2.LayoutEnt:onLoad()
 	if self.standalone then
 		self.layout:layout() -- In case sizeHint wasn't called
 	end
-end
-
--- A label, a slider, and a slider watcher
--- spec:
---     startLabel: initial label
---     sliderSpec: label display props
--- members:
---     labelEnt, sliderEnt, sliderWatcherEnt: as named
--- methods:
---     getLabel(), setLabel(label)
---     getValue(), setValue(value)
-
-ui2.SliderTripletEnt = classNamed("SliderTripletEnt", ui2.LayoutEnt)
-
-function ui2.SliderTripletEnt:_init(spec)
-	pull(self, {anchor = "lt"})
-	self:super(spec)
-	self.labelEnt = self.labelEnt or ui2.UiEnt{label=self.startLabel}
-		self.layout:add(self.labelEnt) self.startLabel = nil
-
-	local sliderSpec = {value=self.value, onChange = function(slider)
-		self.value = slider.value
-		if self.onChange then self:onChange(self.value) end
-	end}
-	pull(sliderSpec, self.sliderSpec)
-	self.sliderEnt = self.sliderEnt or ui2.SliderEnt(sliderSpec)
-		self.layout:add(self.sliderEnt) self.sliderSpec = nil
-
-	self.sliderWatcherEnt = self.sliderWatcherEnt or ui2.SliderWatcherEnt{watch=self.sliderEnt}
-		self.layout:add(self.sliderWatcherEnt)
-end
-
-function ui2.SliderTripletEnt:getLabel() return self.labelEnt.label end
-function ui2.SliderTripletEnt:setLabel(l) self.labelEnt.label = l end
-function ui2.SliderTripletEnt:getValue() return self.sliderEnt.value end
-function ui2.SliderTripletEnt:setValue(v) self.sliderEnt.value = v end
-function ui2.SliderTripletEnt:getDisabled() return self.sliderEnt.disabled end
-function ui2.SliderTripletEnt:setDisabled(v)
-	self.sliderEnt.disabled = v
-	self.sliderWatcherEnt.disabled = v
 end
 
 return ui2

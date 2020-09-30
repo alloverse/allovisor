@@ -65,7 +65,16 @@ function lovr.load()
 	})
 
 	ent.root:route("onBoot") -- This will only be sent once
-	ent.root:insert()
+  ent.root:insert()
+  
+  lovr.handlers["keypressed"] = function(code, scancode, repetition)
+    ent.root:route("onKeyPress", code, scancode, repetition)
+  end
+
+  lovr.handlers["keyreleased"] = function(code, scancode)
+    ent.root:route("onKeyReleased", code, scancode)
+  end
+
 end
 
 function _checkthread(thread, channelName)
