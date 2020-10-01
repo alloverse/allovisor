@@ -34,6 +34,17 @@ function BodyPart:setAvatar(avatarName)
   end
 end
 
+function BodyPart:follow(avatar)
+  print("I (", self.entity.id, self.poseName, ") now want to follow", avatar.id, "even though my own avatar is ", self.app.mainView.entity.id)
+  local spec = {
+    intent= {
+      actuate_pose= self.poseName,
+      from_avatar= avatar.id
+    }
+  }
+  self:updateComponents(spec)
+end
+
 function BodyPart:updateOther(eid)
   local newSpec = {
     geometry= self:specification().geometry
@@ -90,6 +101,8 @@ function AvatarChooser:createUI()
   self.rightHand = BodyPart(ui.Bounds(-0.2, 1.40, 0.2,   0.2, 0.2, 0.2), self.avatarName, "right-hand", "hand/right")
   root:addSubview(self.rightHand)
 
+  self.parts = {self.head, self.torso, self.leftHand, self.rightHand}
+
   self.poseEnts = {
     head = {},
     torso = {},
@@ -103,6 +116,12 @@ end
 
 function AvatarChooser:onComponentAdded(key, comp)
   EmbeddedApp.onComponentAdded(self, key, comp)
+  if self.visor ~= self.actuatingFor then
+    self.actuatingFor = self.visor
+    for _, part in ipairs(self.parts) do
+      part:follow(self.actuatingFor)
+    end
+  end
   if key == "intent" then
     local entity = comp.getEntity()
 
@@ -123,7 +142,7 @@ function AvatarChooser:onInteraction(interaction, body, receiver, sender)
   if body[1] == "showAvatar" then
     local avatarName = body[2]
     self.avatarName = avatarName
-    for _, part in ipairs({self.head, self.torso, self.leftHand, self.rightHand}) do
+    for _, part in ipairs(self.parts) do
       part:setAvatar(self.avatarName)
       self.nameLabel:setText("Avatar: "..self.avatarName)
 
