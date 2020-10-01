@@ -154,16 +154,19 @@ function PoseEng:getPose(device)
     if device == "head" then
       pose:translate(0, 1.7, 0)
     elseif device == "hand/left" then
-      pose:translate(-0.18, 1.55, -0.1)
+      pose:translate(-0.18, 1.45, -0.0)
       local ava = self.parent:getAvatar()
       if self.mouseInWorld and ava then
-        local root = ava.components.transform:getMatrix()
-        local from = root:mul(pose):mul(lovr.math.vec3())
-        local direction = (self.mouseInWorld - from):normalize()
-        local avarot = lovr.math.quat(root)
-        local rotation = lovr.math.quat(avarot:mul(lovr.math.vec3(0,0,-1)), direction)
-        pose:rotate(rotation)
-        pose:translate(0, 0, -0.2)
+        local worldFromAvatar = ava.components.transform:getMatrix()
+        local avatarFromWorld = lovr.math.mat4(worldFromAvatar):invert()
+        local worldFromHand = worldFromAvatar:mul(pose)
+        local from = worldFromHand:mul(lovr.math.vec3())
+        local to = self.mouseInWorld
+        worldFromHand:identity():lookAt(from, to):translate(0,0,-0.35)
+        local avatarFromHand = avatarFromWorld * worldFromHand
+        pose:set(avatarFromHand)
+      else
+        pose:rotate(-3.1416/2, 1,0,0):translate(0,0,-0.35)
       end
       -- todo: let this location override headset if not tracking too
     end
