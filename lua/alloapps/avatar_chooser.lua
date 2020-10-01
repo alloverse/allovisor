@@ -34,6 +34,22 @@ function BodyPart:setAvatar(avatarName)
   end
 end
 
+function BodyPart:updateOther(eid)
+  local newSpec = {
+    geometry= self:specification().geometry
+  }
+  self.app.client:sendInteraction({
+    sender_entity_id = self.entity.id,
+    receiver_entity_id = "place",
+    body = {
+        "change_components",
+        eid,
+        "add_or_change", newSpec,
+        "remove", {}
+    }
+  })
+end
+
 class.AvatarChooser(EmbeddedApp)
 function AvatarChooser:_init()
   self.avatarName = "female"
@@ -74,11 +90,35 @@ function AvatarChooser:createUI()
   self.rightHand = BodyPart(ui.Bounds(-0.2, 1.40, 0.2,   0.2, 0.2, 0.2), self.avatarName, "right-hand", "hand/right")
   root:addSubview(self.rightHand)
 
+  self.poseEnts = {
+    head = {},
+    torso = {},
+    ["hand/left"] = {},
+    ["hand/right"] = {},
+  }
 
 
   return root
 end
 
+function AvatarChooser:onComponentAdded(key, comp)
+  EmbeddedApp.onComponentAdded(self, key, comp)
+  if key == "intent" then
+    local entity = comp.getEntity()
+
+    table.insert(self.poseEnts[comp.actuate_pose], entity.id)
+  end
+end
+
+function AvatarChooser:onComponentRemoved(key, comp)
+  if key == "intent" then
+    local entity = comp.getEntity()
+    local idx = tablex.find(self.poseEnts[comp.actuate_pose], entity.id)
+    if idx ~= -1 then
+      table.remove(self.poseEnts[comp.actuate_pose], idx)
+    end
+  end
+end
 function AvatarChooser:onInteraction(interaction, body, receiver, sender)
   if body[1] == "showAvatar" then
     local avatarName = body[2]
@@ -86,6 +126,10 @@ function AvatarChooser:onInteraction(interaction, body, receiver, sender)
     for _, part in ipairs({self.head, self.torso, self.leftHand, self.rightHand}) do
       part:setAvatar(self.avatarName)
       self.nameLabel:setText("Avatar: "..self.avatarName)
+
+      for _, other in ipairs(self.poseEnts[part.poseName]) do
+        part:updateOther(other)
+      end
     end
   end
 end
