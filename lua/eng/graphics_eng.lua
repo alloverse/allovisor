@@ -34,14 +34,15 @@ function GraphicsEng:onLoad()
 end
 
 function GraphicsEng:onDraw() 
+  lovr.graphics.setBackgroundColor(.3, .3, .40)
+  lovr.graphics.setColor(1,1,1)
+
   lovr.graphics.setShader()
 
   lovr.graphics.skybox(self.cloudSkybox)
 
   lovr.graphics.setShader(self.basicShader)
 
-  lovr.graphics.setBackgroundColor(.3, .3, .40)
-  lovr.graphics.setColor(1,1,1)
   
   lovr.graphics.setCullingEnabled(true)
 
