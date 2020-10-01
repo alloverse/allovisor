@@ -89,17 +89,20 @@ function AvatarChooser:createUI()
   self.nextButton.onActivated = function() self:actuate({"changeAvatar", 1}) end
   controls:addSubview(self.nextButton)
 
+  local puppet = ui.View(ui.Bounds():rotate(3.1416, 0,1,0))
+  root:addSubview(puppet)
+
   self.head = BodyPart(     ui.Bounds( 0.0, 1.80, 0.0,   0.2, 0.2, 0.2), self.avatarName, "head", "head")
-  root:addSubview(self.head)
+  puppet:addSubview(self.head)
 
-  self.torso = BodyPart(    ui.Bounds( 0.0, 1.45, 0.0,   0.2, 0.2, 0.2), self.avatarName, "torso", "torso")
-  root:addSubview(self.torso)
+  self.torso = BodyPart(    ui.Bounds( 0.0, 1.35, 0.0,   0.2, 0.2, 0.2), self.avatarName, "torso", "torso")
+  puppet:addSubview(self.torso)
 
-  self.leftHand = BodyPart( ui.Bounds( 0.2, 1.20, 0.1,   0.2, 0.2, 0.2), self.avatarName, "left-hand", "hand/left")
-  root:addSubview(self.leftHand)
+  self.leftHand = BodyPart( ui.Bounds(-0.2, 1.20, 0.2,   0.2, 0.2, 0.2), self.avatarName, "left-hand", "hand/left")
+  puppet:addSubview(self.leftHand)
 
-  self.rightHand = BodyPart(ui.Bounds(-0.2, 1.40, 0.2,   0.2, 0.2, 0.2), self.avatarName, "right-hand", "hand/right")
-  root:addSubview(self.rightHand)
+  self.rightHand = BodyPart(ui.Bounds( 0.2, 1.40, -0.2,   0.2, 0.2, 0.2), self.avatarName, "right-hand", "hand/right")
+  puppet:addSubview(self.rightHand)
 
   self.parts = {self.head, self.torso, self.leftHand, self.rightHand}
 
