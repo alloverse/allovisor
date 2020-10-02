@@ -1,6 +1,6 @@
-if type(jit) ~= 'table' then return false end -- Added from original
-
-local ffi = require 'ffi'
+local ffi = assert(type(jit) == 'table' and               -- Only run if we have LuaJIT
+  lovr.getOS() ~= 'Android' and lovr.getOS() ~= 'Web' and -- and also GLFW
+  require 'ffi', "lovr-keyboard cannot run on this platform")
 local C = ffi.os == 'Windows' and ffi.load('glfw3') or ffi.C
 
 ffi.cdef [[
@@ -160,10 +160,5 @@ function keyboard.wasReleased(key)
   return wasReleased
 end
 
-C.glfwSetKeyCallback(window, function(window, key, scancode, action, mods)
-  if action ~= 2 and keymap[key] then
-    lovr.event.push(action > 0 and 'keypressed' or 'keyreleased', keymap[key])
-  end
-end)
 
 return keyboard

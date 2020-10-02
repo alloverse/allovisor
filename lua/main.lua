@@ -19,6 +19,12 @@ lovr.scenes = {}
 
 namespace = require "engine.namespace"
 
+local ok, mouse = pcall(require, "lib.lovr-mouse")
+if not ok then
+  print("No mouse available", mouse)
+  mouse = nil
+end
+
 -- Load namespace basics
 do
 	local space = namespace.space("standard")
@@ -70,10 +76,29 @@ function lovr.load()
   lovr.handlers["keypressed"] = function(code, scancode, repetition)
     ent.root:route("onKeyPress", code, scancode, repetition)
   end
-
   lovr.handlers["keyreleased"] = function(code, scancode)
     ent.root:route("onKeyReleased", code, scancode)
   end
+  lovr.handlers["textinput"] = function(text, code)
+    ent.root:route("onTextInput", code, scancode)
+  end
+  lovr.handlers["mousemoved"] = function(x, y, dx, dy)
+    ent.root:route("onMouseMoved", x, y, dx, dy)
+  end
+  lovr.handlers["mousepressed"] = function(x, y, button)
+    ent.root:route("onMousePressed", x, y, button)
+  end
+  lovr.handlers["mousereleased"] = function(x, y, button)
+    ent.root:route("onMouseReleased", x, y, button)
+  end
+
+  lovr.mouse = {
+    position = lovr.math.newVec2(-1, -1),
+    buttons = { false, false },
+    setRelativeMode = function(enable)
+      if mouse then mouse.setRelativeMode(enable) end
+    end
+  }
 
 end
 
@@ -107,8 +132,30 @@ function lovr.restart()
   return true
 end
 
+function _updateMouse()
+  if mouse == nil then return end
+
+  local px, py = lovr.mouse.position:unpack()
+  local x, y = mouse.getPosition()
+  lovr.mouse.position:set(x, y)
+  local oldButtons = tablex.copy(lovr.mouse.buttons)
+  lovr.mouse.buttons = {mouse.isDown(1, 2)}
+  
+  if px ~= x or py ~= y then
+    lovr.event.push('mousemoved', x, y, x - px, y - py, false)
+  end
+  for i, pb in ipairs(oldButtons) do
+    local b = lovr.mouse.buttons[i]
+    if b and not pb then
+      lovr.event.push("mousepressed", x, y, i)
+    elseif not b and pb then
+      lovr.event.push("mousereleased", x, y, i)
+    end
+  end
+end
 
 function lovr.update(dt)
+  _updateMouse()
 	ent.root:route("onUpdate", dt)
 	entity_cleanup()
 end

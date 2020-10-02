@@ -4,10 +4,11 @@ local json = require "json"
 local tablex = require "pl.tablex"
 local pretty = require "pl.pretty"
 local allomath = require "lib.allomath"
-local isDesktop = (lovr.getOS() == "Windows" or lovr.getOS() == "macOS" or lovr.getOS() == "Linux")
-local keyboard = isDesktop and require "lib.lovr-keyboard" or nil
-local mouse = isDesktop and require "lib.lovr-mouse" or nil
-
+local ok, keyboard = pcall(require, "lib.lovr-keyboard")
+if not ok then
+  print("No keyboard available", keyboard)
+  keyboard = nil
+end
 
 local HandRay = classNamed("HandRay")
 function HandRay:_init()
@@ -123,7 +124,7 @@ function PoseEng:isDown(device, button)
   if lovr.headset then
     down = lovr.headset.isDown(device, button)
   end
-  if device == "hand/left" and mouse and down == false then
+  if device == "hand/left" and down == false then
     down = self.mouseIsDown and self.mouseMode == "interact"
   end
   return down
@@ -208,7 +209,7 @@ end
 
 function PoseEng:updateMouse()
   -- figure out where in the world the mouse is...
-  local x, y = -1, -1; if mouse then x, y = mouse.getPosition() end
+  local x, y = lovr.mouse.position:unpack()
   local w, h = lovr.graphics.getWidth(), lovr.graphics.getHeight()
   local isOutOfBounds = x < 0 or y < 0 or x > w or y > h
   if self.isFocused == false or (self.mouseIsDown == false and isOutOfBounds) then
@@ -227,7 +228,7 @@ function PoseEng:updateMouse()
 
   -- okay great, we know where the mouse is.
   -- Now figure out what to do with mouse buttons.
-  local mouseIsDown = mouse.isDown(1)
+  local mouseIsDown = lovr.mouse.buttons[1]
 
   -- started clicking/dragging; choose mousing mode
   if not self.mouseIsDown and mouseIsDown then
@@ -237,12 +238,12 @@ function PoseEng:updateMouse()
       self.mouseMode = "move"
       self.oldMousePos:set(x, y)
       self.fakeMousePos:set(x, y)
-      mouse.setRelativeMode(true)
+      lovr.mouse.setRelativeMode(true)
     end
   end
   self.mouseIsDown = mouseIsDown
   if self.mouseMode == "move" and not mouseIsDown then
-    mouse.setRelativeMode(false)
+    lovr.mouse.setRelativeMode(false)
   end
 
 
