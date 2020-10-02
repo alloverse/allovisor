@@ -92,12 +92,27 @@ function lovr.load()
     ent.root:route("onMouseReleased", x, y, button)
   end
 
+  local cursors = {}
+  local currentCursorName = "arrow"
+  if mouse then
+    for _, name in ipairs({"arrow", "hand", "crosshair"}) do
+      cursors[name] = mouse.getSystemCursor(name)
+    end
+  end
+
   lovr.mouse = {
     position = lovr.math.newVec2(-1, -1),
     buttons = { false, false },
     setRelativeMode = function(enable)
       if mouse then mouse.setRelativeMode(enable) end
-    end
+    end,
+    setCursor = function(newCursorName)
+      if mouse and newCursorName ~= currentCursorName then 
+        print("Setting cursor", newCursorName)
+        mouse.setCursor(cursors[newCursorName]) 
+        currentCursorName = newCursorName
+      end
+    end,
   }
 
 end

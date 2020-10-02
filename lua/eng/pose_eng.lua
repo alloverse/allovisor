@@ -230,6 +230,15 @@ function PoseEng:updateMouse()
   -- Now figure out what to do with mouse buttons.
   local mouseIsDown = lovr.mouse.buttons[1]
 
+  if self.handRays[1].heldEntity then
+    lovr.mouse.setCursor("crosshair")
+  elseif self.mouseTouchesEntity then
+    lovr.mouse.setCursor("hand")
+  else
+    lovr.mouse.setCursor("arrow")
+  end
+
+
   -- started clicking/dragging; choose mousing mode
   if not self.mouseIsDown and mouseIsDown then
     if self.mouseTouchesEntity then
