@@ -45,6 +45,8 @@ function ControlsOverlay:onLoad()
 
 
     -- Mouse
+    ui2.AlloDummyMouseEnt{id="dummyMouse"},
+
     ui2.AlloMouseButtonEnt{id="lmb", label="", onButton = function()
       self:onClickDown()
     end},
@@ -56,7 +58,6 @@ function ControlsOverlay:onLoad()
     ui2.AlloLabelUiEnt{id="interactLabel", label="Interact"},
     ui2.AlloLabelUiEnt{id="pointLabel", label="Point"},
 
-    ui2.AlloDummyMouseEnt{id="dummyMouse"},
   }
 
   local alloCustomLayout = ui2.AlloCustomLayout{managed=ents, parent=self, pass={swap=self}}

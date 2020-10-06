@@ -307,7 +307,7 @@ function ui2.routeMouse()
 	end
 end
 
-ui2.SwapEnt = classNamed("SwapEnt", Ent)
+ui2.SwapEnt = classNamed("SwapEnt", OrderedEnt)
 
 function ui2.SwapEnt:swap(ent)
 	local parent = self.parent
