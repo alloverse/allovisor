@@ -154,7 +154,7 @@ function _updateMouse()
   local x, y = mouse.getPosition()
   lovr.mouse.position:set(x, y)
   local oldButtons = tablex.copy(lovr.mouse.buttons)
-  lovr.mouse.buttons = {mouse.isDown(1, 2)}
+  lovr.mouse.buttons = {mouse.isDown(1), mouse.isDown(2)}
   
   if px ~= x or py ~= y then
     lovr.event.push('mousemoved', x, y, x - px, y - py, false)
