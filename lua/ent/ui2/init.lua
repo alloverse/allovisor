@@ -504,19 +504,15 @@ function ui2.AlloMouseButtonEnt:sizeHint(margin, overrideText)
 end
 
 function ui2.AlloMouseButtonEnt:onMousePressed(x, y, button)
-  -- print("AlloMouseButtonEnt:onMousePressed")
-  -- print("self.id", self.id)
-  -- print("button", button)
-  -- print("-------")
---if self.id == "lmb" and button == 1 or self.id == "rmb" and button == 2 then
+  if self.id == "lmb" and button == 1 or self.id == "rmb" and button == 2 then
     self.down = true
---  end
+  end
 end 
 
 function ui2.AlloMouseButtonEnt:onMouseReleased(x, y, button)
---  if self.id == "lmb" and button == 1 or self.id == "rmb" and button == 2 then
+  if self.id == "lmb" and button == 1 or self.id == "rmb" and button == 2 then
     self.down = false
---  end
+  end
 end
 
 function ui2.AlloMouseButtonEnt:onMirror()
