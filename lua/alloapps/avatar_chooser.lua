@@ -35,7 +35,6 @@ function BodyPart:setAvatar(avatarName)
 end
 
 function BodyPart:follow(avatar)
-  print("I (", self.entity.id, self.poseName, ") now want to follow", avatar.id, "even though my own avatar is ", self.app.mainView.entity.id)
   local spec = {
     intent= {
       actuate_pose= self.poseName,
