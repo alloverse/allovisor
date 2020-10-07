@@ -137,15 +137,15 @@ function OrderedEnt:unregister(child) -- TODO: Remove maybe?
 	Ent.unregister(self, child)
 end
 
-function OrderedEnt:route(key, payload) -- TODO: Repetitive with Ent:route()?
+function OrderedEnt:route(key, ...) -- TODO: Repetitive with Ent:route()?
 	local result
 	if self[key] then
-		result = self[key](self, payload)
+		result = self[key](self, ...)
 	end
 	if result ~= route_terminate then
 		for _,id in ipairs(self.kidOrder) do
 			local v = self.kids[id]
-			if v then v:route(key, payload) end
+			if v then v:route(key, ...) end
 		end
 	end
 end
