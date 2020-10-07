@@ -208,7 +208,6 @@ function GraphicsEng:createMesh(geom, old_geom)
   end
 
   if mesh == nil or not tablex.deepcompare(geom.triangles, old_geom.triangles) or not tablex.deepcompare(geom.vertices, old_geom.vertices) or not tablex.deepcompare(geom.uvs, old_geom.uvs) then
-    print("Creating new mesh from inline model data")
     -- convert the flattened zero-based indices list
     local z_indices = array2d.flatten(geom.triangles)
     -- convert to 1-based 

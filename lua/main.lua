@@ -108,7 +108,6 @@ function lovr.load()
     end,
     setCursor = function(newCursorName)
       if mouse and newCursorName ~= currentCursorName then 
-        print("Setting cursor", newCursorName)
         mouse.setCursor(cursors[newCursorName]) 
         currentCursorName = newCursorName
       end
