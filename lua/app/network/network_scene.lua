@@ -87,7 +87,8 @@ function NetworkScene:_init(displayName, url, avatarName)
     onComponentChanged = function(k, v, old) self:route("onComponentChanged", k, v, old) end,
     onComponentRemoved = function(k, v) self:route("onComponentRemoved", k, v) end,
     onInteraction = function(inter, body, receiver, sender) self:route("onInteraction", inter, body, receiver, sender) end,
-    onDisconnected =  function(code, message) self:route("onDisconnect", code, message) end
+    onDisconnected =  function(code, message) self:route("onDisconnect", code, message) end,
+    onAudio = function(...) end -- set from SoundEng
   } 
   if self.client:connect(avatar) == false then
     self:onDisconnect(1003, "Failed to connect")
