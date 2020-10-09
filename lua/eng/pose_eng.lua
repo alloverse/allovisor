@@ -232,7 +232,7 @@ function PoseEng:updateMouse()
 
   if self.handRays[1].heldEntity then
     lovr.mouse.setCursor("crosshair")
-  elseif self.mouseTouchesEntity then
+  elseif self.handRays[1].highlightedEntity then
     lovr.mouse.setCursor("hand")
   else
     lovr.mouse.setCursor("arrow")
@@ -241,7 +241,7 @@ function PoseEng:updateMouse()
 
   -- started clicking/dragging; choose mousing mode
   if not self.mouseIsDown and mouseIsDown then
-    if self.mouseTouchesEntity then
+    if self.handRays[1].highlightedEntity then
       self.mouseMode = "interact"
     else
       self.mouseMode = "move"
