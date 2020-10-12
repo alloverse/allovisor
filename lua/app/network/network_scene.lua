@@ -5,7 +5,6 @@ local tablex = require "pl.tablex"
 local pretty = require "pl.pretty"
 local Client = require "alloui.client"
 
-local ThreadedClient = require("app.network.threaded_client_outer")
 local engines = {
   SoundEng = require "eng.sound_eng",
   GraphicsEng = require "eng.graphics_eng",
