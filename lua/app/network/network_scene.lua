@@ -75,7 +75,7 @@ function NetworkScene:_init(displayName, url, avatarName)
     table.remove(avatar.children, 2) -- remove right hand as it can't be simulated
   end
 
-  --local threadedClient = ThreadedClient()
+  local threadedClient = allonet.create(true)
   self.client = Client(url, displayName, threadedClient)
   
   self.head_id = ""
