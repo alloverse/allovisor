@@ -7,6 +7,7 @@ local pretty = require "pl.pretty"
 local allomath = require("lib.allomath")
 local alloBasicShader = require "shader/alloBasicShader"
 local alloPbrShader = require "shader/alloPbrShader"
+local loader = require "lib.model-loader"
 
 local GraphicsEng = classNamed("GraphicsEng", Ent)
 function GraphicsEng:_init()
@@ -17,6 +18,7 @@ function GraphicsEng:onLoad()
   self.hardcoded_models = {
     forest = lovr.graphics.newModel('/assets/models/decorations/forest/PUSHILIN_forest.gltf'),
     broken = lovr.graphics.newModel('/assets/models/broken.glb'),
+    loading = lovr.graphics.newModel('/assets/models/broken.glb'),
   }
 
   self.models_for_eids = {}
@@ -108,6 +110,7 @@ function GraphicsEng:onMirror()
 end
 
 function GraphicsEng:onUpdate(dt)
+  loader:poll()
   local head = self.client.state.entities[self.parent.head_id]
   if head then
     local hx, hy, hz = (head.components.transform:getMatrix() * lovr.math.vec3()):unpack()
@@ -120,7 +123,9 @@ function GraphicsEng:loadComponentModel(component, old_component)
   local eid = component.getEntity().id
 
   if component.type == "hardcoded-model" then
-    self.models_for_eids[eid] = self:cachedHardcodedModel(component.name)
+    self:loadHardcodedModel(component.name, function(model)
+      self.models_for_eids[eid] = model
+    end)
   elseif component.type == "inline" then 
     self.models_for_eids[eid] = self:createMesh(component, old_component)
   end
@@ -133,19 +138,27 @@ function GraphicsEng:loadComponentModel(component, old_component)
   end
 end
 
-function GraphicsEng:cachedHardcodedModel(name)
+function GraphicsEng:loadHardcodedModel(name, callback)
   local model = self.hardcoded_models[name]
   if model then
-    return model
+    callback(model)
+    return
   end
-  status, model = pcall(lovr.graphics.newModel, '/assets/models/'..name..'.glb')
-  if model == nil or status == false then
-    print("Failed to load model", name, ":", model)
-    self.hardcoded_models[name] = self.hardcoded_models["broken"]
-   else
-  self.hardcoded_models[name] = model
-  end
-  return self.hardcoded_models[name]
+
+  callback(self.hardcoded_models["loading"])
+  loader:load(
+    '/assets/models/'..name..'.glb',
+    function(modelData, status)
+       if modelData == nil or status == false then
+         print("Failed to load model", name, ":", model)
+         self.hardcoded_models[name] = self.hardcoded_models["broken"]
+       else
+         local model = lovr.graphics.newModel(modelData)
+         self.hardcoded_models[name] = model
+       end
+       callback(self.hardcoded_models[name])
+    end
+  )
 end
 
 function GraphicsEng:loadComponentMaterial(component, old_component)
