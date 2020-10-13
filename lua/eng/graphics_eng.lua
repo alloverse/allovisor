@@ -16,10 +16,10 @@ end
 
 function GraphicsEng:onLoad()
   self.hardcoded_models = {
-    forest = lovr.graphics.newModel('/assets/models/decorations/forest/PUSHILIN_forest.gltf'),
     broken = lovr.graphics.newModel('/assets/models/broken.glb'),
     loading = lovr.graphics.newModel('/assets/models/broken.glb'),
   }
+  self:loadHardcodedModel('forest', function() end, '/assets/models/decorations/forest/PUSHILIN_forest.gltf')
 
   self.models_for_eids = {}
   self.materials_for_eids = {}
@@ -138,16 +138,16 @@ function GraphicsEng:loadComponentModel(component, old_component)
   end
 end
 
-function GraphicsEng:loadHardcodedModel(name, callback)
+function GraphicsEng:loadHardcodedModel(name, callback, path)
   local model = self.hardcoded_models[name]
   if model then
     callback(model)
     return
   end
-
+  path = path and path or '/assets/models/'..name..'.glb'
   callback(self.hardcoded_models["loading"])
   loader:load(
-    '/assets/models/'..name..'.glb',
+    path,
     function(modelData, status)
        if modelData == nil or status == false then
          print("Failed to load model", name, ":", model)
