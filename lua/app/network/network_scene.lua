@@ -186,11 +186,16 @@ function NetworkScene:onDisconnect(code, message)
   self:die()
 end
 
-function NetworkScene:onDraw()
+function NetworkScene:onDraw(isMirror)
   drawMode()
   -- Move camera to head, as if we're looking out the head's eyes.
   -- Do this before any sub-engines start trying to draw anything.
   local head = self:getHead()
+  if not isMirror then
+    -- can't figure out how to remove the headset module's transform from avatar root to head,
+    -- so just offset from body instead.
+    head = self:getAvatar()
+  end
   if head then
     lovr.graphics.transform(head.components.transform:getMatrix():invert())
   end

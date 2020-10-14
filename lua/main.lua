@@ -175,11 +175,8 @@ function lovr.update(dt)
 end
 
 function lovr.draw(isMirror)
-  if (lovr.headset == nil or lovr.headset.getDriver() == "desktop" ) and isMirror == false then
-    return
-  end
 	drawMode()
-	ent.root:route("onDraw")
+	ent.root:route("onDraw", isMirror)
 end
 
 
