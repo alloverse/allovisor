@@ -53,6 +53,7 @@ end)
 -- Ent driver
 -- Route all the Lovr callbacks to the ent subsystem
 namespace "standard"
+local flat = require "engine.flat"
 
 function lovr.load()
   print("lovr.load()")
@@ -87,9 +88,15 @@ function lovr.load()
   end
   lovr.handlers["mousepressed"] = function(x, y, button)
     ent.root:route("onMousePressed", x, y, button)
+    local inx =     x * flat.width  / flat.pixwidth  - flat.width/2    -- Convert pixel x,y to our coordinate system
+		local iny = - ( y * flat.height / flat.pixheight - flat.height/2 ) -- GLFW has flipped y-coord
+    ent.root:route("onPress", lovr.math.vec2(inx, iny)) -- ui2 compat
   end
   lovr.handlers["mousereleased"] = function(x, y, button)
     ent.root:route("onMouseReleased", x, y, button)
+    local inx =     x * flat.width  / flat.pixwidth  - flat.width/2    -- Convert pixel x,y to our coordinate system
+		local iny = - ( y * flat.height / flat.pixheight - flat.height/2 ) -- GLFW has flipped y-coord
+    ent.root:route("onRelease", lovr.math.vec2(inx, iny)) -- ui2 compat
   end
 
   local cursors = {}

@@ -279,32 +279,8 @@ end
 
 
 -- Mouse support
-local RouteMouseEnt = classNamed("RouteMouseEnt", Ent)
-local routeMouseEnt
-
-function RouteMouseEnt:onLoad()
-	local function route(key, x, y)
-		local inx =     x * flat.width  / flat.pixwidth  - flat.width/2    -- Convert pixel x,y to our coordinate system
-		local iny = - ( y * flat.height / flat.pixheight - flat.height/2 ) -- GLFW has flipped y-coord
-		ent.root:route(key, vec2(inx, iny)) -- FIXME: Better routing?
-	end
-
-	-- lovr.handlers['mousepressed'] = function(x,y)
-	-- 	route("onPress", x, y)
-	-- end
-
-	-- lovr.handlers['mousereleased'] = function(x,y)
-	-- 	route("onRelease", x, y)
-  -- end
-
-end
-
 function ui2.routeMouse()
-	if not routeMouseEnt then
-		if not lovr.mouse then lovr.mouse = require 'lib.lovr-mouse' end
-		routeMouseEnt = RouteMouseEnt()
-		routeMouseEnt:insert(ent.root) -- FIXME: Better routing?
-	end
+	-- taken care from main.lua instead
 end
 
 ui2.SwapEnt = classNamed("SwapEnt", OrderedEnt)
