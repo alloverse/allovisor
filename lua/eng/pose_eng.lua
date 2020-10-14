@@ -70,7 +70,9 @@ end
 function PoseEng:onUpdate(dt)
   if self.client == nil then return end
   
-  self:updateMouse()
+  if lovr.mouse then
+    self:updateMouse()
+  end
   self:updateIntent()
   for handIndex, hand in ipairs({"hand/left", "hand/right"}) do
     self:updatePointing(hand, self.handRays[handIndex])
@@ -82,7 +84,7 @@ function PoseEng:onDraw()
   local mvp, _ =  lovr.graphics.getTransforms("mvp")
   self.mvp:set(unpack(mvp))
 
-  if self.mouseInWorld then
+  if lovr.mouse and self.mouseInWorld then
     lovr.graphics.setColor(1,0,0,0.5)
     lovr.graphics.sphere(self.mouseInWorld, 0.05)
   end
@@ -157,7 +159,7 @@ function PoseEng:getPose(device)
     elseif device == "hand/left" then
       pose:translate(-0.18, 1.45, -0.0)
       local ava = self.parent:getAvatar()
-      if self.mouseInWorld and ava then
+      if lovr.mouse and self.mouseInWorld and ava then
         local worldFromAvatar = ava.components.transform:getMatrix()
         local avatarFromWorld = lovr.math.mat4(worldFromAvatar):invert()
         local worldFromHand = worldFromAvatar:mul(pose)

@@ -105,21 +105,21 @@ function lovr.load()
     for _, name in ipairs({"arrow", "hand", "crosshair"}) do
       cursors[name] = mouse.getSystemCursor(name)
     end
-  end
 
-  lovr.mouse = {
-    position = lovr.math.newVec2(-1, -1),
-    buttons = { false, false },
-    setRelativeMode = function(enable)
-      if mouse then mouse.setRelativeMode(enable) end
-    end,
-    setCursor = function(newCursorName)
-      if mouse and newCursorName ~= currentCursorName then 
-        mouse.setCursor(cursors[newCursorName]) 
-        currentCursorName = newCursorName
-      end
-    end,
-  }
+    lovr.mouse = {
+      position = lovr.math.newVec2(-1, -1),
+      buttons = { false, false },
+      setRelativeMode = function(enable)
+        if mouse then mouse.setRelativeMode(enable) end
+      end,
+      setCursor = function(newCursorName)
+        if mouse and newCursorName ~= currentCursorName then 
+          mouse.setCursor(cursors[newCursorName]) 
+          currentCursorName = newCursorName
+        end
+      end,
+    }
+  end
 
 end
 
@@ -176,7 +176,9 @@ function _updateMouse()
 end
 
 function lovr.update(dt)
-  _updateMouse()
+  if lovr.mouse then
+    _updateMouse()
+  end
 	ent.root:route("onUpdate", dt)
 	entity_cleanup()
 end
