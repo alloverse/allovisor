@@ -144,10 +144,10 @@ function AvatarChooser:onInteraction(interaction, body, receiver, sender)
   if body[1] == "showAvatar" then
     local avatarName = body[2]
     self.avatarName = avatarName
+    self.nameLabel:setText("Avatar: "..self.avatarName)
     for _, part in ipairs(self.parts) do
       part:setAvatar(self.avatarName)
-      self.nameLabel:setText("Avatar: "..self.avatarName)
-
+      
       for _, other in ipairs(self.poseEnts[part.poseName]) do
         part:updateOther(other)
       end
