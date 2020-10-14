@@ -35,7 +35,7 @@ local alloBasicShader = lovr.graphics.newShader(
     //specular
     vec3 viewDir = normalize(viewPos - FragmentPos);
     vec3 reflectDir = reflect(-lightDir, norm);
-    float spec = pow(max(dot(viewDir, reflectDir), 0.0f), metallic);
+    float spec = 0.0f; // pow(max(dot(viewDir, reflectDir), 0.0f), metallic);
     vec4 specular = specularStrength * spec * liteColor;
     
     vec4 baseColor = graphicsColor * texture(image, uv);            
