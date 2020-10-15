@@ -92,13 +92,14 @@ if(WIN32)
       set(CPACK_NSIS_INSTALL_ROOT "$PROGRAMFILES")
     endif (CMAKE_CL_64)
     set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "CreateShortCut \\\"$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Alloverse.lnk\\\" \\\"$INSTDIR\\\\.\\\\Alloverse.exe \\\"")
-    include (InstallRequiredSystemLibraries)
     include(CPack)
 
 
     install(TARGETS Alloverse DESTINATION .)
     # from https://braintrekking.wordpress.com/2013/04/27/dll-hell-how-to-include-microsoft-redistributable-runtime-libraries-in-your-cmakecpack-project/
-    INSTALL(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION . COMPONENT Libraries)
+    set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION ".")
+    include (InstallRequiredSystemLibraries)
+    message( "Runtime installation files: ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}" )
     install(DIRECTORY lua DESTINATION .)
     install(FILES $<TARGET_FILE:glfw> DESTINATION .)
     install(FILES $<TARGET_FILE:libluajit> DESTINATION .)
