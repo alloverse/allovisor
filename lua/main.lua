@@ -184,6 +184,7 @@ function lovr.update(dt)
 end
 
 function lovr.draw(isMirror)
+  lovr.graphics.origin()
 	drawMode()
 	ent.root:route("onDraw", isMirror)
 end
@@ -196,7 +197,7 @@ function lovr.mirror()
   local pixheight = lovr.graphics.getHeight()
   local aspect = pixwidth/pixheight
   local proj = lovr.math.mat4():perspective(0.01, 100, 67*(3.14/180), aspect)
-  lovr.graphics.setProjection(proj)
+  lovr.graphics.setProjection(1, proj)
 	ent.root:route("onMirror")
 end
 

@@ -73,6 +73,8 @@ function NetworkScene:_init(displayName, url, avatarName)
   if lovr.headset == nil or lovr.headset.getDriver() == "desktop" then
     table.remove(avatar.children, 2) -- remove right hand as it can't be simulated
   end
+  -- base transform for all other engines
+  self.transform = lovr.math.newMat4()
 
   local threadedClient = allonet.create(true)
   self.client = Client(url, displayName, threadedClient)
@@ -197,7 +199,8 @@ function NetworkScene:onDraw(isMirror)
     head = self:getAvatar()
   end
   if head then
-    lovr.graphics.transform(head.components.transform:getMatrix():invert())
+    self.transform:set(head.components.transform:getMatrix():invert())
+    lovr.graphics.transform(self.transform)
   end
 
 

@@ -81,8 +81,11 @@ end
 
 function PoseEng:onDraw()
   -- Gotta pick up the MVP at the time of drawing so it matches the transform applied in network scene
-  local mvp, _ =  lovr.graphics.getTransforms("mvp")
-  self.mvp:set(unpack(mvp))
+  lovr.graphics.getProjection(1, self.mvp)
+  local view = lovr.math.mat4()
+  lovr.graphics.getViewPose(1, view, false)
+  self.mvp:mul(view)
+  self.mvp:mul(self.parent.transform) -- todo use lovr.graphics.getTransform when it exists
 
   if lovr.mouse and self.mouseInWorld then
     lovr.graphics.setColor(1,0,0,0.5)

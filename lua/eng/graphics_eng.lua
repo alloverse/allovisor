@@ -101,7 +101,7 @@ function GraphicsEng:onMirror()
   local pixheight = lovr.graphics.getHeight()
   local aspect = pixwidth/pixheight
   local proj = lovr.math.mat4():perspective(0.01, 100, 67*(3.14/180), aspect)
-  lovr.graphics.setProjection(proj)
+  lovr.graphics.setProjection(1, proj)
 	lovr.graphics.setShader(nil)
 	lovr.graphics.setColor(1,1,1,1)
   lovr.graphics.clear()
