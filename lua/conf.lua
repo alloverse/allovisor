@@ -22,7 +22,7 @@ end
 
 function lovr.conf(t)
   -- Pass --desktop at startup (after asset path) to force desktop/fake driver
-  if poparg("--disablevr") or poparg("--desktop") then
+  if arg and (poparg("--disablevr") or poparg("--desktop")) then
     t.headset.drivers = {}
     t.modules.headset = false
   else
