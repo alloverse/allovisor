@@ -13,6 +13,9 @@ function TextEng:onLoad()
 end
 
 function TextEng:onDraw() 
+  -- so we can at least run on Pico until the text rendering bug is fixed...
+  if lovr.headset.getName() == "Pico" then return end
+
   lovr.graphics.setShader()
   self.font:setPixelDensity(32)
   lovr.graphics.setFont(self.font)
