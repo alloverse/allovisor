@@ -78,7 +78,9 @@ function drawHand(hand)
         local status, ox, oy, oz, oa, oax, oay, oaz = pcall(model.getNodePose, model, nodeName, "local")
         if status and hand == "hand/left" then
             lovr.graphics.setColor(0,0.6,0)
-            model:pose(nodeName, ox, oy, oz, a, ax, ay, az)
+            if i > 2 then -- don't pose wrist or palm, model's transform does that for us
+                model:pose(nodeName, ox, oy, oz, a, ax, ay, az)
+            end
         else
              lovr.graphics.setColor(0.6,0,0)
         end
