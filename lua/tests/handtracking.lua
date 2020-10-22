@@ -1,28 +1,28 @@
 local tablex = require("pl.tablex")
 
 local nodeToParentIndex = {
-    0,
-    0,
-    1, --2
+    0, -- palm=1
+    0, -- wrist=2
+    2, -- thumb root=3
     3,
     4,
     5,
-    1, -- 6
+    2, -- index root=7
     7,
     8,
     9,
     10,
-    1, -- 12
+    2, -- middle root = 12
     12,
     13,
     14,
     15,
-    1, -- 17
+    2, -- ring root = 17
     17,
     18,
     19,
     20,
-    1, -- 22
+    2, -- pinky root = 22
     22,
     23,
     24,
@@ -108,12 +108,12 @@ function drawHand(hand)
     lovr.graphics.setColor(0,0,0,1)
     local h = 0.05
     if hand == "hand/left" then
-        lovr.graphics.print("Node name", 0, -h, -2, h, lovr.math.quat(), 0, "left")
-        lovr.graphics.print("local pos", 0.5, -h, -2, h, lovr.math.quat(), 0, "left")
-        lovr.graphics.print("local rot", 0.9, -h, -2, h, lovr.math.quat(), 0, "left")
-        lovr.graphics.print("parent node", 1.5, -h, -2, h, lovr.math.quat(), 0, "left")
-        lovr.graphics.print("global pos", 2.0, -h, -2, h, lovr.math.quat(), 0, "left")
-        lovr.graphics.print("global rot", 2.6, -h, -2, h, lovr.math.quat(), 0, "left")
+        lovr.graphics.print("Node name", -2.0, -h, -2, h, lovr.math.quat(), 0, "left")
+        lovr.graphics.print("local pos", -1.5, -h, -2, h, lovr.math.quat(), 0, "left")
+        lovr.graphics.print("local rot", -1.0, -h, -2, h, lovr.math.quat(), 0, "left")
+        lovr.graphics.print("parent node", -0.4, -h, -2, h, lovr.math.quat(), 0, "left")
+        lovr.graphics.print("global pos", 0, -h, -2, h, lovr.math.quat(), 0, "left")
+        lovr.graphics.print("global rot", 0.6, -h, -2, h, lovr.math.quat(), 0, "left")
     end
 
     for i, joint in ipairs(lovr.headset.getSkeleton(hand) or {}) do
@@ -137,30 +137,35 @@ function drawHand(hand)
         end
 
         if hand == "hand/left" then
-            lovr.graphics.print(nodeName, 0, i*h, -2, h, lovr.math.quat(), 0, "left")
-            lovr.graphics.print(string.format("(%.2f, %.2f, %.2f)", x, y, z), 0.5, i*h, -2, h, lovr.math.quat(), 0, "left")
-            lovr.graphics.print(string.format("%.2frad (%.2f, %.2f, %.2f)", a, ax, ay, az), 0.9, i*h, -2, h, lovr.math.quat(), 0, "left")
-            lovr.graphics.print(parentNodeName, 1.5, i*h, -2, h, lovr.math.quat(), 0, "left")
+            lovr.graphics.setColor(0,0,i%2,1)
+            lovr.graphics.print(nodeName, -2.0, i*h, -2, h, lovr.math.quat(), 0, "left")
+            lovr.graphics.print(string.format("(%.2f, %.2f, %.2f)", x, y, z), -1.5, i*h, -2, h, lovr.math.quat(), 0, "left")
+            lovr.graphics.print(string.format("%.2frad (%.2f, %.2f, %.2f)", a, ax, ay, az), -1.0, i*h, -2, h, lovr.math.quat(), 0, "left")
+            lovr.graphics.print(parentNodeName, -0.4, i*h, -2, h, lovr.math.quat(), 0, "left")
             local gx, gy, gz, gsx, gsy, gsz, ga, gax, gay, gaz = globalNodes[i]:unpack()
-            lovr.graphics.print(string.format("(%.2f, %.2f, %.2f)", gx, gy, gz), 2.0, i*h, -2, h, lovr.math.quat(), 0, "left")
-            lovr.graphics.print(string.format("%.2frad (%.2f, %.2f, %.2f)", ga, gax, gay, gaz), 2.6, i*h, -2, h, lovr.math.quat(), 0, "left")
+            lovr.graphics.print(string.format("(%.2f, %.2f, %.2f)", gx, gy, gz), 0.0, i*h, -2, h, lovr.math.quat(), 0, "left")
+            lovr.graphics.print(string.format("%.2frad (%.2f, %.2f, %.2f)", ga, gax, gay, gaz), 0.6, i*h, -2, h, lovr.math.quat(), 0, "left")
         end
     end
+
+    local pose = lovr.math.mat4(lovr.headset.getPose(hand))
+    lovr.graphics.push()
+    lovr.graphics.transform(pose)
 
     for i, joint in ipairs(globalNodes) do
         lovr.graphics.push()
         lovr.graphics.transform(joint)
+        lovr.graphics.setColor(0,0,0,0.5)
         lovr.graphics.sphere(0, 0, 0, 0.01)
         drawAxes(0.018)
         lovr.graphics.transform(0, 0.03, 0.0, 1, 1, 1, -3.14/2, 1, 0, 0)
+        lovr.graphics.setColor(0,0,0,1)
         lovr.graphics.print(nodeNames[i], 0, 0, 0, 0.01)
         lovr.graphics.pop()
     end
 
 
-    local pose = lovr.math.mat4(lovr.headset.getPose(hand))
-    lovr.graphics.push()
-    lovr.graphics.transform(pose)
+
     lovr.graphics.cube("line", 0,0,0, 0.1)
     drawAxes(0.06)
     
