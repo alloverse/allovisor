@@ -57,6 +57,7 @@ local nodeNames = {
     "little_tip",
 }
 local globalNodes = {}
+local localNodes = {}
 
 function lovr.load()
     models = {
@@ -83,6 +84,7 @@ function lovr.load()
     lovr.graphics.setColor(0,0,0)
     for i, name in ipairs(nodeNames) do
         table.insert(globalNodes, lovr.math.newMat4())
+        table.insert(localNodes, lovr.math.newMat4())
     end
 end
 
@@ -112,45 +114,61 @@ function drawHand(hand)
         lovr.graphics.print("local pos", -1.5, -h, -2, h, lovr.math.quat(), 0, "left")
         lovr.graphics.print("local rot", -1.0, -h, -2, h, lovr.math.quat(), 0, "left")
         lovr.graphics.print("parent node", -0.4, -h, -2, h, lovr.math.quat(), 0, "left")
-        lovr.graphics.print("global pos", 0, -h, -2, h, lovr.math.quat(), 0, "left")
+        lovr.graphics.print("global pos", 0.1, -h, -2, h, lovr.math.quat(), 0, "left")
         lovr.graphics.print("global rot", 0.6, -h, -2, h, lovr.math.quat(), 0, "left")
     end
 
+    local worldFromHand = lovr.math.mat4(lovr.headset.getPose(hand))
+    local handFromWorld = lovr.math.mat4(worldFromHand):invert()
+
     for i, joint in ipairs(lovr.headset.getSkeleton(hand) or {}) do
-        local x, y, z, a, ax, ay, az = unpack(joint)
+        local gx, gy, gz, ga, gax, gay, gaz = unpack(joint)
         local jointPose = lovr.math.mat4(unpack(joint))
         local nodeName = nodeNames[i]
         local parentIndex = nodeToParentIndex[i]
         local parentNodeName = nodeNames[parentIndex] and nodeNames[parentIndex] or ""
 
+        globalNodes[i]:set(jointPose)
+        localNodes[i]:set(jointPose)
         if parentIndex ~= 0 then
-            globalNodes[i]:set(globalNodes[parentIndex]):mul(jointPose)
-        else
-            globalNodes[i]:set(jointPose)
+            local handFromParent = localNodes[parentIndex]
+            local parentFromHand = lovr.math.mat4(handFromParent):invert()
+            localNodes[i]:set(globalNodes[parentIndex]):mul(parentFromHand)
         end
+        localNodes[i]:mul(handFromWorld)
+
+        local lx, ly, lz, lsx, lsy, lsz, la, lax, lay, laz = localNodes[i]:unpack()
 
         local status, ox, oy, oz, oa, oax, oay, oaz = pcall(model.getNodePose, model, nodeName, "local")
         if status and hand == "hand/left" then
-            if i > 2 then -- don't pose wrist or palm, model's transform does that for us
-                model:pose(nodeName, ox, oy, oz, a, ax, ay, az)
-            end
+            model:pose(nodeName, ox, oy, oz, la, lax, lay, laz)
         end
 
         if hand == "hand/left" then
+            lovr.graphics.push()
+            lovr.graphics.translate(-1.05, i*h, -2)
+            lovr.graphics.rotate(la, lax, lay, laz)
+            drawAxes(h*0.9)
+            lovr.graphics.pop()
+
+            lovr.graphics.push()
+            lovr.graphics.translate(0.55, i*h, -2)
+            lovr.graphics.rotate(ga, gax, gay, gaz)
+            drawAxes(h*0.9)
+            lovr.graphics.pop()
+
             lovr.graphics.setColor(0,0,i%2,1)
             lovr.graphics.print(nodeName, -2.0, i*h, -2, h, lovr.math.quat(), 0, "left")
-            lovr.graphics.print(string.format("(%.2f, %.2f, %.2f)", x, y, z), -1.5, i*h, -2, h, lovr.math.quat(), 0, "left")
-            lovr.graphics.print(string.format("%.2frad (%.2f, %.2f, %.2f)", a, ax, ay, az), -1.0, i*h, -2, h, lovr.math.quat(), 0, "left")
+            lovr.graphics.print(string.format("(%.2f, %.2f, %.2f)", lx, ly, lz), -1.5, i*h, -2, h, lovr.math.quat(), 0, "left")
+            lovr.graphics.print(string.format("%.2frad (%.2f, %.2f, %.2f)", la, lax, lay, laz), -1.0, i*h, -2, h, lovr.math.quat(), 0, "left")
             lovr.graphics.print(parentNodeName, -0.4, i*h, -2, h, lovr.math.quat(), 0, "left")
             local gx, gy, gz, gsx, gsy, gsz, ga, gax, gay, gaz = globalNodes[i]:unpack()
-            lovr.graphics.print(string.format("(%.2f, %.2f, %.2f)", gx, gy, gz), 0.0, i*h, -2, h, lovr.math.quat(), 0, "left")
+            lovr.graphics.print(string.format("(%.2f, %.2f, %.2f)", gx, gy, gz), 0.1, i*h, -2, h, lovr.math.quat(), 0, "left")
             lovr.graphics.print(string.format("%.2frad (%.2f, %.2f, %.2f)", ga, gax, gay, gaz), 0.6, i*h, -2, h, lovr.math.quat(), 0, "left")
         end
     end
 
-    local pose = lovr.math.mat4(lovr.headset.getPose(hand))
-    lovr.graphics.push()
-    lovr.graphics.transform(pose)
+
 
     for i, joint in ipairs(globalNodes) do
         lovr.graphics.push()
@@ -164,10 +182,10 @@ function drawHand(hand)
         lovr.graphics.pop()
     end
 
-
-
+    lovr.graphics.push()
+    lovr.graphics.transform(worldFromHand)
     lovr.graphics.cube("line", 0,0,0, 0.1)
-    drawAxes(0.06)
+    drawAxes(0.08)
     
     lovr.graphics.setColor(1, 1, 1)
     if model then
