@@ -58,6 +58,7 @@ local nodeNames = {
 }
 local globalNodes = {}
 local localNodes = {}
+local localToGlobalNodes = {}
 
 function lovr.load()
     models = {
@@ -85,6 +86,7 @@ function lovr.load()
     for i, name in ipairs(nodeNames) do
         table.insert(globalNodes, lovr.math.newMat4())
         table.insert(localNodes, lovr.math.newMat4())
+        table.insert(localToGlobalNodes, lovr.math.newMat4())
     end
 end
 
@@ -123,27 +125,30 @@ function drawHand(hand)
 
     for i, joint in ipairs(lovr.headset.getSkeleton(hand) or {}) do
         local gx, gy, gz, ga, gax, gay, gaz = unpack(joint)
-        local jointPose = lovr.math.mat4(unpack(joint))
+        local worldFromJoint = lovr.math.mat4(unpack(joint))
+        local handFromJoint = lovr.math.mat4(handFromWorld):mul(worldFromJoint)
         local nodeName = nodeNames[i]
         local parentIndex = nodeToParentIndex[i]
         local parentNodeName = nodeNames[parentIndex] and nodeNames[parentIndex] or ""
 
-        globalNodes[i]:set(jointPose)
-        localNodes[i]:set(jointPose)
+        -- first off, figure out local positions and rotations for each joint relative to their parent joints
+        globalNodes[i]:set(worldFromJoint)
         if parentIndex ~= 0 then
             local handFromParent = localNodes[parentIndex]
             local parentFromHand = lovr.math.mat4(handFromParent):invert()
-            localNodes[i]:set(globalNodes[parentIndex]):mul(parentFromHand)
+            localNodes[i]:set(parentFromHand):mul(handFromJoint) -- localNodes[i] thus becomes parentFromJoint
+        else
+            localNodes[i]:set(handFromJoint)
         end
-        localNodes[i]:mul(handFromWorld)
-
+        
+        -- set these local poses on the joints
         local lx, ly, lz, lsx, lsy, lsz, la, lax, lay, laz = localNodes[i]:unpack()
-
         local status, ox, oy, oz, oa, oax, oay, oaz = pcall(model.getNodePose, model, nodeName, "local")
         if status and hand == "hand/left" then
             model:pose(nodeName, ox, oy, oz, la, lax, lay, laz)
         end
 
+        -- print local and global poses for each joint for debugging
         if hand == "hand/left" then
             lovr.graphics.push()
             lovr.graphics.translate(-1.05, i*h, -2)
@@ -168,17 +173,36 @@ function drawHand(hand)
         end
     end
 
+    -- calculate global poses for each local pose, to ensure the math above is correct
+    for i, parentFromJoint in ipairs(localNodes) do
+        localToGlobalNodes[i]:set(worldFromHand)
+        local parentIndex = nodeToParentIndex[i]
 
+        if parentIndex ~= 0 then
+            local handFromParent = localNodes[parentIndex]
+            localToGlobalNodes[i]:mul(handFromParent)
+        end
+        localToGlobalNodes[i]:mul(parentFromJoint)
+    end
 
+    -- draw global nodes to show where they should be
     for i, joint in ipairs(globalNodes) do
         lovr.graphics.push()
         lovr.graphics.transform(joint)
-        lovr.graphics.setColor(0,0,0,0.5)
+        lovr.graphics.setColor(0,0.5,0,0.3)
         lovr.graphics.sphere(0, 0, 0, 0.01)
         drawAxes(0.018)
         lovr.graphics.transform(0, 0.03, 0.0, 1, 1, 1, -3.14/2, 1, 0, 0)
         lovr.graphics.setColor(0,0,0,1)
         lovr.graphics.print(nodeNames[i], 0, 0, 0, 0.01)
+        lovr.graphics.pop()
+    end
+    -- draw the local-to-global nodes so we know the math in both direction is correct. spheres and cubes should overlap.
+    for i, joint in ipairs(localToGlobalNodes) do
+        lovr.graphics.push()
+        lovr.graphics.transform(joint)
+        lovr.graphics.setColor(0.5,0,0,0.3)
+        lovr.graphics.box("fill", 0, 0, 0, 0.015)
         lovr.graphics.pop()
     end
 
