@@ -290,21 +290,22 @@ function GraphicsEng:drawDecorations()
   )
   
   local forestModel = self.hardcoded_models.forest
-  
-  forestModel:draw(0, .5, -10, 2, 0, 0, 1, 0, 1)
-  forestModel:draw(4, .5, -8, 2, 5, 0, 1, 0, 1)
-  forestModel:draw(8, .5, -4, 2, 0, 0, 1, 0, 1)
-  forestModel:draw(10, .5, 0, 2, 1, 0, 1, 0, 1)
+  if forestModel then
+    forestModel:draw(0, .5, -10, 2, 0, 0, 1, 0, 1)
+    forestModel:draw(4, .5, -8, 2, 5, 0, 1, 0, 1)
+    forestModel:draw(8, .5, -4, 2, 0, 0, 1, 0, 1)
+    forestModel:draw(10, .5, 0, 2, 1, 0, 1, 0, 1)
 
-  forestModel:draw(8, .5, 4, 2, 0, 0, 1, 0, 1)
-  forestModel:draw(4, .5, 8, 2, 2, 0, 1, 0, 1)
-  forestModel:draw(0, .5, 10, 2, 0, 0, 1, 0, 1)
-  forestModel:draw(-4, .5, 8, 2, 3, 0, 1, 0, 1)
+    forestModel:draw(8, .5, 4, 2, 0, 0, 1, 0, 1)
+    forestModel:draw(4, .5, 8, 2, 2, 0, 1, 0, 1)
+    forestModel:draw(0, .5, 10, 2, 0, 0, 1, 0, 1)
+    forestModel:draw(-4, .5, 8, 2, 3, 0, 1, 0, 1)
 
-  forestModel:draw(-8, .5, 4, 2, 1, 0, 1, 0, 1)
-  forestModel:draw(-10, .5, 0, 2,  3, 0, 1, 0, 1)
-  forestModel:draw(-8, .5, -4, 2,  4, 0, 1, 0, 1)
-  forestModel:draw(-4, .5, -8, 2,   0, 0, 1, 0, 1)
+    forestModel:draw(-8, .5, 4, 2, 1, 0, 1, 0, 1)
+    forestModel:draw(-10, .5, 0, 2,  3, 0, 1, 0, 1)
+    forestModel:draw(-8, .5, -4, 2,  4, 0, 1, 0, 1)
+    forestModel:draw(-4, .5, -8, 2,   0, 0, 1, 0, 1)
+  end
 
 end
 
