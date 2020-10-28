@@ -21,7 +21,7 @@ end
 
 function NetMenuScene:onLoad()
   self.net = lovr.scenes.network("owner", "alloplace://localhost:21338", settings.d.avatarName)
-  self.net.debug = false
+  self.net.debug = settings.d.debug
   self.net:insert(self)
 
   local interactor = MenuInteractor()
@@ -60,6 +60,7 @@ end
 function NetMenuScene:toggleDebug(sender)
   settings.d.debug = not settings.d.debug
   settings:save()
+  self.net.debug = settings.d.debug
   self:updateDebugTitle()
 end
 

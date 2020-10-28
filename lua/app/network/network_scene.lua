@@ -4,6 +4,7 @@ local json = require "json"
 local tablex = require "pl.tablex"
 local pretty = require "pl.pretty"
 local Client = require "alloui.client"
+local Stats = require("app.debug.stats")
 
 local engines = {
   SoundEng = require "eng.sound_eng",
@@ -243,6 +244,17 @@ function NetworkScene:onUpdate(dt)
   end
 
   self.client:simulate(dt)
+
+  local stats = Stats.instance
+  if stats then
+    stats:enable(self.debug)
+    stats:set("Server time", string.format("%.3fs", self.client.client:get_server_time()))
+    stats:set("Client time", string.format("%.3fs", self.client.client:get_time()))
+    stats:set("Latency", string.format("%.3fs", self.client.client:get_latency()))
+    stats:set("C/S clock delta", string.format("%.3fs", self.client.client:get_clock_delta()))
+    stats:set("FPS", string.format("%.1fs", lovr.timer.getFPS()))
+    
+  end
 
 
   if self.engines.pose:wasPressed("hand/right", "b") then

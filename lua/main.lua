@@ -67,7 +67,7 @@ function lovr.load()
 	ent.root = LoaderEnt({
     "app.menu.netmenu_scene",
 --    "app.menu.main_menu_scene",
-    "app/debug/fps",
+    "app.debug.stats",
     "app/test/controlsOverlay"
 	})
 
