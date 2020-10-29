@@ -85,10 +85,10 @@ function GraphicsEng:onDraw()
     lovr.graphics.pop()
   end
 
-  for _, ray in ipairs(self.parent.engines.pose.handRays) do
-    lovr.graphics.setColor(ray:getColor())
-    lovr.graphics.line(ray.from, ray.to)
-  end
+  -- for _, ray in ipairs(self.parent.engines.pose.handRays) do
+  --   lovr.graphics.setColor(ray:getColor())
+  --   lovr.graphics.line(ray.from, ray.to)
+  -- end
 
   lovr.graphics.setColor({1,1,1})
 end

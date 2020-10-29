@@ -4,6 +4,7 @@ local json = require "json"
 local tablex = require "pl.tablex"
 local pretty = require "pl.pretty"
 local allomath = require "lib.allomath"
+local alloBasicShader = require "shader/alloBasicShader"
 local ok, keyboard = pcall(require, "lib.lovr-keyboard")
 if not ok then
   print("No keyboard available", keyboard)
@@ -21,6 +22,11 @@ function HandRay:_init()
   self.to = lovr.math.newVec3()
   self.hand = nil -- hand entity
   self.grabber_from_entity_transform = lovr.math.newMat4()
+  self.rayLength = 1
+
+  local cursorTexture = lovr.graphics.newTexture("assets/textures/cursor.png", {})
+  self.cursorMaterial = lovr.graphics.newMaterial(cursorTexture)
+
 end
 function HandRay:highlightEntity(entity)
   if self.highlightedEntity ~= nil then
@@ -48,7 +54,77 @@ function HandRay:getColor()
   end
 end
 
+function HandRay:draw()
+  if (self.highlightedEntity) then -- user is pointing at an interactive entity, draw highlight ray & cursor
+    self:drawCursor()
+    self:drawCone({1,1,1,0.6})
+  else -- user is not pointing at anything, draw the default ray
+    self:drawCone({1,1,1,0.2})
+  end
+  lovr.graphics.setColor(1,1,1,1)
+end
 
+function HandRay:drawCone(color)
+  lovr.graphics.setShader(self.alloBasicShader)
+
+  local coneCenter = self.from + ((self.to - self.from):normalize() * (self.rayLength/2))
+  lovr.graphics.push()
+  local mat = lovr.math.mat4():lookAt(coneCenter, self.to)
+  lovr.graphics.transform(mat)
+  lovr.graphics.setColor(color)
+  lovr.graphics.cylinder(0, 0, 0, coneLength, 0, 0, 0, 0, 0.005, 0.01)
+  lovr.graphics.pop()
+end
+
+function HandRay:drawCursor()
+  lovr.graphics.setShader(self.alloBasicShader)
+  local _, _, _, _, _, _, a, ax, ay, az = self.highlightedEntity.components.transform:getMatrix():unpack()
+
+  lovr.graphics.push()
+  lovr.graphics.translate(self.to)
+  lovr.graphics.rotate(a, ax, ay, az)
+
+  local cursor = self.highlightedEntity.components.cursor
+
+  if cursor ~= nil then
+    
+    if cursor.name == "brushCursor" then
+      local brushSize = self.highlightedEntity.components.cursor.size and self.highlightedEntity.components.cursor.size or 3
+      lovr.graphics.circle("line", 0, 0, 0, brushSize/100)
+    end
+
+  else
+    -- Display a default cursor
+    lovr.graphics.plane(self.cursorMaterial, 0, 0, 0, 0.2, 0.2, 0, 0, 0, 0, 0, 0)
+  end
+
+
+  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 1)
+  -- lovr.graphics.circle("line", 0, 0, 0, 0.036)
+  -- lovr.graphics.circle("line", 0, 0, 0, 0.039)
+  -- lovr.graphics.circle("line", 0, 0, 0, 0.042)
+  -- lovr.graphics.circle("line", 0, 0, 0, 0.045)
+  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 0.9)
+  -- lovr.graphics.circle("line", 0, 0, 0, 0.048)
+  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 0.8)
+  -- lovr.graphics.circle("line", 0, 0, 0, 0.051)
+  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 0.7)
+  -- lovr.graphics.circle("line", 0, 0, 0, 0.054)
+  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 0.6)
+  -- lovr.graphics.circle("line", 0, 0, 0, 0.057)
+  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 0.5)
+  -- lovr.graphics.circle("line", 0, 0, 0, 0.060)
+  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 0.4)
+  -- lovr.graphics.circle("line", 0, 0, 0, 0.063)
+  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 0.3)
+  -- lovr.graphics.circle("line", 0, 0, 0, 0.066)
+  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 0.2)
+  -- lovr.graphics.circle("line", 0, 0, 0, 0.069)
+  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 0.1)
+  -- lovr.graphics.circle("line", 0, 0, 0, 0.072)
+
+  lovr.graphics.pop()
+end
 
 
 local PoseEng = classNamed("PoseEng", Ent)
@@ -87,12 +163,16 @@ function PoseEng:onDraw()
   self.mvp:mul(view)
   self.mvp:mul(self.parent.transform) -- todo use lovr.graphics.getTransform when it exists
 
-  if lovr.mouse and self.mouseInWorld then
-    lovr.graphics.setColor(1,0,0,0.5)
-    lovr.graphics.sphere(self.mouseInWorld, 0.05)
+  for _, ray in ipairs(self.handRays) do
+    ray:draw()
   end
 
+  -- if lovr.mouse and self.mouseInWorld then
+  --   lovr.graphics.setColor(1,0,0,0.5)
+  --   lovr.graphics.sphere(self.mouseInWorld, 0.05)
+  -- end
 end
+
 
 function PoseEng:getAxis(device, axis)
   local x, y = 0, 0
