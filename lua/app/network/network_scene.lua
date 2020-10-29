@@ -192,6 +192,10 @@ end
 
 function NetworkScene:onDraw(isMirror)
   drawMode()
+
+  lovr.graphics.setCullingEnabled(true)
+  lovr.graphics.setDepthTest('lequal', true)
+
   -- Move camera to head, as if we're looking out the head's eyes.
   -- Do this before any sub-engines start trying to draw anything.
   local head = self:getHead()
