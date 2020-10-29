@@ -15,8 +15,6 @@ package.cpath = cpath
 
 lovr.filesystem.setIdentity("alloverse")
 
-lovr.scenes = {}
-
 namespace = require "engine.namespace"
 
 local ok, mouse = pcall(require, "lib.lovr-mouse")
@@ -47,7 +45,7 @@ do
 end
 
 namespace.prepare("alloverse", "standard", function(space)
-  require("app.network.network_scene") -- for lovr.scenes.network
+  
 end)
 
 -- Ent driver
@@ -64,12 +62,7 @@ function lovr.load()
   menuAppsThread:start()
   _checkthread(menuAppsThread, "appserv")
 
-	ent.root = LoaderEnt({
-    "app.menu.netmenu_scene",
---    "app.menu.main_menu_scene",
-    "app.debug.stats",
-    "app/test/controlsOverlay"
-	})
+	ent.root = require("app.scenemanager")()
 
 	ent.root:route("onBoot") -- This will only be sent once
   ent.root:insert()

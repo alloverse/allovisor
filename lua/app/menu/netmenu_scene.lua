@@ -1,4 +1,5 @@
 namespace("menu", "alloverse")
+local NetworkScene = require("app.network.network_scene")
 
 -- This scene doesn't have any UI. It just connects to menuserv,
 -- which has its own AlloApps running, providing UI. These in turn
@@ -20,7 +21,7 @@ function NetMenuScene:_init()
 end
 
 function NetMenuScene:onLoad()
-  self.net = lovr.scenes.network("owner", "alloplace://localhost:21338", settings.d.avatarName)
+  self.net = NetworkScene("owner", "alloplace://localhost:21338", settings.d.avatarName)
   self.net.debug = settings.d.debug
   self.net:insert(self)
 
@@ -34,9 +35,8 @@ function NetMenuScene:connect(url)
   settings.save()
 
   local displayName = settings.d.username and settings.d.username or "Unnamed"
-  local net = lovr.scenes.network(displayName, url, settings.d.avatarName, settings.d.avatarName)
+  local net = lovr.scenes:create("net", displayName, url, settings.d.avatarName, settings.d.avatarName)
   net.debug = settings.d.debug
-  net:insert()
   self:die()
 end
 
@@ -113,7 +113,5 @@ function MenuInteractor:onInteraction(interaction, body, receiver, sender)
   local verb = table.remove(action, 1)
   self.netmenu[verb](self.netmenu, unpack(action), sender)
 end
-
-lovr.scenes.menu = NetMenuScene
 
 return NetMenuScene

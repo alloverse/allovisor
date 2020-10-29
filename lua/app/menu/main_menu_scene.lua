@@ -114,13 +114,9 @@ function MainMenuScene:openPlace(url)
   settings.save()
 
   local displayName = settings.d.username and settings.d.username or "Unnamed"
-  local scene = lovr.scenes.network(displayName, url)
+  local scene = lovr.scenes:create("net", displayName, url)
   scene.debug = self.debug
-  scene:insert()
   self:die()
 end
-
-
-lovr.scenes.menu = MainMenuScene
 
 return MainMenuScene

@@ -25,7 +25,7 @@ allonet = util.load_allonet()
 -- * Instantiate engines
 --
 -- Engines should, in turn, manage roughly one component type.
-local NetworkScene = classNamed("NetworkScene", Ent)
+local NetworkScene = classNamed("NetworkScene", OrderedEnt)
 function NetworkScene:_init(displayName, url, avatarName)
   print("Starting network scene as", displayName, "connecting to", url, "on a", (lovr.headset and lovr.headset.getName() or "desktop"))
   local avatar = {
@@ -183,7 +183,7 @@ function NetworkScene:onDisconnect(code, message)
       engine.client = nil
     end
   end
-  local menu = lovr.scenes.menu():insert()
+  local menu = lovr.scenes:create("menu")
   menu:setMessage(message and message or "Disconnected.")
   print("disconnected.")
   self:die()
@@ -258,10 +258,9 @@ function NetworkScene:onUpdate(dt)
 
 
   if self.engines.pose:wasPressed("hand/right", "b") then
-    OverlayMenuScene(self):insert(self)
+    self:onDisconnect()
+    -- todo: display menu instead
   end
 end
-
-lovr.scenes.network = NetworkScene
 
 return NetworkScene
