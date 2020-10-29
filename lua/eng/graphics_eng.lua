@@ -111,6 +111,7 @@ end
 
 function GraphicsEng:onUpdate(dt)
   loader:poll()
+  if self.client == nil then return end
   local head = self.client.state.entities[self.parent.head_id]
   if head then
     local hx, hy, hz = (head.components.transform:getMatrix() * lovr.math.vec3()):unpack()
