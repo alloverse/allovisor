@@ -154,7 +154,7 @@ function GraphicsEng:loadHardcodedModel(name, callback, path)
     return
   end
   path = path and path or '/assets/models/'..name
-  if not path:has_suffix(".glb") then
+  if not path:has_suffix(".glb") and not path:has_suffix(".gltf") then
     path = path .. ".glb"
   end
   callback(self.hardcoded_models["loading"])
