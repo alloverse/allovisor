@@ -63,11 +63,26 @@ This only works from a Mac or Linux machine.
 
 1. Install CMake version 3.15.4 exactly
 2. Install Android Studio if you haven't already.
-3. [Enable developer mode on your Quest](https://developer.oculus.com/documentation/quest/latest/concepts/mobile-device-setup-quest/).
-4. Connect it to your computer, and ensure it shows up when you run `adb devices` in your terminal.
-5. Configure to build the Alloverse.apk: `mkdir quest-build; cd quest-build;` and then comes the cmake invocation. It is INVOLVED. Look at `azure-pipelines.yml` under Quest or Pico to find all the `-DCMAKE_TOOLCHAIN_FILE=` and other tomfoolery. Note that you'll also have to set up signing keys and stuff.
-6. Actually build it: `make Alloverse`
-7. Upload to headset: `adb install alloverse-quest.apk`
+3. In Android Studio's SDK manager, install SDK for API levels 26 (Quest) and 27 (Pico). Also install NDK (side-by-side).
+4. [Enable developer mode on your Quest](https://developer.oculus.com/documentation/quest/latest/concepts/mobile-device-setup-quest/).
+5. Connect it to your computer, and ensure it shows up when you run `adb devices` in your terminal.
+6. Configure to build the Alloverse.apk: `mkdir quest-build; cd quest-build;` and then comes the cmake invocation. It is INVOLVED. Look at `azure-pipelines.yml` under Quest or Pico to find all the `-DCMAKE_TOOLCHAIN_FILE=` and other tomfoolery. Note that you'll also have to set up signing keys and stuff.
+7. Actually build it: `make Alloverse`
+8. Upload to headset: `adb install alloverse-quest.apk`
+
+Sample CMake invocation for Quest on Linux:
+
+```
+cmake -DCMAKE_TOOLCHAIN_FILE=/home/nevyn/Android/Sdk/ndk/21.3.6528147/build/cmake/android.toolchain.cmake -DANDROID_ABI="arm64-v8a" -DANDROID_NATIVE_API_LEVEL=26 -DANDROID_BUILD_TOOLS_VERSION="30.0.4" -DANDROID_SDK=/home/nevyn/Android/Sdk -DANDROID_KEYSTORE=/home/nevyn/Android/alloverse.keystore -DANDROID_KEYSTORE_PASS="pass:123456" -DJAVA_HOME="/snap/android-studio/94/android-studio/jre" -DANDROID_VARIANT="quest" ..
+```
+
+* You need to match the ndk version with whatever you have locally
+* Same for build tools
+* same for JAVA_HOME
+
+If you're setting up on Linux for the first time, you should also add java and adb to your path:
+* `set -Ua fish_user_paths /home/nevyn/Android/Sdk/platform-tools`
+* `set -Ua fish_user_paths /snap/android-studio/94/android-studio/jre/bin/`
 
 If you are iterating on the native code parts, you can re-build and upload the api with this handy one-liner
 from the `build` directory:
