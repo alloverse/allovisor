@@ -391,7 +391,7 @@ function PoseEng:updateIntent()
   for i, device in ipairs({"hand/left", "hand/right", "head"}) do
     intent.poses[device] = {
       matrix = {self:getPose(device):unpack(true)},
-      skeleton = self:getSkeleton(device),
+      skeleton = self:getSkeletonTable(device),
       grab = self:grabForDevice(i, device)
     }
   end
