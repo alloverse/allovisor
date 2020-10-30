@@ -15,5 +15,12 @@ end
 
 math.randomseed( os.time() )
 
+function string.has_suffix(s, suffix)
+  return s:sub(-string.len(suffix)) == suffix
+end
 
-return string.random
+
+return {
+  random = string.random,
+  has_suffix = string.has_suffix
+}

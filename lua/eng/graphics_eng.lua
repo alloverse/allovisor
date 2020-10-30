@@ -33,6 +33,14 @@ function GraphicsEng:onLoad()
 
   local greenTex = lovr.graphics.newTexture("assets/textures/green.png", {})
   self.greenMat = lovr.graphics.newMaterial(greenTex, 1, 1, 1, 1)
+
+  self.houseAssets = {}
+  local houseAssetNames = lovr.filesystem.getDirectoryItems("assets/models/house")
+  for i, name in ipairs(houseAssetNames) do
+    self:loadHardcodedModel('house/'..name, function(m) 
+      self.houseAssets[name] = m 
+    end)
+  end
 end
 
 function GraphicsEng:onDraw() 
@@ -145,7 +153,10 @@ function GraphicsEng:loadHardcodedModel(name, callback, path)
     callback(model)
     return
   end
-  path = path and path or '/assets/models/'..name..'.glb'
+  path = path and path or '/assets/models/'..name
+  if not path:has_suffix(".glb") then
+    path = path .. ".glb"
+  end
   callback(self.hardcoded_models["loading"])
   loader:load(
     path,
@@ -306,6 +317,10 @@ function GraphicsEng:drawDecorations()
     forestModel:draw(-10, .5, 0, 2,  3, 0, 1, 0, 1)
     forestModel:draw(-8, .5, -4, 2,  4, 0, 1, 0, 1)
     forestModel:draw(-4, .5, -8, 2,   0, 0, 1, 0, 1)
+  end
+
+  for name, model in pairs(self.houseAssets) do
+    model:draw()
   end
 
 end
