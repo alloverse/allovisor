@@ -1,4 +1,4 @@
-namespace("networkscene", "alloverse")
+namespace("pose_eng", "alloverse")
 
 local json = require "json"
 local tablex = require "pl.tablex"
@@ -131,7 +131,7 @@ function HandRay:drawCursor()
 end
 
 
-local PoseEng = classNamed("PoseEng", Ent)
+PoseEng = classNamed("PoseEng", Ent)
 function PoseEng:_init()
   self.yaw = 0.0
   self.handRays = {HandRay(), HandRay()}
@@ -391,6 +391,7 @@ function PoseEng:updateIntent()
   for i, device in ipairs({"hand/left", "hand/right", "head"}) do
     intent.poses[device] = {
       matrix = {self:getPose(device):unpack(true)},
+      skeleton = self:getSkeleton(device),
       grab = self:grabForDevice(i, device)
     }
   end
@@ -516,5 +517,7 @@ function PoseEng:updatePointing(hand_pose, ray)
     ray:selectEntity(nil)
   end
 end
+
+require "eng.pose_eng.skeleton"
 
 return PoseEng
