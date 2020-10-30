@@ -10,6 +10,14 @@
 
 extern int luaopen_liballonet(lua_State* L);
 
+// call from gdb to print lua stack
+void allo_printstacks(lua_State* L)
+{
+  luax_traceback(L, L, "", 0);
+  printf("%s\n", lua_tostring(L, -1));
+  lua_pop(L, 1);
+}
+
 int main(int argc, char** argv)
 {
   lovrAssert(lovrPlatformInit(), "Failed to initialize platform");
