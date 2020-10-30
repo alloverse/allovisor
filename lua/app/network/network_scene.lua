@@ -112,7 +112,7 @@ function NetworkScene:onLoad()
       self.engines.sound = engines.SoundEng()
     end
     
-    for _, ename in ipairs({"pose", "graphics", "text", "physics"}) do
+    for _, ename in ipairs({"graphics", "text", "pose", "physics"}) do
       local engine = self.engines[ename]
       engine.client = self.client
       engine:insert(self)
