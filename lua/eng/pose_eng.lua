@@ -5,6 +5,7 @@ local tablex = require "pl.tablex"
 local pretty = require "pl.pretty"
 local allomath = require "lib.allomath"
 local alloBasicShader = require "shader/alloBasicShader"
+local alloPointerRayShader = require "shader/alloPointerRayShader"
 local ok, keyboard = pcall(require, "lib.lovr-keyboard")
 if not ok then
   print("No keyboard available", keyboard)
@@ -55,29 +56,31 @@ function HandRay:getColor()
 end
 
 function HandRay:draw()
-  if (self.highlightedEntity) then -- user is pointing at an interactive entity, draw highlight ray & cursor
+  if self.highlightedEntity then
+    -- user is pointing at an interactive entity, draw highlight ray & cursor
     self:drawCursor()
-    self:drawCone({1,1,1,0.6})
-  else -- user is not pointing at anything, draw the default ray
-    self:drawCone({1,1,1,0.2})
+    self:drawCone({1,1,0,1.0})
+  else
+    -- user is not pointing at anything, draw the default ray
+    self:drawCone({0,1,1,1.0})
   end
-  lovr.graphics.setColor(1,1,1,1)
 end
 
 function HandRay:drawCone(color)
-  lovr.graphics.setShader(self.alloBasicShader)
-
   local coneCenter = self.from + ((self.to - self.from):normalize() * (self.rayLength/2))
   lovr.graphics.push()
   local mat = lovr.math.mat4():lookAt(coneCenter, self.to)
   lovr.graphics.transform(mat)
+  
   lovr.graphics.setColor(color)
-  lovr.graphics.cylinder(0, 0, 0, coneLength, 0, 0, 0, 0, 0.005, 0.01)
+  lovr.graphics.setShader(alloPointerRayShader)
+
+  lovr.graphics.cylinder(0, 0, 0, self.rayLength, 0, 0, 0, 0, 0.005, 0.008)
   lovr.graphics.pop()
 end
 
 function HandRay:drawCursor()
-  lovr.graphics.setShader(self.alloBasicShader)
+  lovr.graphics.setShader(alloBasicShader)
   local _, _, _, _, _, _, a, ax, ay, az = self.highlightedEntity.components.transform:getMatrix():unpack()
 
   lovr.graphics.push()
@@ -95,7 +98,8 @@ function HandRay:drawCursor()
 
   else
     -- Display a default cursor
-    lovr.graphics.plane(self.cursorMaterial, 0, 0, 0, 0.2, 0.2, 0, 0, 0, 0, 0, 0)
+    lovr.graphics.plane(self.cursorMaterial, 0, 0, 0.01, 0.2, 0.2, 0, 0, 0, 0, 0, 0)
+    --lovr.graphics.circle("line", 0, 0, 0, .03)
   end
 
 
