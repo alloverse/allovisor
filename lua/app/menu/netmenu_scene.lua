@@ -24,6 +24,7 @@ end
 function NetMenuScene:onLoad()
   self.net = NetworkScene("owner", "alloplace://localhost:21338", settings.d.avatarName)
   self.net.debug = settings.d.debug
+  self.net.isMenu = true
   self.net:insert(self)
 
   local interactor = MenuInteractor()

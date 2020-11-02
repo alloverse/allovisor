@@ -268,7 +268,7 @@ function NetworkScene:onUpdate(dt)
   end
 
 
-  if self.engines.pose:wasPressed("hand/right", "b") then
+  if self.engines.pose:wasPressed("hand/right", "b") and (not self.isMenu or self.engines.graphics.isOverlayScene) then
     lovr.scenes:toggleMenuVisible()
   end
 end
