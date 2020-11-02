@@ -24,6 +24,7 @@ function HandRay:_init()
   self.hand = nil -- hand entity
   self.grabber_from_entity_transform = lovr.math.newMat4()
   self.rayLength = 1
+  self.active = true
 
   local cursorTexture = lovr.graphics.newTexture("assets/textures/cursor.png", {})
   self.cursorMaterial = lovr.graphics.newMaterial(cursorTexture)
@@ -179,6 +180,8 @@ end
 
 
 function PoseEng:getAxis(device, axis)
+  if self.active == false then return 0.0, 0.0 end
+
   local x, y = 0, 0
   if lovr.headset then
     x, y = lovr.headset.getAxis(device, axis)
@@ -209,6 +212,8 @@ function PoseEng:getAxis(device, axis)
 end
 
 function PoseEng:isDown(device, button)
+  if self.active == false then return false end
+  
   local down = false
   if lovr.headset then
     down = lovr.headset.isDown(device, button)
@@ -220,6 +225,7 @@ function PoseEng:isDown(device, button)
 end
 
 function PoseEng:wasPressed(device, button)
+  if self.active == false then return false end
   local down = false
   if lovr.headset then
     down = lovr.headset.wasPressed(device, button)

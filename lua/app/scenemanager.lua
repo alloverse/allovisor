@@ -37,10 +37,14 @@ end
 
 function SceneManager:setMenuVisible(visible)
     self.menu.visible = visible
+    self.menu.net.engines.pose.active = visible
+    if self.net then
+        self.net.engines.pose.active = not visible
+    end
 end
 
 function SceneManager:toggleMenuVisible()
-    self.menu.visible = not self.menu.visible
+    self:setMenuVisible(not self.menu.visible)
 end
 
 -- Create a scene of the name wanted, and insert it into the ent graph
