@@ -11,6 +11,7 @@ function BodyPart:_init(bounds, avatarName, partName, poseName)
   self.avatarName = avatarName
   self.partName = partName
   self.poseName = poseName
+  self.followingId = nil
 end
 
 function BodyPart:specification()
@@ -23,6 +24,12 @@ function BodyPart:specification()
         shader_name= "pbr"
       }
   })
+  if self.followingId then
+    mySpec.intent= {
+      actuate_pose= self.poseName,
+      from_avatar= self.followingId
+    }
+  end
   return mySpec
 end
 
@@ -35,29 +42,28 @@ function BodyPart:setAvatar(avatarName)
 end
 
 function BodyPart:follow(avatar)
-  local spec = {
-    intent= {
-      actuate_pose= self.poseName,
-      from_avatar= avatar.id
-    }
-  }
-  self:updateComponents(spec)
+  self.followingId = avatar.id
+  if self:isAwake() then
+    self:updateComponents({self:specification().intent})
+  end
 end
 
 function BodyPart:updateOther(eid)
   local newSpec = {
     geometry= self:specification().geometry
   }
-  self.app.client:sendInteraction({
-    sender_entity_id = self.entity.id,
-    receiver_entity_id = "place",
-    body = {
-        "change_components",
-        eid,
-        "add_or_change", newSpec,
-        "remove", {}
-    }
-  })
+  if self.app and self.entity then
+    self.app.client:sendInteraction({
+      sender_entity_id = self.entity.id,
+      receiver_entity_id = "place",
+      body = {
+          "change_components",
+          eid,
+          "add_or_change", newSpec,
+          "remove", {}
+      }
+    })
+  end
 end
 
 class.AvatarChooser(EmbeddedApp)
@@ -67,6 +73,11 @@ function AvatarChooser:_init()
 end
 
 function AvatarChooser:createUI()
+  self.ui = self:_createUI()
+  return ui.View()
+end
+
+function AvatarChooser:_createUI()
   local root = ui.View(ui.Bounds(0, 0, 0,  0.3, 2, 0.3):rotate(3.14/4, 0,1,0):move(-1.6, 0, -1.4))
 
   local controls = ui.Surface(ui.Bounds(0, 0, 0,   1.3, 0.2, 0.02):rotate(-3.14/4, 1, 0, 0):move(0, 1.1, 0))
@@ -112,8 +123,15 @@ function AvatarChooser:createUI()
     ["hand/right"] = {},
   }
 
-
   return root
+end
+
+function AvatarChooser:setVisible(visible)
+  if visible and #self.app.mainView.subviews == 0 then
+    self.app.mainView:addSubview(self.ui)
+  elseif not visible and #self.app.mainView.subviews == 1 then
+    self.ui:removeFromSuperview()
+  end
 end
 
 function AvatarChooser:onComponentAdded(key, comp)
@@ -152,6 +170,8 @@ function AvatarChooser:onInteraction(interaction, body, receiver, sender)
         part:updateOther(other)
       end
     end
+  elseif body[1] == "setVisible" then
+    self:setVisible(body[2])
   end
 end
 
