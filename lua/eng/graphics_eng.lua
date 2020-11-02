@@ -64,6 +64,7 @@ function GraphicsEng:onDraw()
     local trans = entity.components.transform
     local m = trans:getMatrix()
     local geom = entity.components.geometry
+    local parent = optchain(entity, "components.relationships.parent")
     local text = entity.components.text
     local pose = entity.components.intent and entity.components.intent.actuate_pose or nil
     local model = self.models_for_eids[eid]
@@ -74,8 +75,8 @@ function GraphicsEng:onDraw()
     lovr.graphics.push()
     lovr.graphics.transform(m)
     if trans ~= nil and geom ~= nil and model ~= nil then
-      -- don't draw our own head, as it obscures the camera
-      if eid ~= self.parent.head_id then
+      -- don't draw our own head, as it obscures the camera. Also don't draw avatar if we're in overlay
+      if eid ~= self.parent.head_id and not self.isOverlayScene or parent ~= self.parent.avatar_id then
         -- special case avatars to get PBR shading and face them towards negative Z
         if pose ~= nil then 
           lovr.graphics.rotate(3.14, 0, 1, 0)
@@ -108,6 +109,7 @@ function GraphicsEng:drawOutlines()
     local trans = entity.components.transform
     local m = trans:getMatrix()
     local geom = entity.components.geometry
+    local parent = optchain(entity, "components.relationships.parent")
     local pose = entity.components.intent and entity.components.intent.actuate_pose or nil
     local model = self.models_for_eids[eid]
 
@@ -116,7 +118,7 @@ function GraphicsEng:drawOutlines()
     lovr.graphics.scale(1.04, 1.04, 1.04)
     if trans ~= nil and geom ~= nil and model ~= nil then
       -- don't draw our own head, as it obscures the camera
-      if eid ~= self.parent.head_id then
+      if eid ~= self.parent.head_id and not self.isOverlayScene or parent ~= self.parent.avatar_id then
         -- special case avatars to get PBR shading and face them towards negative Z
         if pose ~= nil then 
           lovr.graphics.rotate(3.14, 0, 1, 0)
