@@ -184,7 +184,7 @@ function NetworkScene:onDisconnect(code, message)
       engine.client = nil
     end
   end
-  local menu = lovr.scenes:showMainMenu()
+  local menu = lovr.scenes:transitionToMainMenu()
   menu:setMessage(message and message or "Disconnected.")
   print("disconnected.")
   self:die()
@@ -268,8 +268,7 @@ function NetworkScene:onUpdate(dt)
 
 
   if self.engines.pose:wasPressed("hand/right", "b") then
-    self:onDisconnect(0, "User disconnected")
-    -- todo: display menu instead
+    lovr.scenes:toggleMenuVisible()
   end
 end
 

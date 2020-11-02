@@ -12,7 +12,7 @@ local loader = require "lib.model-loader"
 local GraphicsEng = classNamed("GraphicsEng", Ent)
 function GraphicsEng:_init()
   self:super()
-  self.drawBackground = true
+  self.isOverlayScene = false
 end
 
 function GraphicsEng:onLoad()
@@ -48,7 +48,7 @@ function GraphicsEng:onDraw()
   lovr.graphics.setCullingEnabled(true)
   lovr.graphics.setColor(1,1,1)
   
-  if self.drawBackground then
+  if not self.isOverlayScene then
     lovr.graphics.setBackgroundColor(.3, .3, .40)
     lovr.graphics.skybox(self.cloudSkybox)
     lovr.graphics.setShader(self.basicShader)

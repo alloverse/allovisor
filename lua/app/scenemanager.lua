@@ -24,13 +24,23 @@ function SceneManager:showPlace(...)
     if self.net then
         self.net:onDisconnect(0, "Connected elsewhere")
     end
-    self.menu.net.engines.graphics.drawBackground = false
+    self.menu.net.engines.graphics.isOverlayScene = true
+    self:setMenuVisible(false)
     return self:_makeScene("net", ...)
 end
 
-function SceneManager:showMainMenu()
-    self.menu.net.engines.graphics.drawBackground = true
+function SceneManager:transitionToMainMenu()
+    self.menu.net.engines.graphics.isOverlayScene = false
+    self:setMenuVisible(true)
     return self.menu
+end
+
+function SceneManager:setMenuVisible(visible)
+    self.menu.visible = visible
+end
+
+function SceneManager:toggleMenuVisible()
+    self.menu.visible = not self.menu.visible
 end
 
 -- Create a scene of the name wanted, and insert it into the ent graph

@@ -14,6 +14,7 @@ local settings = require("lib.lovr-settings")
 function NetMenuScene:_init()
   self.sendQueue = {}
   self.apps = {}
+  self.visible = true
   settings.load()
   self:setupAvatars()
   self:updateDebugTitle()
@@ -28,6 +29,12 @@ function NetMenuScene:onLoad()
   local interactor = MenuInteractor()
   interactor.netmenu = self
   interactor:insert(self.net)
+end
+
+function NetMenuScene:onDraw()
+  if self.visible == false then
+    return route_terminate
+  end
 end
 
 function NetMenuScene:connect(url)
