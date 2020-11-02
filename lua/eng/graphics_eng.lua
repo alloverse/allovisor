@@ -46,7 +46,6 @@ end
 
 function GraphicsEng:onDraw() 
   lovr.graphics.setCullingEnabled(true)
-  lovr.graphics.setShader()
   lovr.graphics.setColor(1,1,1)
   
   if self.drawBackground then
@@ -54,14 +53,18 @@ function GraphicsEng:onDraw()
     lovr.graphics.skybox(self.cloudSkybox)
     lovr.graphics.setShader(self.basicShader)
     self:drawDecorations()
+  else
+    self:drawOutlines()
   end
+
+
+  lovr.graphics.setColor(1,1,1)
 
   for eid, entity in pairs(self.client.state.entities) do
     local trans = entity.components.transform
     local m = trans:getMatrix()
     local geom = entity.components.geometry
     local text = entity.components.text
-    local parent = entity.components.relationships and entity.components.relationships.parent or nil
     local pose = entity.components.intent and entity.components.intent.actuate_pose or nil
     local model = self.models_for_eids[eid]
     local shader = self.shaders_for_eids[eid]
@@ -95,6 +98,36 @@ function GraphicsEng:onDraw()
   -- end
 
   lovr.graphics.setColor({1,1,1})
+end
+
+function GraphicsEng:drawOutlines()
+  lovr.graphics.setShader(self.basicShader)
+  lovr.graphics.setDepthTest('lequal', false)
+  lovr.graphics.setColor(0,0,0, 0.5)
+  for eid, entity in pairs(self.client.state.entities) do
+    local trans = entity.components.transform
+    local m = trans:getMatrix()
+    local geom = entity.components.geometry
+    local pose = entity.components.intent and entity.components.intent.actuate_pose or nil
+    local model = self.models_for_eids[eid]
+
+    lovr.graphics.push()
+    lovr.graphics.transform(m)
+    lovr.graphics.scale(1.04, 1.04, 1.04)
+    if trans ~= nil and geom ~= nil and model ~= nil then
+      -- don't draw our own head, as it obscures the camera
+      if eid ~= self.parent.head_id then
+        -- special case avatars to get PBR shading and face them towards negative Z
+        if pose ~= nil then 
+          lovr.graphics.rotate(3.14, 0, 1, 0)
+        end
+        
+        model:draw()
+      end
+    end
+    lovr.graphics.pop()
+  end
+  lovr.graphics.setDepthTest('lequal', true)
 end
 
 function GraphicsEng:onMirror()
