@@ -102,6 +102,10 @@ function NetMenuScene:sendToApp(appname, body)
   })
 end
 
+function NetMenuScene:switchToMenu(which)
+  self:sendToApp("mainmenu", {"switchToMenu", which})
+end
+
 function MenuInteractor:onInteraction(interaction, body, receiver, sender)
   if body[1] == "menuapp_says_hello" then
     local appname = body[2]
@@ -112,6 +116,7 @@ function MenuInteractor:onInteraction(interaction, body, receiver, sender)
       end
       self.netmenu.sendQueue[appname] = nil
     end
+    self.netmenu:switchToMenu("main")
   end
   if body[1] ~= "menu_selection" then return end
   local appname = body[2]

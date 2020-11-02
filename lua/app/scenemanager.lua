@@ -26,11 +26,13 @@ function SceneManager:showPlace(...)
     end
     self.menu.net.engines.graphics.isOverlayScene = true
     self:setMenuVisible(false)
+    self.menu:switchToMenu("overlay")
     return self:_makeScene("net", ...)
 end
 
 function SceneManager:transitionToMainMenu()
     self.menu.net.engines.graphics.isOverlayScene = false
+    self.menu:switchToMenu("main")
     self:setMenuVisible(true)
     return self.menu
 end

@@ -70,6 +70,14 @@ function optchainf(obj, path, ...)
   end
 end
 
+function table:remove_value(value)
+  local idx = tablex.find(self, value)
+  if idx ~= -1 then
+    return table.remove(self, idx)
+  end
+  return nil
+end
+
 return {
   load_allonet = load_allonet
 }

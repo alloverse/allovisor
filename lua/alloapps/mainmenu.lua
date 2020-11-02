@@ -10,6 +10,27 @@ function Menu:_init()
 end
 
 function Menu:createUI()
+  self.menus = {
+    main= self:_createMain(),
+    overlay= self:_createOverlay()
+  }
+  return ui.View()
+end
+
+function Menu:switchToMenu(name)
+  if self.currentMenuName == name then return end
+
+  print("Switching to menu", name)
+  if self.currentMenu then
+    self.currentMenu:removeFromSuperview()
+  end
+  
+  self.currentMenu = self.menus[name]
+  self.currentMenuName = name
+  self.app.mainView:addSubview(self.currentMenu)
+end
+
+function Menu:_createMain()
   local plate = ui.Surface(ui.Bounds(0, 1.6, -2,   1.6, 1.2, 0.1))
   plate:setColor({1,1,1,1})
   local quitButton = ui.Button(ui.Bounds(0, -0.4, 0.01,     1.4, 0.2, 0.15))
@@ -41,11 +62,24 @@ function Menu:createUI()
   return plate
 end
 
+function Menu:_createOverlay()
+  local plate = ui.Surface(ui.Bounds(0, 1.6, -2,   1.6, 1.2, 0.1))
+  plate:setColor({1,1,1,1})
+  local quitButton = ui.Button(ui.Bounds(0, -0.4, 0.01,     1.4, 0.2, 0.15))
+  quitButton.label.text = "Quit!"
+  quitButton.onActivated = function() self:actuate({"quit"}) end
+  plate:addSubview(quitButton)
+
+  return plate
+end
+
 function Menu:onInteraction(interaction, body, receiver, sender)
   if body[1] == "updateDebugTitle" then
    self.debugButton.label:setText(body[2] and "Debug (On)" or "Debug (Off)")
   elseif body[1] == "updateMessage" then
     self.messageLabel:setText(body[2])
+  elseif body[1] == "switchToMenu" then
+    self:switchToMenu(body[2])
   end
 end
 
