@@ -1,3 +1,8 @@
+namespace = require "engine.namespace"
+namespace "standard"
+
+local stringx = require("pl.stringx")
+
 function load_allonet()
   -- load allonet from dll
   local os = lovr.getOS()    
@@ -48,6 +53,21 @@ function load_allonet()
   end
   print("allonet loaded", allonet)
   return allonet
+end
+
+function optchain(obj, path)
+  local parts = stringx.split(path, ".")
+  for _, part in ipairs(parts) do
+    obj = obj[part]
+    if not obj then return nil end
+  end
+  return obj
+end
+function optchainf(obj, path, ...)
+  local f = optchain(obj, path)
+  if f then
+    f(...)
+  end
 end
 
 return {

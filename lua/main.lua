@@ -36,7 +36,9 @@ do
 	require "engine.ent"
 	require "engine.common_ent"
 	require "engine.lovr"
-	require "engine.mode"
+  require "engine.mode"
+
+  require "util"
 
 	space.cpml = require "cpml" -- CPML classes missing? Add here:
 	for _,v in ipairs{"bound2", "bound3", "color", "utils"} do
@@ -45,7 +47,7 @@ do
 end
 
 namespace.prepare("alloverse", "standard", function(space)
-  
+
 end)
 
 -- Ent driver
