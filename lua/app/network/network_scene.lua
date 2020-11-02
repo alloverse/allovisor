@@ -184,13 +184,14 @@ function NetworkScene:onDisconnect(code, message)
       engine.client = nil
     end
   end
-  local menu = lovr.scenes:create("menu")
+  local menu = lovr.scenes:showMainMenu()
   menu:setMessage(message and message or "Disconnected.")
   print("disconnected.")
   self:die()
 end
 
 function NetworkScene:onDraw(isMirror)
+  lovr.graphics.push()
   drawMode()
 
   lovr.graphics.setCullingEnabled(true)
@@ -238,6 +239,10 @@ function NetworkScene:onDraw(isMirror)
   end
 end
 
+function NetworkScene:after_onDraw()
+  lovr.graphics.pop()
+end
+
 function NetworkScene:onUpdate(dt)
   if self.client ~= nil then
     self.client:poll(1.0/40.0)
@@ -263,7 +268,7 @@ function NetworkScene:onUpdate(dt)
 
 
   if self.engines.pose:wasPressed("hand/right", "b") then
-    self:onDisconnect()
+    self:onDisconnect(0, "User disconnected")
     -- todo: display menu instead
   end
 end

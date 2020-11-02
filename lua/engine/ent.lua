@@ -60,6 +60,10 @@ function Ent:route(key, ...)
 			v:route(key, ...)
 		end
 	end
+	local postKey = "after_"..key
+	if self[postKey] then
+		self[postKey](self, ...)
+	end
 end
 
 -- Call with a parent object and the object will be inserted into the entity tree at that point
@@ -147,6 +151,10 @@ function OrderedEnt:route(key, ...) -- TODO: Repetitive with Ent:route()?
 			local v = self.kids[id]
 			if v then v:route(key, ...) end
 		end
+	end
+	local postKey = "after_"..key
+	if self[postKey] then
+		self[postKey](self, ...)
 	end
 end
 

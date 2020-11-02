@@ -5,7 +5,7 @@ local SceneClasses = {
     stats = require("app.debug.stats"),
     controls = require("app.test.controlsOverlay"),
 }
-local sceneOrder = {"menu", "net", "stats", "controls"}
+local sceneOrder = {"net", "menu", "stats", "controls"}
 
 -- This scene manages the main scenes in the app, to make
 -- sure things render in the correct order. 
@@ -16,12 +16,25 @@ function SceneManager:_init()
     self:super()
 
     for _, k in ipairs({"menu", "stats", "controls"}) do
-        self:create(k)
+        self:_makeScene(k)
     end
 end
 
+function SceneManager:showPlace(...)
+    if self.net then
+        self.net:onDisconnect(0, "Connected elsewhere")
+    end
+    self.menu.net.engines.graphics.drawBackground = false
+    return self:_makeScene("net", ...)
+end
+
+function SceneManager:showMainMenu()
+    self.menu.net.engines.graphics.drawBackground = true
+    return self.menu
+end
+
 -- Create a scene of the name wanted, and insert it into the ent graph
-function SceneManager:create(name, ...)
+function SceneManager:_makeScene(name, ...)
     print("Spawning ", name, "scene with", ...)
     self[name] = SceneClasses[name](...)
     self:_organize()

@@ -35,9 +35,8 @@ function NetMenuScene:connect(url)
   settings.save()
 
   local displayName = settings.d.username and settings.d.username or "Unnamed"
-  local net = lovr.scenes:create("net", displayName, url, settings.d.avatarName, settings.d.avatarName)
+  local net = lovr.scenes:showPlace(displayName, url, settings.d.avatarName, settings.d.avatarName)
   net.debug = settings.d.debug
-  self:die()
 end
 
 function NetMenuScene:setupAvatars()

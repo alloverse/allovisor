@@ -12,6 +12,7 @@ local loader = require "lib.model-loader"
 local GraphicsEng = classNamed("GraphicsEng", Ent)
 function GraphicsEng:_init()
   self:super()
+  self.drawBackground = true
 end
 
 function GraphicsEng:onLoad()
@@ -44,21 +45,16 @@ function GraphicsEng:onLoad()
 end
 
 function GraphicsEng:onDraw() 
-  lovr.graphics.setBackgroundColor(.3, .3, .40)
-  lovr.graphics.setColor(1,1,1)
-
-  lovr.graphics.setShader()
-
-  lovr.graphics.skybox(self.cloudSkybox)
-
-  lovr.graphics.setShader(self.basicShader)
-
-  
   lovr.graphics.setCullingEnabled(true)
-
+  lovr.graphics.setShader()
+  lovr.graphics.setColor(1,1,1)
   
-  -- Draws plane & decorates it with trees
-  self:drawDecorations()
+  if self.drawBackground then
+    lovr.graphics.setBackgroundColor(.3, .3, .40)
+    lovr.graphics.skybox(self.cloudSkybox)
+    lovr.graphics.setShader(self.basicShader)
+    self:drawDecorations()
+  end
 
   for eid, entity in pairs(self.client.state.entities) do
     local trans = entity.components.transform
