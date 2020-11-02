@@ -56,17 +56,19 @@ function load_allonet()
 end
 
 function optchain(obj, path)
+  local prevObj = nil
   local parts = stringx.split(path, ".")
   for _, part in ipairs(parts) do
+    prevObj = obj
     obj = obj[part]
     if not obj then return nil end
   end
-  return obj
+  return obj, prevObj
 end
 function optchainf(obj, path, ...)
-  local f = optchain(obj, path)
+  local f, self = optchain(obj, path)
   if f then
-    f(...)
+    f(self, ...)
   end
 end
 

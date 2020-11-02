@@ -154,6 +154,7 @@ function NetworkScene:onInteraction(interaction, body, receiver, sender)
     local avatar_id = body[2]
     local place_name = body[3]
     print("Welcome to", place_name, ". You are", avatar_id)
+    optchainf(self, "parent.onNetConnected", place_name)
     self.avatar_id = avatar_id
     self:lookForHead()
   end

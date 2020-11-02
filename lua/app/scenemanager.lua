@@ -49,6 +49,10 @@ function SceneManager:toggleMenuVisible()
     self:setMenuVisible(not self.menu.visible)
 end
 
+function SceneManager:onNetConnected(placeName)
+    self.menu:setMessage("Connected to", placeName)
+end
+
 -- Create a scene of the name wanted, and insert it into the ent graph
 function SceneManager:_makeScene(name, ...)
     print("Spawning ", name, "scene with", ...)

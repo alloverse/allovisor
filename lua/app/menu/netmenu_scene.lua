@@ -63,6 +63,14 @@ function NetMenuScene:quit(url)
   lovr.event.quit(0)
 end
 
+function NetMenuScene:dismiss()
+  self.parent:setMenuVisible(false)
+end
+
+function NetMenuScene:disconnect()
+  self.parent.net:onDisconnect()
+end
+
 function NetMenuScene:toggleDebug(sender)
   settings.d.debug = not settings.d.debug
   settings:save()
