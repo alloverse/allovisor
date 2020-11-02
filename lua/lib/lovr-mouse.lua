@@ -48,7 +48,7 @@ local window = C.glfwGetCurrentContext()
 
 local mouse = {}
 
--- LÖVR uses framebuffer scale for everything, but glfw uses window scale for events.
+-- Lï¿½VR uses framebuffer scale for everything, but glfw uses window scale for events.
 -- It is necessary to convert between the two at all boundaries.
 function mouse.getScale()
   local x, _ = ffi.new('int[1]'), ffi.new('int[1]')
@@ -105,6 +105,12 @@ function mouse.setRelativeMode(enable)
   C.glfwSetInputMode(window, C.GLFW_CURSOR, enable and C.GLFW_CURSOR_DISABLED or C.GLFW_CURSOR_NORMAL)
 end
 
+function mouse.setHidden(hidden)
+  C.glfwSetInputMode(window, C.GLFW_CURSOR, hidden and C.GLFW_CURSOR_HIDDEN or C.GLFW_CURSOR_NORMAL)
+end
+
+
+
 function mouse.newCursor(source, hotx, hoty)
   if type(source) == 'string' or tostring(source) == 'Blob' then
     source = lovr.data.newTextureData(source, false)
@@ -122,7 +128,7 @@ function mouse.getSystemCursor(kind)
     crosshair = C.GLFW_CROSSHAIR_CURSOR,
     hand = C.GLFW_HAND_CURSOR,
     sizewe = C.GLFW_HRESIZE_CURSOR,
-    sizens = C.GLFW_VRESIZE_CURSOR
+    sizens = C.GLFW_VRESIZE_CURSOR,
   }
   assert(kinds[kind], string.format('Unknown cursor %q', tostring(kind)))
   return C.glfwCreateStandardCursor(kinds[kind])

@@ -113,6 +113,9 @@ function lovr.load()
           currentCursorName = newCursorName
         end
       end,
+      setHidden = function(hidden)
+        mouse.setHidden(hidden)
+      end
     }
   end
 
@@ -198,6 +201,9 @@ end
 
 function lovr.focus(focused)
   ent.root:route("onFocus", focused)
+  if focused then
+    lovr.mouse.setHidden(true)
+  end
 end
 
 
