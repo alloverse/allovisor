@@ -13,7 +13,7 @@ local engines = {
   PhysicsEng = require "eng.physics_eng",
   TextEng = require "eng.text_eng",
 }
-local OverlayMenuScene = require "app.menu.overlay_menu_scene"
+
 require "lib.allostring"
 local util = require "util"
 allonet = util.load_allonet()
