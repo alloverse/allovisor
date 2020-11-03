@@ -149,6 +149,7 @@ function PoseEng:onLoad()
 end
 
 function PoseEng:onUpdate(dt)
+  if self.active == false then return end
   if self.client == nil then return end
   
   if lovr.mouse then
@@ -309,10 +310,20 @@ function PoseEng:updateMouse()
   local isOutOfBounds = x < 0 or y < 0 or x > w or y > h
   if self.isFocused == false or (self.mouseIsDown == false and isOutOfBounds) then
     self.mouseInWorld = nil
-    self.mouseMode = "move"
+    --self.mouseMode = "move"
     self.mouseIsDown = false
     return
   end
+
+  -- if (x ~= self.fakeMousePos.x) and self.fakeMousePos.x ~= 0 then
+  --   print("===============================")
+  --   print("x                     ", x)
+  --   print("self.fakeMousePos.x   ", self.fakeMousePos.x)
+  --   print("y                     ", y)
+  --   print("self.fakeMousePos.y   ", self.fakeMousePos.y)
+  --   print("self.mouseMode        ", self.mouseMode)
+  --   print("self.mouseIsDown      ", self.mouseIsDown)
+  -- end
 
   if self.mouseMode == "move" and self.mouseIsDown then
     -- make it look like cursor is fixed in place, since lovr-mouse fakes relative movement by hiding cursor
@@ -340,7 +351,6 @@ function PoseEng:updateMouse()
   if self.mouseMode == "move" and not mouseIsDown then
     lovr.mouse.setRelativeMode(false)
   end
-
 
   if self.mouseIsDown and self.mouseMode == "move" then
     local newMousePos = lovr.math.vec2(x, y)
