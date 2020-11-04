@@ -52,6 +52,11 @@ function AppChooser:_init()
 end
 
 function AppChooser:createUI()
+  self.ui = self:_createUI()
+  return ui.View()
+end
+
+function AppChooser:_createUI()
   local root = ui.View(ui.Bounds(0, 0, 0,  0.3, 2, 0.3):rotate(-3.14/4, 0,1,0):move(1.6, 0, -1.4))
 
   local controls = ui.Surface(ui.Bounds(0, -0.1, 0,   1.3, 0.4, 0.02):rotate(-3.14/4, 1, 0, 0):move(0, 1.1, 0))
@@ -93,6 +98,14 @@ function AppChooser:createUI()
   return root
 end
 
+function AppChooser:setVisible(visible)
+  if visible and #self.app.mainView.subviews == 0 then
+    self.app.mainView:addSubview(self.ui)
+  elseif not visible and #self.app.mainView.subviews == 1 then
+    self.ui:removeFromSuperview()
+  end
+end
+
 
 function AppChooser:stepThroughAppList(direction)
   local newI = ((self.appListIndex + direction - 1) % #self.appList) + 1
@@ -111,6 +124,13 @@ function AppChooser:launchSelectedApp()
   local appToPreview = self.appList[self.appListIndex]
   self:actuate({"launchApp", appToPreview.modelname})
 end
+
+function AppChooser:onInteraction(interaction, body, receiver, sender)
+  if body[1] == "setVisible" then
+    self:setVisible(body[2])
+  end
+end
+
 
 
 return AppChooser

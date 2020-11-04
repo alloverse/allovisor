@@ -115,6 +115,7 @@ function NetMenuScene:switchToMenu(which)
   self:sendToApp("mainmenu", {"switchToMenu", which})
   -- avatar chooser only available in main menu
   self:sendToApp("avatarchooser", {"setVisible", which == "main"})
+  self:sendToApp("appchooser", {"setVisible", which ~= "main"})
 end
 
 function NetMenuScene:launchApp(appName)
