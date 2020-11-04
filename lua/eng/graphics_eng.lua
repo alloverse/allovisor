@@ -34,6 +34,9 @@ function GraphicsEng:onLoad()
   local greenTex = lovr.graphics.newTexture("assets/textures/green.png", {})
   self.greenMat = lovr.graphics.newMaterial(greenTex, 1, 1, 1, 1)
 
+  local menuplateTex = lovr.graphics.newTexture("assets/textures/menuplate.png", {})
+  self.menuplateMat = lovr.graphics.newMaterial(menuplateTex, 1, 1, 1, 1)
+
   self.houseAssets = {}
   local houseAssetNames = lovr.filesystem.getDirectoryItems("assets/models/house")
   for i, name in ipairs(houseAssetNames) do
@@ -309,31 +312,44 @@ function base64decode(data)
 end
 
 function GraphicsEng:drawDecorations()
-  -- "Floorplate"
-  lovr.graphics.circle( 
-    self.greenMat,
-    0, 0, 0, -- x y z
-    12,  -- radius
-    -3.14/2, -- angle around axis of rotation
-    1, 0, 0 -- rotation axis (x, y, z)
-  )
-  
-  local forestModel = self.hardcoded_models.forest
-  if forestModel then
-    forestModel:draw(0, .5, -10, 2, 0, 0, 1, 0, 1)
-    forestModel:draw(4, .5, -8, 2, 5, 0, 1, 0, 1)
-    forestModel:draw(8, .5, -4, 2, 0, 0, 1, 0, 1)
-    forestModel:draw(10, .5, 0, 2, 1, 0, 1, 0, 1)
+  local place = self.client.state.entities["place"]
+  local deco = optchain(place.components, "decorations.type")
 
-    forestModel:draw(8, .5, 4, 2, 0, 0, 1, 0, 1)
-    forestModel:draw(4, .5, 8, 2, 2, 0, 1, 0, 1)
-    forestModel:draw(0, .5, 10, 2, 0, 0, 1, 0, 1)
-    forestModel:draw(-4, .5, 8, 2, 3, 0, 1, 0, 1)
+  if deco == "mainmenu" then
+    lovr.graphics.circle( 
+      self.menuplateMat,
+      0, 0, 0, -- x y z
+      12,  -- radius
+      -3.14/2, -- angle around axis of rotation
+      1, 0, 0 -- rotation axis (x, y, z)
+    )
+  else
+    -- "Floorplate"
+    lovr.graphics.circle( 
+      self.greenMat,
+      0, 0, 0, -- x y z
+      12,  -- radius
+      -3.14/2, -- angle around axis of rotation
+      1, 0, 0 -- rotation axis (x, y, z)
+    )
+    
+    local forestModel = self.hardcoded_models.forest
+    if forestModel then
+      forestModel:draw(0, .5, -10, 2, 0, 0, 1, 0, 1)
+      forestModel:draw(4, .5, -8, 2, 5, 0, 1, 0, 1)
+      forestModel:draw(8, .5, -4, 2, 0, 0, 1, 0, 1)
+      forestModel:draw(10, .5, 0, 2, 1, 0, 1, 0, 1)
 
-    forestModel:draw(-8, .5, 4, 2, 1, 0, 1, 0, 1)
-    forestModel:draw(-10, .5, 0, 2,  3, 0, 1, 0, 1)
-    forestModel:draw(-8, .5, -4, 2,  4, 0, 1, 0, 1)
-    forestModel:draw(-4, .5, -8, 2,   0, 0, 1, 0, 1)
+      forestModel:draw(8, .5, 4, 2, 0, 0, 1, 0, 1)
+      forestModel:draw(4, .5, 8, 2, 2, 0, 1, 0, 1)
+      forestModel:draw(0, .5, 10, 2, 0, 0, 1, 0, 1)
+      forestModel:draw(-4, .5, 8, 2, 3, 0, 1, 0, 1)
+
+      forestModel:draw(-8, .5, 4, 2, 1, 0, 1, 0, 1)
+      forestModel:draw(-10, .5, 0, 2,  3, 0, 1, 0, 1)
+      forestModel:draw(-8, .5, -4, 2,  4, 0, 1, 0, 1)
+      forestModel:draw(-4, .5, -8, 2,   0, 0, 1, 0, 1)
+    end
   end
 
   for name, model in pairs(self.houseAssets) do
