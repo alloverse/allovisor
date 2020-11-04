@@ -117,6 +117,20 @@ function NetMenuScene:switchToMenu(which)
   self:sendToApp("avatarchooser", {"setVisible", which == "main"})
 end
 
+function NetMenuScene:launchApp(appName)
+  local net = self.parent.net
+  if net == nil then return end
+  
+  net.client:sendInteraction({
+    sender_entity_id = net.avatarId,
+    receiver_entity_id = "place",
+    body = {
+        "launch_app",
+        appName
+    }
+  })
+end
+
 function MenuInteractor:onInteraction(interaction, body, receiver, sender)
   if body[1] == "menuapp_says_hello" then
     local appname = body[2]

@@ -74,8 +74,8 @@ function AppChooser:createUI()
   controls:addSubview(self.nextButton)
 
   self.addButton = ui.Button(ui.Bounds(0, -0.1, 0.01,     1.25, 0.15, 0.05))
-  self.addButton.label.text = "Add"
-  self.addButton.onActivated = function() self:addApp() end
+  self.addButton.label.text = "Launch"
+  self.addButton.onActivated = function() self:launchSelectedApp() end
   controls:addSubview(self.addButton)
 
   self.appPreview = AppPreview(ui.Bounds( 0.0, 1.80, 0.0,   0.2, 0.2, 0.2), "dummy-model", "dummy name")
@@ -105,6 +105,11 @@ function AppChooser:setActivePreview(newI)
   self.appPreview:setModelName(appToPreview.modelname)
   self.nameLabel:setText(appToPreview.name)
   self.appListIndex = newI
+end
+
+function AppChooser:launchSelectedApp()
+  local appToPreview = self.appList[self.appListIndex]
+  self:actuate({"launchApp", appToPreview.modelname})
 end
 
 
