@@ -12,7 +12,6 @@ local loader = require "lib.model-loader"
 local GraphicsEng = classNamed("GraphicsEng", Ent)
 function GraphicsEng:_init()
   self:super()
-  self.isOverlayScene = false
 end
 
 function GraphicsEng:onLoad()
@@ -48,7 +47,7 @@ function GraphicsEng:onDraw()
   lovr.graphics.setCullingEnabled(true)
   lovr.graphics.setColor(1,1,1)
   
-  if not self.isOverlayScene then
+  if not self.parent.isOverlayScene then
     lovr.graphics.setBackgroundColor(.3, .3, .40)
     lovr.graphics.skybox(self.cloudSkybox)
     lovr.graphics.setShader(self.basicShader)
@@ -124,7 +123,7 @@ function GraphicsEng:drawOutlines()
     lovr.graphics.scale(1.04, 1.04, 1.04)
     if trans ~= nil and geom ~= nil and model ~= nil then
       -- don't draw our own head, as it obscures the camera
-      if eid ~= self.parent.head_id and not self.isOverlayScene or parent ~= self.parent.avatar_id then
+      if eid ~= self.parent.head_id and not self.parent.isOverlayScene or parent ~= self.parent.avatar_id then
         -- special case avatars to get PBR shading and face them towards negative Z
         if pose ~= nil then 
           lovr.graphics.rotate(3.14, 0, 1, 0)

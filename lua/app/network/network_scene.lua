@@ -81,6 +81,7 @@ function NetworkScene:_init(displayName, url, avatarName)
   self.client = Client(url, displayName, threadedClient)
   
   self.active = true
+  self.isOverlayScene = false
   self.head_id = ""
   self.client.delegates = {
     onStateChanged = function() self:route("onStateChanged") end,
@@ -269,7 +270,7 @@ function NetworkScene:onUpdate(dt)
   end
 
 
-  if self.engines.pose:wasPressed("hand/right", "b") and (not self.isMenu or self.engines.graphics.isOverlayScene) then
+  if self.engines.pose:wasPressed("hand/right", "b") and (not self.isMenu or self.isOverlayScene) then
     lovr.scenes:toggleMenuVisible()
   end
 end

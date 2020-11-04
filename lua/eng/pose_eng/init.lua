@@ -385,6 +385,11 @@ function PoseEng:updateIntent()
   if math.abs(tx) < 0.5 and self.didTurn then
     self.didTurn = false
   end
+
+  -- not allowed to walk around in the overlay menu
+  if self.parent.isOverlayScene then
+    mx = 0; my = 0; tx = 0; ty = 0
+  end
   
   local intent = {
     entity_id = self.client.avatar_id,

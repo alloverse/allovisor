@@ -24,14 +24,14 @@ function SceneManager:showPlace(...)
     if self.net then
         self.net:onDisconnect(0, "Connected elsewhere")
     end
-    self.menu.net.engines.graphics.isOverlayScene = true
+    self.menu.net.isOverlayScene = true
     self:setMenuVisible(false)
     self.menu:switchToMenu("overlay")
     return self:_makeScene("net", ...)
 end
 
 function SceneManager:transitionToMainMenu()
-    self.menu.net.engines.graphics.isOverlayScene = false
+    self.menu.net.isOverlayScene = false
     self.menu:switchToMenu("main")
     self:setMenuVisible(true)
     return self.menu
