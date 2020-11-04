@@ -176,6 +176,19 @@ function NetworkScene:getHead()
   return self.state.entities[self.head_id]
 end
 
+function NetworkScene:moveToOrigin()
+  self.client:sendInteraction({
+    type = "request",
+    receiver_entity_id = "place",
+    body = {"change_components", self.avatar_id, "add_or_change", {
+      transform= {
+        matrix={lovr.math.mat4():unpack(true)}
+      }
+    }, "remove", {}}
+  })
+  self.engines.pose.yaw = 0.00001
+end
+
 function NetworkScene:onDisconnect(code, message)
   print("disconnecting...")
   if self.client then

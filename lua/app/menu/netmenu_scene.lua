@@ -122,7 +122,6 @@ function NetMenuScene:launchApp(appName)
   if net == nil then return end
   
   net.client:sendInteraction({
-    sender_entity_id = net.avatarId,
     receiver_entity_id = "place",
     body = {
         "launch_app",

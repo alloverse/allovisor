@@ -40,6 +40,7 @@ end
 function SceneManager:setMenuVisible(visible)
     self.menu.visible = visible
     self.menu.net.active = visible
+    self.menu.net:moveToOrigin()
     if self.net then
         self.net.active = not visible
     end
