@@ -59,9 +59,9 @@ function optchain(obj, path)
   local prevObj = nil
   local parts = stringx.split(path, ".")
   for _, part in ipairs(parts) do
+    if not obj then return nil end
     prevObj = obj
     obj = obj[part]
-    if not obj then return nil end
   end
   return obj, prevObj
 end

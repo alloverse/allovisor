@@ -313,7 +313,7 @@ end
 
 function GraphicsEng:drawDecorations()
   local place = self.client.state.entities["place"]
-  local deco = optchain(place.components, "decorations.type")
+  local deco = optchain(place, "components.decorations.type")
 
   if deco == "mainmenu" then
     lovr.graphics.circle( 
