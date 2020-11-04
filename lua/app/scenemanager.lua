@@ -39,9 +39,9 @@ end
 
 function SceneManager:setMenuVisible(visible)
     self.menu.visible = visible
-    self.menu.net.engines.pose.active = visible
+    self.menu.net.active = visible
     if self.net then
-        self.net.engines.pose.active = not visible
+        self.net.active = not visible
     end
 end
 

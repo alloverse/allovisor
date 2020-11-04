@@ -57,48 +57,54 @@ function GraphicsEng:onDraw()
     self:drawOutlines()
   end
 
-
   lovr.graphics.setColor(1,1,1)
 
   for eid, entity in pairs(self.client.state.entities) do
+    lovr.graphics.push()
+
     local trans = entity.components.transform
     local m = trans:getMatrix()
-    local geom = entity.components.geometry
-    local parent = optchain(entity, "components.relationships.parent")
-    local text = entity.components.text
-    local pose = entity.components.intent and entity.components.intent.actuate_pose or nil
-    local model = self.models_for_eids[eid]
-    local shader = self.shaders_for_eids[eid]
-    local mat = self.materials_for_eids[eid]
-    if shader == nil then shader = self.basicShader end
-
-    lovr.graphics.push()
     lovr.graphics.transform(m)
-    if trans ~= nil and geom ~= nil and model ~= nil then
-      -- don't draw our own head, as it obscures the camera. Also don't draw avatar if we're in overlay
-      if eid ~= self.parent.head_id and not self.isOverlayScene or parent ~= self.parent.avatar_id then
-        -- special case avatars to get PBR shading and face them towards negative Z
-        if pose ~= nil then 
-          lovr.graphics.rotate(3.14, 0, 1, 0)
-        end
-        if mat and mat:getColor() ~= nil then
-          lovr.graphics.setColor(mat:getColor())
-        else
-          lovr.graphics.setColor(1,1,1,1)
-        end
-        lovr.graphics.setShader(shader)
-        model:draw()
-      end
-    end
+    self:_drawEntity(entity)
+
     lovr.graphics.pop()
   end
 
-  -- for _, ray in ipairs(self.parent.engines.pose.handRays) do
-  --   lovr.graphics.setColor(ray:getColor())
-  --   lovr.graphics.line(ray.from, ray.to)
-  -- end
-
   lovr.graphics.setColor({1,1,1})
+end
+
+function GraphicsEng:_drawEntity(entity)
+  local geom = entity.components.geometry
+  local parent = optchain(entity, "components.relationships.parent")
+  local model = self.models_for_eids[entity.id]
+  
+  if geom == nil or model == nil then
+    return
+  end
+
+  -- don't draw our own head, as it obscures the camera. Also don't draw avatar if we're in overlay
+  if entity.id == self.parent.head_id or (not self.parent.active and parent == self.parent.avatar_id) then
+    return
+  end
+
+  -- special case avatars to get PBR shading and face them towards negative Z
+  local pose = optchain(entity, "components.intent.actuate_pose")
+  if pose ~= nil then 
+    lovr.graphics.rotate(3.14, 0, 1, 0)
+  end
+
+  local mat = self.materials_for_eids[entity.id]
+  if mat and mat:getColor() ~= nil then
+    lovr.graphics.setColor(mat:getColor())
+  else
+    lovr.graphics.setColor(1,1,1,1)
+  end
+
+  local shader = self.shaders_for_eids[entity.id]
+  if shader == nil then shader = self.basicShader end
+  lovr.graphics.setShader(shader)
+
+  model:draw()
 end
 
 function GraphicsEng:drawOutlines()

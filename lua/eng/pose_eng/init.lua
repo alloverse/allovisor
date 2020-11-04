@@ -24,7 +24,6 @@ function HandRay:_init()
   self.hand = nil -- hand entity
   self.grabber_from_entity_transform = lovr.math.newMat4()
   self.rayLength = 1
-  self.active = true
 
   local cursorTexture = lovr.graphics.newTexture("assets/textures/cursor.png", {})
   self.cursorMaterial = lovr.graphics.newMaterial(cursorTexture)
@@ -149,7 +148,7 @@ function PoseEng:onLoad()
 end
 
 function PoseEng:onUpdate(dt)
-  if self.active == false then return end
+  if self.parent.active == false then return end
   if self.client == nil then return end
   
   if lovr.mouse then
@@ -169,8 +168,10 @@ function PoseEng:onDraw()
   self.mvp:mul(view)
   self.mvp:mul(self.parent.transform) -- todo use lovr.graphics.getTransform when it exists
 
-  for _, ray in ipairs(self.handRays) do
-    ray:draw()
+  if self.parent.active then
+    for _, ray in ipairs(self.handRays) do
+      ray:draw()
+    end
   end
 
   -- if lovr.mouse and self.mouseInWorld then
@@ -181,7 +182,7 @@ end
 
 
 function PoseEng:getAxis(device, axis)
-  if self.active == false then return 0.0, 0.0 end
+  if self.parent.active == false then return 0.0, 0.0 end
 
   local x, y = 0, 0
   if lovr.headset then
@@ -213,7 +214,7 @@ function PoseEng:getAxis(device, axis)
 end
 
 function PoseEng:isDown(device, button)
-  if self.active == false then return false end
+  if self.parent.active == false then return false end
   
   local down = false
   if lovr.headset then
@@ -226,7 +227,7 @@ function PoseEng:isDown(device, button)
 end
 
 function PoseEng:wasPressed(device, button)
-  if self.active == false then return false end
+  if self.parent.active == false then return false end
   local down = false
   if lovr.headset then
     down = lovr.headset.wasPressed(device, button)

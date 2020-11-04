@@ -80,6 +80,7 @@ function NetworkScene:_init(displayName, url, avatarName)
   local threadedClient = allonet.create(true)
   self.client = Client(url, displayName, threadedClient)
   
+  self.active = true
   self.head_id = ""
   self.client.delegates = {
     onStateChanged = function() self:route("onStateChanged") end,
