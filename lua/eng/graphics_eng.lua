@@ -60,19 +60,15 @@ function GraphicsEng:onDraw()
 
   for eid, entity in pairs(self.client.state.entities) do
     lovr.graphics.push()
-
-    local trans = entity.components.transform
-    local m = trans:getMatrix()
-    lovr.graphics.transform(m)
-    self:_drawEntity(entity)
-
+    lovr.graphics.transform(entity.components.transform:getMatrix())
+    self:_drawEntity(entity, true)
     lovr.graphics.pop()
   end
 
   lovr.graphics.setColor({1,1,1})
 end
 
-function GraphicsEng:_drawEntity(entity)
+function GraphicsEng:_drawEntity(entity, applyShader)
   local geom = entity.components.geometry
   local parent = optchain(entity, "components.relationships.parent")
   local model = self.models_for_eids[entity.id]
@@ -92,16 +88,18 @@ function GraphicsEng:_drawEntity(entity)
     lovr.graphics.rotate(3.14, 0, 1, 0)
   end
 
-  local mat = self.materials_for_eids[entity.id]
-  if mat and mat:getColor() ~= nil then
-    lovr.graphics.setColor(mat:getColor())
-  else
-    lovr.graphics.setColor(1,1,1,1)
-  end
+  if applyShader then
+    local mat = self.materials_for_eids[entity.id]
+    if mat and mat:getColor() ~= nil then
+      lovr.graphics.setColor(mat:getColor())
+    else
+      lovr.graphics.setColor(1,1,1,1)
+    end
 
-  local shader = self.shaders_for_eids[entity.id]
-  if shader == nil then shader = self.basicShader end
-  lovr.graphics.setShader(shader)
+    local shader = self.shaders_for_eids[entity.id]
+    if shader == nil then shader = self.basicShader end
+    lovr.graphics.setShader(shader)
+  end
 
   model:draw()
 end
@@ -111,27 +109,10 @@ function GraphicsEng:drawOutlines()
   lovr.graphics.setDepthTest('lequal', false)
   lovr.graphics.setColor(0,0,0, 0.5)
   for eid, entity in pairs(self.client.state.entities) do
-    local trans = entity.components.transform
-    local m = trans:getMatrix()
-    local geom = entity.components.geometry
-    local parent = optchain(entity, "components.relationships.parent")
-    local pose = entity.components.intent and entity.components.intent.actuate_pose or nil
-    local model = self.models_for_eids[eid]
-
     lovr.graphics.push()
-    lovr.graphics.transform(m)
+    lovr.graphics.transform(entity.components.transform:getMatrix())
     lovr.graphics.scale(1.04, 1.04, 1.04)
-    if trans ~= nil and geom ~= nil and model ~= nil then
-      -- don't draw our own head, as it obscures the camera
-      if eid ~= self.parent.head_id and not self.parent.isOverlayScene or parent ~= self.parent.avatar_id then
-        -- special case avatars to get PBR shading and face them towards negative Z
-        if pose ~= nil then 
-          lovr.graphics.rotate(3.14, 0, 1, 0)
-        end
-        
-        model:draw()
-      end
-    end
+    self:_drawEntity(entity, false)
     lovr.graphics.pop()
   end
   lovr.graphics.setDepthTest('lequal', true)
