@@ -249,6 +249,12 @@ function ui2.AlloCustomLayout:layout(relayout)
     elseif e.id == "grablabel" then
       bound = bound2(vec2(.8+leftedge, bottomedge-labelHeight/2), vec2(.8+leftedge+buttonWidth, bottomedge-labelHeight/2+labelHeight))
 
+	-- menu
+	elseif e.id == "r" then
+		bound = bound2(vec2(1.2+leftedge, bottomedge-labelHeight/2+labelHeight+labelSpacing), vec2(1.2+leftedge+buttonWidth, bottomedge-labelHeight/2+buttonHeight+labelHeight+labelSpacing))
+	elseif e.id == "menulabel" then
+		bound = bound2(vec2(1.2+leftedge, bottomedge-labelHeight/2), vec2(1.2+leftedge+buttonWidth, bottomedge-labelHeight/2+labelHeight))
+
     -- mouse
     elseif e.id == "dummyMouse" then
       bound = bound2(vec2(rightedge-dummyMouseRightMargin-dummyMouseWidth, bottomedge-labelHeight/2+labelHeight+labelSpacing), vec2(rightedge-dummyMouseRightMargin, bottomedge-labelHeight/2+labelHeight+labelSpacing+dummyMouseHeight))

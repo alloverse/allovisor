@@ -26,7 +26,11 @@ function ControlsOverlay:onLoad()
     ui2.AlloKeyEnt{id="d",label="D", onButton = function()
       self:onKeyPress("d")
     end},
+    ui2.AlloKeyEnt{id="r",label="R", onButton = function()
+      self:onKeyPress("r")
+    end},
     ui2.AlloLabelUiEnt{id="movelabel", label="Move"},
+    ui2.AlloLabelUiEnt{id="menulabel", label="Menu"},
 
     
     -- Close button
