@@ -201,8 +201,8 @@ end
 
 function lovr.focus(focused)
   ent.root:route("onFocus", focused)
-  if focused then
-    lovr.mouse.setHidden(true)
+  if lovr.mouse then
+    lovr.mouse.setHidden(focused)
   end
 end
 
