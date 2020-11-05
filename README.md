@@ -12,7 +12,7 @@ with, and easier to extend with low level functionality.
 
 #### Xcode project
 
-1. Install CMake 3.13.0 or newer
+1. Install CMake 3.18.4 or newer
 2. `mkdir build && cd build && cmake -GXcode ..` to prepare to build
 3. `open allovisor.xcodeproj`
 4. Build and run the Alloverse target
