@@ -55,17 +55,39 @@ end)
 namespace "standard"
 local flat = require "engine.flat"
 
+local loadCo = nil
 function lovr.load()
   print("lovr.load()")
+  loadCo = coroutine.create(_asyncLoad)
+end
+function _asyncLoad()
+  function check(threadname)
+    local deadline = lovr.timer.getTime() + 2
+    local chan = lovr.thread.getChannel(threadname)
+    while lovr.timer.getTime() < deadline do
+      local m = chan:pop()
+      if m == "booted" then
+        return true
+      end
+      coroutine.yield()
+    end
+    error(channelName.." didn't start in time")
+  end
 	menuServerThread = lovr.thread.newThread("menuserv_main.lua")
   menuServerThread:start()
-  _checkthread(menuServerThread, "menuserv")
+  check("menuserv")
 	menuAppsThread = lovr.thread.newThread("menuapps_main.lua")
   menuAppsThread:start()
-  _checkthread(menuAppsThread, "appserv")
+  check("appserv")
+end
+function _asyncLoadResume()
+  if coroutine.resume(loadCo) == true then return end
 
+  -- great, all the threads are started. Let's create some UI.
+  -- (We can't do this in the above coroutine because allonet stores
+  --  the coroutine you call set_*_callback on :S)
+  loadCo = nil
 	ent.root = require("app.scenemanager")()
-
 	ent.root:route("onBoot") -- This will only be sent once
   ent.root:insert()
   
@@ -121,25 +143,6 @@ function lovr.load()
 
 end
 
-function _checkthread(thread, channelName)
-  local deadline = lovr.timer.getTime() + 2
-  local chan = lovr.thread.getChannel(channelName)
-  while lovr.timer.getTime() < deadline do
-    local m = chan:pop(0.1)
-    if m == "booted" then
-      return true
-    end
-    -- todo: instead, wait for these threads to respond async and then start LoaderEnt
-    lovr.event.pump()
-    for name, a, b, c, d in lovr.event.poll() do
-      if name == "threaderror" then
-        lovr.threaderror(a, b)
-      end -- arrgh discarding events
-    end
-  end
-  assert(channelName.." didn't start in time")
-end
-
 function lovr.restart()
   print("Shutting down threads...")
   lovr.thread.getChannel("menuserv"):push("exit", true)
@@ -174,17 +177,24 @@ function _updateMouse()
 end
 
 function lovr.update(dt)
+  if loadCo then
+    _asyncLoadResume()
+  end
   if lovr.mouse then
     _updateMouse()
   end
-	ent.root:route("onUpdate", dt)
-	entity_cleanup()
+  if ent.root then
+    ent.root:route("onUpdate", dt)
+    entity_cleanup()
+  end
 end
 
 function lovr.draw(isMirror)
   lovr.graphics.origin()
-	drawMode()
-	ent.root:route("onDraw", isMirror)
+  drawMode()
+  if ent.root then
+    ent.root:route("onDraw", isMirror)
+  end
 end
 
 
@@ -196,11 +206,15 @@ function lovr.mirror()
   local aspect = pixwidth/pixheight
   local proj = lovr.math.mat4():perspective(0.01, 100, 67*(3.14/180), aspect)
   lovr.graphics.setProjection(1, proj)
-	ent.root:route("onMirror")
+  if ent.root then
+    ent.root:route("onMirror")
+  end
 end
 
 function lovr.focus(focused)
-  ent.root:route("onFocus", focused)
+  if ent.root then
+    ent.root:route("onFocus", focused)
+  end
   if lovr.mouse then
     lovr.mouse.setHidden(focused)
   end
