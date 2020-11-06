@@ -1,3 +1,5 @@
+lovr.data = require("lovr.data")
+
 function tablefind(tab,el)
     for index, value in pairs(tab) do
         if value == el then
@@ -32,7 +34,5 @@ function lovr.conf(t)
 
   t.identity = "alloverse"
   t.window.title = "Alloverse"
-  if arg and arg[0]:match("lodr$") == nil then
-    t.window.icon = "assets/alloverse-logo.png"
-  end
+  t.window.icon = lovr.data.newTextureData("assets/alloverse-logo.png", false)
 end

@@ -13,8 +13,6 @@ path = path ..
 lovr.filesystem.setRequirePath(path, cpath)
 package.cpath = cpath
 
-lovr.filesystem.setIdentity("alloverse")
-
 namespace = require "engine.namespace"
 
 local ok, mouse = pcall(require, "lib.lovr-mouse")
