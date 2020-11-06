@@ -145,11 +145,10 @@ end
 
 function lovr.restart()
   print("Shutting down threads...")
-  lovr.thread.getChannel("menuserv"):push("exit", true)
-  lovr.thread.getChannel("appserv"):push("exit", true)
-  -- wait() crashes on windows. and anyways if "exit" is pop()d, we know thread is done
-  -- menuServerThread:wait()
-  -- menuAppsThread:wait()
+  lovr.thread.getChannel("menuserv"):push("exit")
+  lovr.thread.getChannel("appserv"):push("exit")
+  menuServerThread:wait()
+  menuAppsThread:wait()
   print("Done, restarting.")
   return true
 end
@@ -233,9 +232,6 @@ function lovr.run()
         return 'restart', cookie
       elseif name == 'quit' and (not lovr.quit or not lovr.quit(a)) then
         return a or 0
-      elseif name == 'threaderror' and lovr.threaderror then
-        print("THREAD ERROR!!!")
-        lovr.threaderror(a, b)
       end
       if lovr.handlers[name] then lovr.handlers[name](a, b, c, d) end
     end
