@@ -29,4 +29,10 @@ function lovr.conf(t)
     local desktopi = tablefind(t.headset.drivers, "desktop")
     table.remove(t.headset.drivers, desktopi)
   end
+
+  t.identity = "alloverse"
+  t.window.title = "Alloverse"
+  if arg and arg[0]:match("lodr$") == nil then
+    t.window.icon = "assets/alloverse-logo.png"
+  end
 end
