@@ -15,7 +15,8 @@ function Menu:createUI()
     main= require("alloapps.menu.main_menu_pane")(self),
     overlay= require("alloapps.menu.overlay_pane")(self)
   }
-  return ui.View()
+  self.nav = ui.NavStack(ui.Bounds(0, 1.6, -2,   1.6, 1.2, 0.1))
+  return self.nav
 end
 
 function Menu:updateDebugTitle(newState)
@@ -26,16 +27,11 @@ function Menu:updateMessage(msg)
   self.menus.overlay.messageLabel:setText(msg)
 end
 function Menu:switchToMenu(name)
-  if self.currentMenuName == name then return end
+  if self.nav:top() and self.nav:top().name == name then return end
 
   print("Switching to menu", name)
-  if self.currentMenu then
-    self.currentMenu:removeFromSuperview()
-  end
-  
-  self.currentMenu = self.menus[name]
-  self.currentMenuName = name
-  self.app.mainView:addSubview(self.currentMenu)
+  self.nav:popAll()
+  self.nav:push(self.menus[name])
 end
 
 function Menu:onInteraction(interaction, body, receiver, sender)
