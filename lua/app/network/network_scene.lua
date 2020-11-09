@@ -264,7 +264,7 @@ end
 
 function NetworkScene:onUpdate(dt)
   local atStartOfPoll = lovr.timer.getTime()
-  if self.client ~= nil then
+  if self.client then
     self.client:poll(1.0/40.0)
     if self.client == nil then
       return route_terminate
