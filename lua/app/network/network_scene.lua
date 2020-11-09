@@ -269,7 +269,7 @@ function NetworkScene:onUpdate(dt)
     return route_terminate
   end
 
-  self.client:simulate(dt)
+  self.client:simulate()
 
   local stats = Stats.instance
   if stats then
