@@ -272,14 +272,14 @@ function NetworkScene:onUpdate(dt)
   self.client:simulate()
 
   local stats = Stats.instance
-  if stats then
+  if stats and not self.isOverlayScene then
     stats:enable(self.debug)
     stats:set("Server time", string.format("%.3fs", self.client.client:get_server_time()))
     stats:set("Client time", string.format("%.3fs", self.client.client:get_time()))
     stats:set("Latency", string.format("%.0fms", self.client.client:get_latency()*1000.0))
     stats:set("C/S clock delta", string.format("%.3fs", self.client.client:get_clock_delta()))
     stats:set("FPS", string.format("%.1fhz", lovr.timer.getFPS()))
-    
+    stats:set("Entity count", string.format("%d", self.client.entityCount))
   end
 
 
