@@ -13,3 +13,6 @@
 [submodule "lua/lib/letters"]
 	path = lua/lib/letters
 	url = https://github.com/alloverse/lovr-letters
+[submodule "deps/ldoc"]
+	path = deps/ldoc
+	url = git@github.com:lunarmodules/LDoc.git

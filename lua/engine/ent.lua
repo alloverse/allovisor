@@ -1,18 +1,26 @@
--- Run Hello autonomous entity lib, adapted for Lovr
+--- Run Hello autonomous entity lib, adapted for Lovr
 -- Assumes pl "class" in namespace
 -- IMPORTS ALL ON REQUIRE
+-- @classmod Ent
 
 namespace "standard"
 require "engine.types"
 
 -- Entity state
 
-ent = {inputLevel = 1} -- State used by ent class
-route_terminate = {} -- A special value, return from an event and your children will not be called
+--- State used by ent class.
+ent = {
+	inputLevel = 1 -- ??
+}
 
+--- A special value, return from an event and your children will not be called
+route_terminate = {}
+
+--- List of entities marked for removal
 local doomed = {}
 
--- Should be called once at the end of each update. **User code should not call this.**
+--- Cleans up doomed entities. **User code should not call this.**
+-- Called be the system once at the end of each update. 
 function entity_cleanup()
 	if tableTrue(doomed) then
 		for i,v in ipairs(doomed) do
@@ -26,12 +34,15 @@ function entity_cleanup()
 	end
 end
 
--- Call this with a function and it will be run at the end of the next update, when dead entities are buried.
+--- Call this with a function and it will be run at the end of the next update, when dead entities are buried.
+-- @tparam function f Function to be called at and of next update
 function queueDoom(f)
 	table.insert(doomed, f)
 end
 
--- Call this with an object and a parent and it will be inserted at the end of the next udpate, when dead entities are buried.
+--- Call this with an object and a parent and it will be inserted at the end of the next update, when dead entities are buried.
+-- @tparam Ent e Entity to queue
+-- @tparam Ent parent The entity to become the parent of e
 function queueBirth(e, parent)
 	table.insert(doomed, function()
 		e:insert(parent)
@@ -40,16 +51,22 @@ end
 
 -- Ents
 
+--- Used as seed for generating entity identifiers
 local ent_id_generator = 1
 
 class.Ent()
+
+--- Initialize a new Ent
+-- @tparam table spec An entity specification
 function Ent:_init(spec)
 	pull(self, {id=ent_id_generator,kids={}})
 	pull(self, spec)
 	ent_id_generator = ent_id_generator + 1
 end
 
--- Call with a function name and an argument and it will be called first on this object, then all its children
+--- Call with a function name and an argument and it will be called first on this object, then all its children
+-- @tparam string key Function name
+-- @param ... arguments to pass to the function
 function Ent:route(key, ...)
 	local result
 	if self[key] then
@@ -66,7 +83,10 @@ function Ent:route(key, ...)
 	end
 end
 
--- Call with a parent object and the object will be inserted into the entity tree at that point
+--- Insert self as a child to `parent`.
+-- An error is thrown if self already has a parent.
+-- @tparam Ent parent The entity to attach self to
+-- @return self
 function Ent:insert(parent)
 	if self.parent then error("Reparenting not currently supported") end
 	if not parent and self ~= ent.root then -- Default to ent.root
@@ -87,11 +107,13 @@ function Ent:insert(parent)
 	return self
 end
 
--- Used to set self.loaded and self.dead properly. **User code should not call these.**
+--- Used to set self.loaded and self.dead properly. **User code should not call these.**
 function Ent:_setLoad() self.loaded = true end
+--- Used to set self.loaded and self.dead properly. **User code should not call these.**
 function Ent:_setDead() self.dead = true end
 
--- Call and the object will have self.dead set and then be deleted at the end of the next frame.
+--- Mark self for removal
+-- `self.dead` will be set and then self be deleted at the end of the next frame.
 function Ent:die()
 	if self.dead then return end -- Don't die twice
 	self:route("onDie")
@@ -100,17 +122,23 @@ function Ent:die()
 	table.insert(doomed, self)
 end
 
--- The entity is being inserted. **User code can overload this, but probably should not call it.**
+--- Called when a new child entity is being added to self.
+-- User code can overload this, but probably should not call it.
+-- @tparam Ent child The child that is being added
 function Ent:register(child)
 	self.kids[child.id] = child
 end
 
--- The entity is being buried. **User code can overload this, but probably should not call it.**
+--- Called when a child is being removed
+-- User code can overload this, but probably should not call it.
+-- @tparam Ent child The child that is being removed
 function Ent:unregister(child)
 	self.kids[child.id] = nil
 end
 
 -- It is the end of the frame. This object was die()d and it's time to delete it. **User code can overload this, but probably should not call it.**
+--- Called at the end of the frame if self is marked for removal (through `die()`)
+-- @see die()
 function Ent:bury()
 	if self.parent then
 		self.parent:unregister(self)
