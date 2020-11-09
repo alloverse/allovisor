@@ -1,6 +1,7 @@
 local ui = require("alloui.ui")
 local pretty = require("pl.pretty")
 local class = require("pl.class")
+local ConnectPane = require("alloapps.menu.connect_pane")
 
 class.MainMenuPane(ui.Surface)
 function MainMenuPane:_init(menu)
@@ -10,17 +11,23 @@ function MainMenuPane:_init(menu)
 
     local quitButton = ui.Button(ui.Bounds(0, -0.4, 0.01,     1.4, 0.2, 0.15))
     quitButton.label.text = "Quit"
-    quitButton.onActivated = function() menu:actuate({"quit"}) end
+    quitButton.onActivated = function() 
+      menu:actuate({"quit"})
+    end
     self:addSubview(quitButton)
   
     local connectButton = ui.Button(ui.Bounds(0, 0.4, 0.01,   1.4, 0.2, 0.15))
-    connectButton.label.text = "Connect"
-    connectButton.onActivated = function() menu:actuate({"connect", "alloplace://nevyn.places.alloverse.com"}) end
+    connectButton.label.text = "Connect..."
+    connectButton.onActivated = function() 
+      self.nav:push(ConnectPane(menu))
+    end
     self:addSubview(connectButton)
   
     self.debugButton = ui.Button(ui.Bounds(0, 0.1, 0.01,     1.4, 0.2, 0.15))
     self.debugButton.label.text = "Toggle Debug"
-    self.debugButton.onActivated = function() menu:actuate({"toggleDebug"}) end
+    self.debugButton.onActivated = function() 
+      menu:actuate({"toggleDebug"}) 
+    end
     self:addSubview(self.debugButton)
   
     self.messageLabel = ui.Label{

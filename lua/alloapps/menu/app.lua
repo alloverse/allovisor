@@ -27,7 +27,7 @@ function Menu:updateMessage(msg)
   self.menus.overlay.messageLabel:setText(msg)
 end
 function Menu:switchToMenu(name)
-  if self.nav:top() and self.nav:top().name == name then return end
+  if self.nav:top() and self.nav:bottom().name == name then return end
 
   print("Switching to menu", name)
   self.nav:popAll()
