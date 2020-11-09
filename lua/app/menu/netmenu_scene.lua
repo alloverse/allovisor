@@ -80,12 +80,12 @@ function NetMenuScene:toggleDebug(sender)
 end
 
 function NetMenuScene:updateDebugTitle()
-  self:sendToApp("mainmenu", {"updateDebugTitle", settings.d.debug})
+  self:sendToApp("mainmenu", {"updateMenu", "updateDebugTitle", settings.d.debug and true or false })
 end
 
 function NetMenuScene:setMessage(message)
   if message then
-    self:sendToApp("mainmenu", {"updateMessage", message})
+    self:sendToApp("mainmenu", {"updateMenu", "updateMessage", message})
   end
 end
 
@@ -112,7 +112,7 @@ function NetMenuScene:sendToApp(appname, body)
 end
 
 function NetMenuScene:switchToMenu(which)
-  self:sendToApp("mainmenu", {"switchToMenu", which})
+  self:sendToApp("mainmenu", {"updateMenu", "switchToMenu", which})
   -- avatar chooser only available in main menu
   self:sendToApp("avatarchooser", {"setVisible", which == "main"})
   self:sendToApp("appchooser", {"setVisible", which ~= "main"})

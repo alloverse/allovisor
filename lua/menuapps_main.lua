@@ -8,7 +8,7 @@ local allonet = util.load_allonet()
 local running = true
 local chan = lovr.thread.getChannel("appserv")
 local apps = {
-   require("alloapps.mainmenu")(),
+   require("alloapps.menu.app")(),
    require("alloapps.avatar_chooser")(),
    require("alloapps.app_chooser")()
 }
