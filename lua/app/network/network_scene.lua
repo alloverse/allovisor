@@ -83,6 +83,7 @@ function NetworkScene:_init(displayName, url, avatarName)
   self.active = true
   self.isOverlayScene = false
   self.head_id = ""
+  self.drawTime = 0.0
   self.client.delegates = {
     onStateChanged = function() self:route("onStateChanged") end,
     onEntityAdded = function(e) self:route("onEntityAdded", e) end,
@@ -207,6 +208,7 @@ function NetworkScene:onDisconnect(code, message)
 end
 
 function NetworkScene:onDraw(isMirror)
+  local atStartOfDraw = lovr.timer.getTime()
   lovr.graphics.push()
   drawMode()
 
@@ -253,6 +255,7 @@ function NetworkScene:onDraw(isMirror)
       )
     end
   end
+  self.drawTime = lovr.timer.getTime() - atStartOfDraw
 end
 
 function NetworkScene:after_onDraw()
@@ -260,6 +263,7 @@ function NetworkScene:after_onDraw()
 end
 
 function NetworkScene:onUpdate(dt)
+  local atStartOfPoll = lovr.timer.getTime()
   if self.client ~= nil then
     self.client:poll(1.0/40.0)
     if self.client == nil then
@@ -268,8 +272,11 @@ function NetworkScene:onUpdate(dt)
   else
     return route_terminate
   end
+  self.pollTime = lovr.timer.getTime() - atStartOfPoll
 
+  local atStartOfSimulate = lovr.timer.getTime()
   self.client:simulate()
+  self.simulateTime = lovr.timer.getTime() - atStartOfSimulate
 
   local stats = Stats.instance
   if stats and not self.isOverlayScene then
@@ -280,6 +287,9 @@ function NetworkScene:onUpdate(dt)
     stats:set("C/S clock delta", string.format("%.3fs", self.client.client:get_clock_delta()))
     stats:set("FPS", string.format("%.1fhz", lovr.timer.getFPS()))
     stats:set("Entity count", string.format("%d", self.client.entityCount))
+    stats:set("Render duration", string.format("%.0fms", self.drawTime*1000.0))
+    stats:set("Network duration", string.format("%.0fms", self.pollTime*1000.0))
+    stats:set("Simulation duration", string.format("%.0fms", self.simulateTime*1000.0))
   end
 
 
