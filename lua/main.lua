@@ -7,10 +7,11 @@ if lovr.filesystem.getExecutablePath() and lovr.getOS() == "Windows" then
 	cpath = cpath .. lovr.filesystem.getExecutablePath():gsub("lovr.exe", "?.dll")
 end
 path = path ..
-  ";alloui/lua/?.lua" ..
+  ";lib/alloui/lua/?.lua" ..
+  ";lib/alloui/lib/cpml/?.lua" ..
   ";lib/ent/lua/?.lua" ..
-  ";lib/ent/lua/?/init.lua" ..
-	";alloui/lib/cpml/?.lua"
+  ";lib/ent/lua/?/init.lua" 
+	
 
 lovr.filesystem.setRequirePath(path, cpath)
 package.cpath = cpath
