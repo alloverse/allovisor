@@ -1,5 +1,5 @@
 namespace("menu", "alloverse")
-local NetworkScene = require("app.network.network_scene")
+local NetworkScene = require("scenes.network_scene")
 
 -- This scene doesn't have any UI. It just connects to menuserv,
 -- which has its own AlloApps running, providing UI. These in turn

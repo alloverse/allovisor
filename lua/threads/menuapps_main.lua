@@ -2,8 +2,7 @@ print("Booting allomenu apps")
 
 lovr = require 'lovr'
 lovr.filesystem, lovr.thread = require 'lovr.filesystem', require 'lovr.thread'
-local json = require("json")
-local util = require "util"
+local util = require "lib.util"
 local allonet = util.load_allonet()
 local running = true
 local chan = lovr.thread.getChannel("appserv")

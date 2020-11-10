@@ -1,9 +1,9 @@
 namespace("menu", "alloverse")
 local SceneClasses = {
-    menu = require("app.menu.netmenu_scene"),
-    net = require("app.network.network_scene"),
-    stats = require("app.debug.stats"),
-    controls = require("app.test.controlsOverlay"),
+    menu = require("scenes.netmenu_scene"),
+    net = require("scenes.network_scene"),
+    stats = require("scenes.stats"),
+    controls = require("scenes.controlsOverlay"),
 }
 local sceneOrder = {"net", "menu", "stats", "controls"}
 

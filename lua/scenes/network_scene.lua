@@ -1,10 +1,9 @@
 namespace("networkscene", "alloverse")
 
-local json = require "json"
 local tablex = require "pl.tablex"
 local pretty = require "pl.pretty"
 local Client = require "alloui.client"
-local Stats = require("app.debug.stats")
+local Stats = require("scenes.stats")
 
 local engines = {
   SoundEng = require "eng.sound_eng",
@@ -15,7 +14,7 @@ local engines = {
 }
 
 require "lib.allostring"
-local util = require "util"
+local util = require "lib.util"
 allonet = util.load_allonet()
 
 

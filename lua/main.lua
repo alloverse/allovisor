@@ -7,8 +7,11 @@ if lovr.filesystem.getExecutablePath() and lovr.getOS() == "Windows" then
 	cpath = cpath .. lovr.filesystem.getExecutablePath():gsub("lovr.exe", "?.dll")
 end
 path = path ..
-	";alloui/lua/?.lua;" ..
-	";alloui/lib/cpml/?.lua"
+  ";lib/alloui/lua/?.lua" ..
+  ";lib/alloui/lib/cpml/?.lua" ..
+  ";lib/ent/lua/?.lua" ..
+  ";lib/ent/lua/?/init.lua" 
+	
 
 lovr.filesystem.setRequirePath(path, cpath)
 package.cpath = cpath
@@ -23,25 +26,32 @@ end
 
 -- Load namespace basics
 do
-	local space = namespace.space("standard")
+	-- This should be only used in helper threads. Make sure this matches thread/helper/boot.lua
+	local space = namespace.space("minimal")
 
 	-- PL classes missing? add here:
 	for _,v in ipairs{"class", "pretty", "stringx", "tablex"} do
 		space[v] = require("pl." .. v)
 	end
+	space.ugly = require "engine.ugly"
 
 	require "engine.types"
+end
+do
+	local space = namespace.space("standard", "minimal")
+
+	space.cpml = require "cpml"
+	for _,v in ipairs{"bound2", "bound3", "vec2", "vec3", "quat", "mat4", "color", "utils"} do
+		space[v] = space.cpml[v]
+	end
+	require "engine.loc"
+
 	require "engine.ent"
+	space.ent.singleThread = singleThread
 	require "engine.common_ent"
 	require "engine.lovr"
   require "engine.mode"
-
-  require "util"
-
-	space.cpml = require "cpml" -- CPML classes missing? Add here:
-	for _,v in ipairs{"bound2", "bound3", "color", "utils"} do
-		space[v] = space.cpml[v]
-	end
+  require "lib.util"
 end
 
 namespace.prepare("alloverse", "standard", function(space)
@@ -60,7 +70,7 @@ function lovr.load()
 end
 function _asyncLoad()
   function check(threadname)
-    local deadline = lovr.timer.getTime() + 2
+    local deadline = lovr.timer.getTime() + 5
     local chan = lovr.thread.getChannel(threadname)
     while lovr.timer.getTime() < deadline do
       local m = chan:peek()
@@ -72,10 +82,10 @@ function _asyncLoad()
     end
     error(threadname.." didn't start in time")
   end
-	menuServerThread = lovr.thread.newThread("menuserv_main.lua")
+	menuServerThread = lovr.thread.newThread("threads/menuserv_main.lua")
   menuServerThread:start()
   menuServerPort = check("menuserv"):pop(true)
-  menuAppsThread = lovr.thread.newThread("menuapps_main.lua")
+  menuAppsThread = lovr.thread.newThread("threads/menuapps_main.lua")
   lovr.thread.getChannel("appserv"):push(menuServerPort)
   print("starting appserv...")
   menuAppsThread:start()
@@ -97,7 +107,7 @@ function _asyncLoadResume()
   -- (We can't do this in the above coroutine because allonet stores
   --  the coroutine you call set_*_callback on :S)
   loadCo = nil
-	ent.root = require("app.scenemanager")(menuServerPort)
+	ent.root = require("scenes.scenemanager")(menuServerPort)
 	ent.root:route("onBoot") -- This will only be sent once
   ent.root:insert()
   
