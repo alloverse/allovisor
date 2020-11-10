@@ -13,3 +13,6 @@
 [submodule "lua/lib/letters"]
 	path = lua/lib/letters
 	url = https://github.com/alloverse/lovr-letters
+[submodule "lua/lib/ent"]
+	path = lua/lib/ent
+	url = https://github.com/alloverse/lovr-ent

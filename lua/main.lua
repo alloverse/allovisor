@@ -7,7 +7,8 @@ if lovr.filesystem.getExecutablePath() and lovr.getOS() == "Windows" then
 	cpath = cpath .. lovr.filesystem.getExecutablePath():gsub("lovr.exe", "?.dll")
 end
 path = path ..
-	";alloui/lua/?.lua;" ..
+  ";alloui/lua/?.lua" ..
+  ";lib/ent/lua/?.lua" ..
 	";alloui/lib/cpml/?.lua"
 
 lovr.filesystem.setRequirePath(path, cpath)
@@ -23,25 +24,32 @@ end
 
 -- Load namespace basics
 do
-	local space = namespace.space("standard")
+	-- This should be only used in helper threads. Make sure this matches thread/helper/boot.lua
+	local space = namespace.space("minimal")
 
 	-- PL classes missing? add here:
 	for _,v in ipairs{"class", "pretty", "stringx", "tablex"} do
 		space[v] = require("pl." .. v)
 	end
+	space.ugly = require "engine.ugly"
 
 	require "engine.types"
+end
+do
+	local space = namespace.space("standard", "minimal")
+
+	space.cpml = require "cpml"
+	for _,v in ipairs{"bound2", "bound3", "vec2", "vec3", "quat", "mat4", "color", "utils"} do
+		space[v] = space.cpml[v]
+	end
+	require "engine.loc"
+
 	require "engine.ent"
+	space.ent.singleThread = singleThread
 	require "engine.common_ent"
 	require "engine.lovr"
   require "engine.mode"
-
   require "util"
-
-	space.cpml = require "cpml" -- CPML classes missing? Add here:
-	for _,v in ipairs{"bound2", "bound3", "color", "utils"} do
-		space[v] = space.cpml[v]
-	end
 end
 
 namespace.prepare("alloverse", "standard", function(space)
@@ -97,7 +105,7 @@ function _asyncLoadResume()
   -- (We can't do this in the above coroutine because allonet stores
   --  the coroutine you call set_*_callback on :S)
   loadCo = nil
-	ent.root = require("app.scenemanager")(menuServerPort)
+	ent.root = require("scenes.scenemanager")(menuServerPort)
 	ent.root:route("onBoot") -- This will only be sent once
   ent.root:insert()
   
