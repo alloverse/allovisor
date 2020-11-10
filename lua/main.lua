@@ -51,7 +51,7 @@ do
 	require "engine.common_ent"
 	require "engine.lovr"
   require "engine.mode"
-  require "util"
+  require "lib.util"
 end
 
 namespace.prepare("alloverse", "standard", function(space)

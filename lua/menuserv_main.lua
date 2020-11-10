@@ -2,8 +2,7 @@ print("Booting menuserv")
 
 lovr = require 'lovr'
 lovr.filesystem, lovr.thread = require 'lovr.filesystem', require 'lovr.thread'
-local json = require("json")
-local util = require "util"
+local util = require "lib.util"
 local allonet = util.load_allonet()
 
 allosocket, port = allonet.start_standalone_server(0x0100007F, 0)
