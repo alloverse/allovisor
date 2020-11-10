@@ -47,8 +47,8 @@ end
 ----------------------
 
 class.AppChooser(EmbeddedApp)
-function AppChooser:_init()
-  self:super("appchooser")
+function AppChooser:_init(port)
+  self:super("appchooser", port)
 end
 
 function AppChooser:createUI()

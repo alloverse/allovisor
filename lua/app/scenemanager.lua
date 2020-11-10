@@ -11,13 +11,13 @@ local sceneOrder = {"net", "menu", "stats", "controls"}
 -- sure things render in the correct order. 
 local SceneManager = classNamed("SceneManager", OrderedEnt)
 
-function SceneManager:_init()
+function SceneManager:_init(menuServerPort)
     lovr.scenes = self
     self:super()
 
-    for _, k in ipairs({"menu", "stats", "controls"}) do
-        self:_makeScene(k)
-    end
+    self:_makeScene("menu", menuServerPort)
+    self:_makeScene("stats")
+    self:_makeScene("controls")
 end
 
 function SceneManager:showPlace(...)

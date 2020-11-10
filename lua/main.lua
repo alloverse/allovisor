@@ -63,29 +63,41 @@ function _asyncLoad()
     local deadline = lovr.timer.getTime() + 2
     local chan = lovr.thread.getChannel(threadname)
     while lovr.timer.getTime() < deadline do
-      local m = chan:pop()
+      local m = chan:peek()
       if m == "booted" then
-        return true
+        chan:pop()
+        return chan
       end
       coroutine.yield()
     end
-    error(channelName.." didn't start in time")
+    error(threadname.." didn't start in time")
   end
 	menuServerThread = lovr.thread.newThread("menuserv_main.lua")
   menuServerThread:start()
-  check("menuserv")
-	menuAppsThread = lovr.thread.newThread("menuapps_main.lua")
+  menuServerPort = check("menuserv"):pop(true)
+  menuAppsThread = lovr.thread.newThread("menuapps_main.lua")
+  lovr.thread.getChannel("appserv"):push(menuServerPort)
+  print("starting appserv...")
   menuAppsThread:start()
   check("appserv")
+  return "done"
 end
 function _asyncLoadResume()
-  if coroutine.resume(loadCo) == true then return end
-
+  local costatus, err = coroutine.resume(loadCo)
+  if err ~= "done" then
+    if costatus == false then
+      print("Booting failed with error", err)
+      error(err)
+    end
+    return
+  end
+  print("Pre-boot completed, launching UI")
+  
   -- great, all the threads are started. Let's create some UI.
   -- (We can't do this in the above coroutine because allonet stores
   --  the coroutine you call set_*_callback on :S)
   loadCo = nil
-	ent.root = require("app.scenemanager")()
+	ent.root = require("app.scenemanager")(menuServerPort)
 	ent.root:route("onBoot") -- This will only be sent once
   ent.root:insert()
   

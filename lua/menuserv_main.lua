@@ -6,13 +6,14 @@ local json = require("json")
 local util = require "util"
 local allonet = util.load_allonet()
 
-allosocket = allonet.start_standalone_server(21338)
+allosocket, port = allonet.start_standalone_server(0x0100007F, 0)
 assert(allosocket ~= -1)
-print("Menuserv started")
+print("Menuserv started on port", port)
 
 local running = true
 local chan = lovr.thread.getChannel("menuserv")
-chan:push("booted", 2.0)
+chan:push("booted")
+chan:push(port)
 while running do
   local ok = allonet.poll_standalone_server(allosocket)
   assert(ok, "standalone server failed")

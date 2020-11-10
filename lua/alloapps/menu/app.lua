@@ -6,8 +6,8 @@ local class = require("pl.class")
 local EmbeddedApp = require("alloapps.embedded_app")
 
 class.Menu(EmbeddedApp)
-function Menu:_init()
-  self:super("mainmenu")
+function Menu:_init(port)
+  self:super("mainmenu", port)
 end
 
 function Menu:createUI()

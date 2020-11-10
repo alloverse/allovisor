@@ -7,14 +7,17 @@ local util = require "util"
 local allonet = util.load_allonet()
 local running = true
 local chan = lovr.thread.getChannel("appserv")
+local port = chan:pop(true)
+print("Connecting apps to port", port)
 local apps = {
-   require("alloapps.menu.app")(),
-   require("alloapps.avatar_chooser")(),
-   require("alloapps.app_chooser")()
+   require("alloapps.menu.app")(port),
+   require("alloapps.avatar_chooser")(port),
+   require("alloapps.app_chooser")(port)
 }
 
 print("allomenu apps started")
-chan:push("booted", 2.0)
+local _, read = chan:push("booted", 2.0)
+if not read then error("hey you gotta pop booted") end
 while running do
   for _, app in ipairs(apps) do
     app:update()

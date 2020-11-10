@@ -11,7 +11,8 @@ local MenuInteractor = classNamed("MenuInteractor", Ent)
 local settings = require("lib.lovr-settings")
 
 
-function NetMenuScene:_init()
+function NetMenuScene:_init(menuServerPort)
+  self.menuServerPort = menuServerPort
   self.sendQueue = {}
   self.apps = {}
   self.visible = true
@@ -22,7 +23,7 @@ function NetMenuScene:_init()
 end
 
 function NetMenuScene:onLoad()
-  self.net = NetworkScene("owner", "alloplace://localhost:21338", settings.d.avatarName)
+  self.net = NetworkScene("owner", "alloplace://localhost:"..tostring(self.menuServerPort), settings.d.avatarName)
   self.net.debug = settings.d.debug
   self.net.isMenu = true
   self.net:insert(self)
