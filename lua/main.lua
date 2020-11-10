@@ -82,10 +82,10 @@ function _asyncLoad()
     end
     error(threadname.." didn't start in time")
   end
-	menuServerThread = lovr.thread.newThread("menuserv_main.lua")
+	menuServerThread = lovr.thread.newThread("threads/menuserv_main.lua")
   menuServerThread:start()
   menuServerPort = check("menuserv"):pop(true)
-  menuAppsThread = lovr.thread.newThread("menuapps_main.lua")
+  menuAppsThread = lovr.thread.newThread("threads/menuapps_main.lua")
   lovr.thread.getChannel("appserv"):push(menuServerPort)
   print("starting appserv...")
   menuAppsThread:start()
