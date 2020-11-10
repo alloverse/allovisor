@@ -4,7 +4,7 @@ namespace "standard"
 
 local ui2 = require "ent.ui2"
 ui2.doRouteMouse = false
-
+local flat = require "engine.flat"
 local vec2 = require "cpml.modules.vec2"
 
 local ControlsOverlay = classNamed("ControlsOverlay", ui2.ScreenEnt)
@@ -112,7 +112,7 @@ function AlloCustomLayout:layout(relayout)
 	local startAt = relayout and 1 or (self.placedTo+1) -- From what button do we begin laying out?
 
 	-- Constants: Metrics
-	local fh = fontHeight() -- Raw height of font
+	local fh = ui2.fontHeight() -- Raw height of font
 	local screenmargin = (fh + margin*2)/2 -- Space between edge of screen and buttons. Tunable
 	local spacing = 0 -- spacing is baked into the button due to drop shadow being part of the asset
 
