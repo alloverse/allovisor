@@ -118,3 +118,30 @@ After following the normal cmake steps from above,
 * On Mac, just `make package` to make a dmg
 * On Windows, `msbuild PACKAGE.vcproj` to make a NSIS installer
 * On Quest and Pico, just distribute the apk from the development steps.
+
+
+## Project structure
+
+[![Architecture](docs/arch.png)](https://whimsical.com/visor-arch-VcwXwV96sdavVFS9fgdu4z)
+
+* App is started in main.lua; everything is set up from there.
+* It uses mcclure's [`ent` library](https://github.com/mcclure/lovr-ent) to structure the
+  app as a graph of scenes.
+* It starts with a SceneManager which manages four basic scenes:
+  * A _remote_ NetworkScene which interacts with the remote AlloPlace we're connected to,
+    if any. If we're not connected, this is just nil.
+  * A _local_ NetworkScene contained in a NetMenuScene which represents our local UI,
+    mainly the main menu and the overlay menu. This NetworkScene is connected to the local menuscene standalone server.
+  * Overlay UI for showing controls and other desktop UI, if run on a 2D display
+  * Stats overlay for debugging
+* NetworkScene contains an allonet client, which has a list of all entities. Each entity
+  has a list of components.
+* NetworkScene also contains a list of sub-engines, which are responsible for one section
+  of place interaction each.
+  * E g, `graphics_eng` is responsible for rendering meshes and materials for those entities
+    that need it
+  * `sound_eng` records and streams the microphone, and plays sound from other users
+    and apps. And so on...
+* The UI in the NetMenuScene is drawn by real bona-fide `alloapps` running on their own
+  thread called `menuapps_main`. These are also connected to the standalone server
+  and have their own complete client-side state each.
