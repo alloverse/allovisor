@@ -96,7 +96,7 @@ end
 -- members:
 --     cursor: Next place to put a button
 --     linemax (optional): greatest width of a button this line
-function ui2.AlloCustomLayout:_init(spec)
+function AlloCustomLayout:_init(spec)
 	pull(self, {face="x"})
 	self:super(spec)
 	self.anchor = "lb" .. (self.anchor or "")
@@ -105,7 +105,7 @@ end
 local margin = 0.05 -- Margin around text. Tunable 
 
 -- Perform all layout at once. If true, re-lay-out things already laid out
-function ui2.AlloCustomLayout:layout(relayout)
+function AlloCustomLayout:layout(relayout)
 	-- Constants: Logic
 	local moveright, moveup = ui2.anchorBools(self.anchor) -- Which direction are we moving?
 	local mn = #self.managed -- Number of managed items

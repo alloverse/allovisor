@@ -9,6 +9,7 @@ end
 path = path ..
   ";alloui/lua/?.lua" ..
   ";lib/ent/lua/?.lua" ..
+  ";lib/ent/lua/?/init.lua" ..
 	";alloui/lib/cpml/?.lua"
 
 lovr.filesystem.setRequirePath(path, cpath)
@@ -68,7 +69,7 @@ function lovr.load()
 end
 function _asyncLoad()
   function check(threadname)
-    local deadline = lovr.timer.getTime() + 2
+    local deadline = lovr.timer.getTime() + 5
     local chan = lovr.thread.getChannel(threadname)
     while lovr.timer.getTime() < deadline do
       local m = chan:peek()

@@ -12,8 +12,8 @@ print("Menuserv started on port", port)
 
 local running = true
 local chan = lovr.thread.getChannel("menuserv")
-chan:push("booted")
-chan:push(port)
+chan:push("booted", true)
+chan:push(port, true)
 while running do
   local ok = allonet.poll_standalone_server(allosocket)
   assert(ok, "standalone server failed")
