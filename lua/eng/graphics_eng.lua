@@ -1,3 +1,6 @@
+--- The Allovisor Grapics engine.
+-- @classmod GraphicsEngine
+
 namespace("networkscene", "alloverse")
 
 local array2d = require "pl.array2d"
@@ -8,11 +11,16 @@ local alloBasicShader = require "shader/alloBasicShader"
 local alloPbrShader = require "shader/alloPbrShader"
 local loader = require "lib.model-loader"
 
+
 local GraphicsEng = classNamed("GraphicsEng", Ent)
+
+--- Initialize the graphics engine.
 function GraphicsEng:_init()
   self:super()
 end
 
+--- Called when the application loadsio.
+-- Loads the default models, shaders, etc. 
 function GraphicsEng:onLoad()
   self.hardcoded_models = {
     broken = lovr.graphics.newModel('/assets/models/broken.glb'),
@@ -45,6 +53,9 @@ function GraphicsEng:onLoad()
   end
 end
 
+--- Called each frame to draw the world
+-- Called by Ent
+-- @see Ent
 function GraphicsEng:onDraw() 
   lovr.graphics.setCullingEnabled(true)
   lovr.graphics.setColor(1,1,1)
@@ -70,6 +81,7 @@ function GraphicsEng:onDraw()
   lovr.graphics.setColor({1,1,1})
 end
 
+--- Draws an entity.
 function GraphicsEng:_drawEntity(entity, applyShader)
   local geom = entity.components.geometry
   local parent = optchain(entity, "components.relationships.parent")
@@ -106,6 +118,7 @@ function GraphicsEng:_drawEntity(entity, applyShader)
   model:draw()
 end
 
+--- Draws outlines.
 function GraphicsEng:drawOutlines()
   lovr.graphics.setShader(self.basicShader)
   lovr.graphics.setDepthTest('lequal', false)
@@ -120,6 +133,9 @@ function GraphicsEng:drawOutlines()
   lovr.graphics.setDepthTest('lequal', true)
 end
 
+--- Called efter onDraw for a change to configure how the desktop app mirror image is drawn
+-- Called by Ent
+-- @see Ent
 function GraphicsEng:onMirror()
   drawMode()
   lovr.graphics.reset()
@@ -136,6 +152,10 @@ function GraphicsEng:onMirror()
   lovr.draw(true)
 end
 
+--- The simulation tick
+-- Called by Ent
+-- @tparam number dt, seconds since last frame
+-- @see Ent
 function GraphicsEng:onUpdate(dt)
   loader:poll()
   if self.client == nil then return end
@@ -147,6 +167,9 @@ function GraphicsEng:onUpdate(dt)
   end
 end
 
+--- Load a model for supplied component.
+-- @tparam component component The component to load the model for
+-- @tparam component old_component The previous component state, if any
 function GraphicsEng:loadComponentModel(component, old_component)
   local eid = component.getEntity().id
 
@@ -166,6 +189,11 @@ function GraphicsEng:loadComponentModel(component, old_component)
   end
 end
 
+--- Load a bundled model by name.
+-- Loads a model asynchronously and then calls the supplied callback.
+-- @tparam string name The name of the model. String
+-- @param callback A funcion that takes one argument: the loaded model. Called when the model is fuly loaded.
+-- @tparam string path Optional. The file to load. If not supplied then a path into the "assets/models" folder will be build from `name`
 function GraphicsEng:loadHardcodedModel(name, callback, path)
   local model = self.hardcoded_models[name]
   if model then
@@ -192,6 +220,9 @@ function GraphicsEng:loadHardcodedModel(name, callback, path)
   )
 end
 
+--- Loads a material for supplied component.
+-- @tparam component component The component to load a material for
+-- @tparam component old_component not used
 function GraphicsEng:loadComponentMaterial(component, old_component)
   local eid = component.getEntity().id
   local mat = lovr.graphics.newMaterial()
@@ -218,6 +249,9 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
   end
 end
 
+--- Called when a new component is added
+-- @tparam string component_key The component type
+-- @tparam component component The new component
 function GraphicsEng:onComponentAdded(component_key, component)
   if component_key == "geometry" then
     self:loadComponentModel(component, nil)
@@ -226,6 +260,10 @@ function GraphicsEng:onComponentAdded(component_key, component)
   end
 end
 
+--- Called when a component has changed
+-- @tparam string component_key The component type
+-- @tparam component component The new component state
+-- @tparam component old_component The previous component state
 function GraphicsEng:onComponentChanged(component_key, component, old_component)
   if component_key == "geometry" then
     self:loadComponentModel(component, old_component)
@@ -234,6 +272,10 @@ function GraphicsEng:onComponentChanged(component_key, component, old_component)
   end
 end
 
+
+--- Called when a new component is removed
+-- @tparam string component_key The component type
+-- @tparam component component The removed component
 function GraphicsEng:onComponentRemoved(component_key, component)
   local eid = component.getEntity().id
   if component_key == "geometry" then
@@ -244,6 +286,9 @@ function GraphicsEng:onComponentRemoved(component_key, component)
   end
 end
 
+--- Creates a mesh for a geometry component
+-- @tparam geometry_component geom
+-- @tparam geometry_component old_geom
 function GraphicsEng:createMesh(geom, old_geom)
   local eid = geom.getEntity().id
   local mesh = self.models_for_eids[eid]
@@ -293,7 +338,9 @@ function GraphicsEng:createMesh(geom, old_geom)
   return mesh
 end
 
--- decoding
+--- Decodes a base64 string
+-- @tparam string data A string of base64 encoded data
+-- @treturn string The decoded data
 function base64decode(data)
   local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/' -- You will need this for encoding/decoding
   data = string.gsub(data, '[^'..b..'=]', '')
@@ -310,6 +357,7 @@ function base64decode(data)
   end))
 end
 
+--- Draws some forest decorantions
 function GraphicsEng:drawDecorations()
   local place = self.client.state.entities["place"]
   local deco = optchain(place, "components.decorations.type")

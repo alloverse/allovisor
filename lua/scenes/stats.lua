@@ -1,3 +1,8 @@
+--- The Allovisor Stats.
+-- I have no idea what this does. 
+-- TODO: Fillme
+-- @module Stats
+
 namespace "standard"
 
 local flat = require "engine.flat"

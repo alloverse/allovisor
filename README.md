@@ -12,7 +12,7 @@ with, and easier to extend with low level functionality.
 
 #### Xcode project
 
-1. Install CMake 3.13.0 or newer
+1. Install CMake 3.18.4 or newer
 2. `mkdir build && cd build && cmake -GXcode ..` to prepare to build
 3. `open allovisor.xcodeproj`
 4. Build and run the Alloverse target
@@ -119,6 +119,24 @@ After following the normal cmake steps from above,
 * On Windows, `msbuild PACKAGE.vcproj` to make a NSIS installer
 * On Quest and Pico, just distribute the apk from the development steps.
 
+## Building Lua documentation
+
+### Prerequisities
+LDoc needs LuaFileSystem (via penlight) and the easiest way to get that is to install luarocks and get penlight through that. 
+
+For example on OSX with homebrew you run 
+
+`brew install luarocks && luarocks install penlight`
+
+### Running the generator
+
+`lua deps/ldoc/ldoc.lua -f markdown lua/scenes`
+
+Append other paths to include as documentation is expanded and file structure is cleaned up. 
+
+### Documenting your code
+
+See [the LDoc manual](https://stevedonovan.github.io/ldoc/manual/doc.md.html).
 
 ## Project structure
 
