@@ -1,4 +1,5 @@
--- Establish that all the basic features of ui2 work
+--- A mess of ui2 an alloui stuff for building things.
+-- @module ControlsOverlay
 
 namespace "standard"
 

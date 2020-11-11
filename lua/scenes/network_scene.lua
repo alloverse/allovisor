@@ -1,3 +1,13 @@
+--- The Allovisor network scene.
+-- The responsibilies of NetworkScene are:
+--
+-- * Manage the network connection in self.client
+-- * Transform incoming messages and states into a format that the engines can work with nicely
+-- * Instantiate engines
+--
+-- Engines should, in turn, manage roughly one component type.
+-- @classmod NetworkScene
+
 namespace("networkscene", "alloverse")
 
 local tablex = require "pl.tablex"
@@ -17,13 +27,6 @@ require "lib.allostring"
 local util = require "lib.util"
 allonet = util.load_allonet()
 
-
--- The responsibilies of NetworkScene are:
--- * Manage the network connection in self.client
--- * Transform incoming messages and states into a format that the engines can work with nicely
--- * Instantiate engines
---
--- Engines should, in turn, manage roughly one component type.
 local NetworkScene = classNamed("NetworkScene", OrderedEnt)
 function NetworkScene:_init(displayName, url, avatarName)
   print("Starting network scene as", displayName, "connecting to", url, "on a", (lovr.headset and lovr.headset.getName() or "desktop"))

@@ -1,3 +1,6 @@
+--- The Allovisor Scene manager
+-- @classmod SceneManager
+
 namespace("menu", "alloverse")
 local SceneClasses = {
     menu = require("scenes.netmenu_scene"),

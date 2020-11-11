@@ -1,11 +1,11 @@
---- The Allovisor physics engine
+--- The Allovisor menu apps.
 -- @classmod NetMenuScene
 
 namespace("menu", "alloverse")
 local NetworkScene = require("scenes.network_scene")
 
 
---- Connects to the menuserv local server that hosts allo apps presenting menues
+--- Connects to the menuserv local server that hosts allo apps presenting menues.
 -- This scene doesn't have any UI. It just connects to menuserv,
 -- which has its own AlloApps running, providing UI. These in turn
 -- perform their actions by sending allo interactions back to this scene.
@@ -13,11 +13,11 @@ local NetworkScene = require("scenes.network_scene")
 -- plain MVC views.
 local NetMenuScene = classNamed("NetMenuScene", Ent)
 
---- Registers user interactions 
+--- Registers user interactions.
 -- Delegates user input to the appropriate menu alloapp through menuserv
 local MenuInteractor = classNamed("MenuInteractor", Ent)
 
---- lovr settings
+--- lovr settings.
 local settings = require("lib.lovr-settings")
 
 
@@ -32,7 +32,7 @@ function NetMenuScene:_init(menuServerPort)
   self:super()
 end
 
---- Setup 
+--- Setup.
 -- Connects to the menuserlv and starts the interactor
 function NetMenuScene:onLoad()
   self.net = NetworkScene("owner", "alloplace://localhost:"..tostring(self.menuServerPort), settings.d.avatarName)
@@ -45,13 +45,14 @@ function NetMenuScene:onLoad()
   interactor:insert(self.net)
 end
 
---- Does not draw anything
+--- NetMenuScene not draw anything.
 function NetMenuScene:onDraw()
   if self.visible == false then
     return route_terminate
   end
 end
 
+--- Loads the different avatar models.
 function NetMenuScene:setupAvatars()
   self.avatarNames = {}
   for _, avatarName in ipairs(lovr.filesystem.getDirectoryItems("assets/models/avatars")) do
@@ -115,7 +116,7 @@ function MenuInteractor:onInteraction(interaction, body, receiver, sender)
   self.netmenu.dynamicActions[verb](self.netmenu, unpack(action), sender)
 end
 
---- Holds interaction rpc methods
+--- Holds interaction rpc methods.
 -- Menu apps can call out interaction rpc commands which is routed to onInteraction 
 -- to functions in dynamicActions
 NetMenuScene.dynamicActions = {}
@@ -134,7 +135,7 @@ function NetMenuScene.dynamicActions:launchApp(appName)
   })
 end
 
---- Connect to a place
+--- Connect to a place.
 function NetMenuScene.dynamicActions:connect(url)
   settings.d.last_place = url
   settings.save()
@@ -144,22 +145,22 @@ function NetMenuScene.dynamicActions:connect(url)
   net.debug = settings.d.debug
 end
 
---- Quit Allovers
+--- Quit Allovers.
 function NetMenuScene.dynamicActions:quit(url)
   lovr.event.quit(0)
 end
 
---- Dismiss the menu
+--- Dismiss the menu.
 function NetMenuScene.dynamicActions:dismiss()
   self.parent:setMenuVisible(false)
 end
 
---- Disconnect from the current place
+--- Disconnect from the current place.
 function NetMenuScene.dynamicActions:disconnect()
   self.parent.net:onDisconnect()
 end
 
---- Toggle debug mode
+--- Toggle debug mode.
 function NetMenuScene.dynamicActions:toggleDebug(sender)
   settings.d.debug = not settings.d.debug
   settings:save()
@@ -167,7 +168,7 @@ function NetMenuScene.dynamicActions:toggleDebug(sender)
   self:updateDebugTitle()
 end
 
---- Cycle through the list of avatars
+--- Cycle through the list of avatars.
 function NetMenuScene.dynamicActions:changeAvatar(direction, sender)
   local i = tablex.find(self.avatarNames, settings.d.avatarName)
   local newI = ((i + direction - 1) % #self.avatarNames) + 1
