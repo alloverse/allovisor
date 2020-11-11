@@ -119,6 +119,15 @@ After following the normal cmake steps from above,
 * On Windows, `msbuild PACKAGE.vcproj` to make a NSIS installer
 * On Quest and Pico, just distribute the apk from the development steps.
 
+## Building Lua documentation
+
+You need penlight and its dependencies in your Lua search path.
+
+`lua deps/ldoc/ldoc.lua -f markdown lua/scenes`
+
+Append other paths to include as documentation is expanded and file structure is cleaned up. 
+
+See [the LDoc manual](https://stevedonovan.github.io/ldoc/manual/doc.md.html) for how to document your code.
 
 ## Project structure
 
