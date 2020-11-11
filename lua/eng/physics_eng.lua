@@ -1,3 +1,6 @@
+--- The Allovisor physics engine
+-- @classmod PhysicsEng
+
 namespace("networkscene", "alloverse")
 
 local tablex = require "pl.tablex"

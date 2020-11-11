@@ -1,3 +1,7 @@
+--- The Allovisor Text engine
+-- Draws text components
+-- @classmod TextEng
+
 namespace("networkscene", "alloverse")
 
 local tablex = require "pl.tablex"
@@ -11,8 +15,8 @@ function TextEng:onLoad()
   self.font = lovr.graphics.newFont(32)
 end
 
+--- Draws all text components
 function TextEng:onDraw() 
-
   lovr.graphics.setShader()
   self.font:setPixelDensity(32)
   lovr.graphics.setFont(self.font)

@@ -1,3 +1,6 @@
+--- The Allovisor Sound engine
+-- @classmod SoundEng
+
 namespace("networkscene", "alloverse")
 
 local pretty = require "pl.pretty"
