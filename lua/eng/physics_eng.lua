@@ -1,6 +1,5 @@
 namespace("networkscene", "alloverse")
 
-local json = require "json"
 local tablex = require "pl.tablex"
 local pretty = require "pl.pretty"
 local PhysicsEng = classNamed("PhysicsEng", Ent)

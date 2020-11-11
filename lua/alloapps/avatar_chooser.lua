@@ -67,9 +67,9 @@ function BodyPart:updateOther(eid)
 end
 
 class.AvatarChooser(EmbeddedApp)
-function AvatarChooser:_init()
+function AvatarChooser:_init(port)
   self.avatarName = "female"
-  self:super("avatarchooser")
+  self:super("avatarchooser", port)
 end
 
 function AvatarChooser:createUI()

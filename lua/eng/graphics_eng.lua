@@ -3,7 +3,6 @@
 
 namespace("networkscene", "alloverse")
 
-local json = require "json"
 local array2d = require "pl.array2d"
 local tablex = require "pl.tablex"
 local pretty = require "pl.pretty"

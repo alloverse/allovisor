@@ -4,10 +4,10 @@ local pretty = require("pl.pretty")
 local class = require("pl.class")
 
 class.EmbeddedApp()
-function EmbeddedApp:_init(appname)
+function EmbeddedApp:_init(appname, port)
   self.appname = appname
   self.client = Client(
-    "alloplace://localhost:21338", 
+    "alloplace://localhost:"..tostring(port), 
     appname
   )
   self.app = ui.App(self.client)

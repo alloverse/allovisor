@@ -1,3 +1,5 @@
+lovr.data = require("lovr.data")
+
 function tablefind(tab,el)
     for index, value in pairs(tab) do
         if value == el then
@@ -29,4 +31,8 @@ function lovr.conf(t)
     local desktopi = tablefind(t.headset.drivers, "desktop")
     table.remove(t.headset.drivers, desktopi)
   end
+
+  t.identity = "alloverse"
+  t.window.title = "Alloverse"
+  t.window.icon = lovr.data.newTextureData("assets/alloverse-logo.png", false)
 end

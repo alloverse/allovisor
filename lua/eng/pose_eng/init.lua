@@ -1,6 +1,5 @@
 namespace("pose_eng", "alloverse")
 
-local json = require "json"
 local tablex = require "pl.tablex"
 local pretty = require "pl.pretty"
 local allomath = require "lib.allomath"

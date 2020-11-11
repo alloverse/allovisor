@@ -7,13 +7,14 @@ if lovr.filesystem.getExecutablePath() and lovr.getOS() == "Windows" then
 	cpath = cpath .. lovr.filesystem.getExecutablePath():gsub("lovr.exe", "?.dll")
 end
 path = path ..
-	";alloui/lua/?.lua;" ..
-	";alloui/lib/cpml/?.lua"
+  ";lib/alloui/lua/?.lua" ..
+  ";lib/alloui/lib/cpml/?.lua" ..
+  ";lib/ent/lua/?.lua" ..
+  ";lib/ent/lua/?/init.lua" 
+	
 
 lovr.filesystem.setRequirePath(path, cpath)
 package.cpath = cpath
-
-lovr.filesystem.setIdentity("alloverse")
 
 namespace = require "engine.namespace"
 
@@ -25,25 +26,32 @@ end
 
 -- Load namespace basics
 do
-	local space = namespace.space("standard")
+	-- This should be only used in helper threads. Make sure this matches thread/helper/boot.lua
+	local space = namespace.space("minimal")
 
 	-- PL classes missing? add here:
 	for _,v in ipairs{"class", "pretty", "stringx", "tablex"} do
 		space[v] = require("pl." .. v)
 	end
+	space.ugly = require "engine.ugly"
 
 	require "engine.types"
+end
+do
+	local space = namespace.space("standard", "minimal")
+
+	space.cpml = require "cpml"
+	for _,v in ipairs{"bound2", "bound3", "vec2", "vec3", "quat", "mat4", "color", "utils"} do
+		space[v] = space.cpml[v]
+	end
+	require "engine.loc"
+
 	require "engine.ent"
+	space.ent.singleThread = singleThread
 	require "engine.common_ent"
 	require "engine.lovr"
   require "engine.mode"
-
-  require "util"
-
-	space.cpml = require "cpml" -- CPML classes missing? Add here:
-	for _,v in ipairs{"bound2", "bound3", "color", "utils"} do
-		space[v] = space.cpml[v]
-	end
+  require "lib.util"
 end
 
 namespace.prepare("alloverse", "standard", function(space)
@@ -55,17 +63,51 @@ end)
 namespace "standard"
 local flat = require "engine.flat"
 
+local loadCo = nil
 function lovr.load()
   print("lovr.load()")
-	menuServerThread = lovr.thread.newThread("menuserv_main.lua")
+  loadCo = coroutine.create(_asyncLoad)
+end
+function _asyncLoad()
+  function check(threadname)
+    local deadline = lovr.timer.getTime() + 5
+    local chan = lovr.thread.getChannel(threadname)
+    while lovr.timer.getTime() < deadline do
+      local m = chan:peek()
+      if m == "booted" then
+        chan:pop()
+        return chan
+      end
+      coroutine.yield()
+    end
+    error(threadname.." didn't start in time")
+  end
+	menuServerThread = lovr.thread.newThread("threads/menuserv_main.lua")
   menuServerThread:start()
-  _checkthread(menuServerThread, "menuserv")
-	menuAppsThread = lovr.thread.newThread("menuapps_main.lua")
+  menuServerPort = check("menuserv"):pop(true)
+  menuAppsThread = lovr.thread.newThread("threads/menuapps_main.lua")
+  lovr.thread.getChannel("appserv"):push(menuServerPort)
+  print("starting appserv...")
   menuAppsThread:start()
-  _checkthread(menuAppsThread, "appserv")
-
-	ent.root = require("app.scenemanager")()
-
+  check("appserv")
+  return "done"
+end
+function _asyncLoadResume()
+  local costatus, err = coroutine.resume(loadCo)
+  if err ~= "done" then
+    if costatus == false then
+      print("Booting failed with error", err)
+      error(err)
+    end
+    return
+  end
+  print("Pre-boot completed, launching UI")
+  
+  -- great, all the threads are started. Let's create some UI.
+  -- (We can't do this in the above coroutine because allonet stores
+  --  the coroutine you call set_*_callback on :S)
+  loadCo = nil
+	ent.root = require("scenes.scenemanager")(menuServerPort)
 	ent.root:route("onBoot") -- This will only be sent once
   ent.root:insert()
   
@@ -121,32 +163,12 @@ function lovr.load()
 
 end
 
-function _checkthread(thread, channelName)
-  local deadline = lovr.timer.getTime() + 2
-  local chan = lovr.thread.getChannel(channelName)
-  while lovr.timer.getTime() < deadline do
-    local m = chan:pop(0.1)
-    if m == "booted" then
-      return true
-    end
-    -- todo: instead, wait for these threads to respond async and then start LoaderEnt
-    lovr.event.pump()
-    for name, a, b, c, d in lovr.event.poll() do
-      if name == "threaderror" then
-        lovr.threaderror(a, b)
-      end -- arrgh discarding events
-    end
-  end
-  assert(channelName.." didn't start in time")
-end
-
 function lovr.restart()
   print("Shutting down threads...")
-  lovr.thread.getChannel("menuserv"):push("exit", true)
-  lovr.thread.getChannel("appserv"):push("exit", true)
-  -- wait() crashes on windows. and anyways if "exit" is pop()d, we know thread is done
-  -- menuServerThread:wait()
-  -- menuAppsThread:wait()
+  lovr.thread.getChannel("menuserv"):push("exit")
+  lovr.thread.getChannel("appserv"):push("exit")
+  menuServerThread:wait()
+  menuAppsThread:wait()
   print("Done, restarting.")
   return true
 end
@@ -174,17 +196,24 @@ function _updateMouse()
 end
 
 function lovr.update(dt)
+  if loadCo then
+    _asyncLoadResume()
+  end
   if lovr.mouse then
     _updateMouse()
   end
-	ent.root:route("onUpdate", dt)
-	entity_cleanup()
+  if ent.root then
+    ent.root:route("onUpdate", dt)
+    entity_cleanup()
+  end
 end
 
 function lovr.draw(isMirror)
   lovr.graphics.origin()
-	drawMode()
-	ent.root:route("onDraw", isMirror)
+  drawMode()
+  if ent.root then
+    ent.root:route("onDraw", isMirror)
+  end
 end
 
 
@@ -196,13 +225,17 @@ function lovr.mirror()
   local aspect = pixwidth/pixheight
   local proj = lovr.math.mat4():perspective(0.01, 100, 67*(3.14/180), aspect)
   lovr.graphics.setProjection(1, proj)
-	ent.root:route("onMirror")
+  if ent.root then
+    ent.root:route("onMirror")
+  end
 end
 
 function lovr.focus(focused)
-  ent.root:route("onFocus", focused)
-  if focused then
-    lovr.mouse.setHidden(true)
+  if ent.root then
+    ent.root:route("onFocus", focused)
+  end
+  if lovr.mouse then
+    lovr.mouse.setHidden(focused)
   end
 end
 
@@ -219,9 +252,6 @@ function lovr.run()
         return 'restart', cookie
       elseif name == 'quit' and (not lovr.quit or not lovr.quit(a)) then
         return a or 0
-      elseif name == 'threaderror' and lovr.threaderror then
-        print("THREAD ERROR!!!")
-        lovr.threaderror(a, b)
       end
       if lovr.handlers[name] then lovr.handlers[name](a, b, c, d) end
     end

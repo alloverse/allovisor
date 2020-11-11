@@ -8,11 +8,14 @@
 	path = deps/allonet
 	url = https://github.com/alloverse/allonet.git
 [submodule "deps/alloui"]
-	path = lua/alloui
+	path = lua/lib/alloui
 	url = https://github.com/alloverse/alloui-lua.git
 [submodule "lua/lib/letters"]
 	path = lua/lib/letters
 	url = https://github.com/alloverse/lovr-letters
 [submodule "deps/ldoc"]
 	path = deps/ldoc
-	url = git@github.com:lunarmodules/LDoc.git
+	url = https://github.com/lunarmodules/LDoc.git
+[submodule "lua/lib/ent"]
+	path = lua/lib/ent
+	url = https://github.com/alloverse/lovr-ent.git
