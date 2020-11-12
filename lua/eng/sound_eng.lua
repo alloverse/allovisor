@@ -47,7 +47,9 @@ function SoundEng:_attemptOpenMicrophone()
 end
 
 function SoundEng:onLoad()
-  self.client.delegates.onAudio = function(track_id, audio) self:onAudio(track_id, audio) end
+  self.client.delegates.onAudio = function(track_id, audio)
+    self:onAudio(track_id, audio) 
+  end
 end
 
 function SoundEng:onAudio(track_id, samples)

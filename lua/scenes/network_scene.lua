@@ -86,17 +86,15 @@ function NetworkScene:_init(displayName, url, avatarName)
   self.isOverlayScene = false
   self.head_id = ""
   self.drawTime = 0.0
-  self.client.delegates = {
-    onStateChanged = function() self:route("onStateChanged") end,
-    onEntityAdded = function(e) self:route("onEntityAdded", e) end,
-    onEntityRemoved = function(e) self:route("onEntityRemoved", e) end,
-    onComponentAdded = function(k, v) self:route("onComponentAdded", k, v) end,
-    onComponentChanged = function(k, v, old) self:route("onComponentChanged", k, v, old) end,
-    onComponentRemoved = function(k, v) self:route("onComponentRemoved", k, v) end,
-    onInteraction = function(inter, body, receiver, sender) self:route("onInteraction", inter, body, receiver, sender) end,
-    onDisconnected =  function(code, message) self:route("onDisconnect", code, message) end,
-    onAudio = function(...) end -- set from SoundEng
-  } 
+  self.client.delegates.onStateChanged = function() self:route("onStateChanged") end
+  self.client.delegates.onEntityAdded = function(e) self:route("onEntityAdded", e) end
+  self.client.delegates.onEntityRemoved = function(e) self:route("onEntityRemoved", e) end
+  self.client.delegates.onComponentAdded = function(k, v) self:route("onComponentAdded", k, v) end
+  self.client.delegates.onComponentChanged = function(k, v, old) self:route("onComponentChanged", k, v, old) end
+  self.client.delegates.onComponentRemoved = function(k, v) self:route("onComponentRemoved", k, v) end
+  self.client.delegates.onInteraction = function(inter, body, receiver, sender) self:route("onInteraction", inter, body, receiver, sender) end
+  self.client.delegates.onDisconnected =  function(code, message) self:route("onDisconnect", code, message) end
+
   if self.client:connect(avatar) == false then
     self:onDisconnect(1003, "Failed to connect")
   end
@@ -117,10 +115,12 @@ function NetworkScene:onLoad()
       self.engines.sound = engines.SoundEng()
     end
     
-    for _, ename in ipairs({"graphics", "text", "pose", "physics"}) do
+    for _, ename in ipairs({"graphics", "text", "pose", "physics", "sound"}) do
       local engine = self.engines[ename]
-      engine.client = self.client
-      engine:insert(self)
+      if engine then
+        engine.client = self.client
+        engine:insert(self)
+      end
     end
   end
 end
