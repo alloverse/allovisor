@@ -57,6 +57,12 @@ absolute paths to lodr and lua that work on your computer to the ALloverse targe
     }
 ```
 
+### Linux
+
+1. `sudo apt install libpulse-dev cmake git glt-lfs build-essential xorg-dev libglfw3-dev libluajit-5.1-dev libphysfs-dev libopenal-dev libode-dev libccd-dev libenet-dev llvm clang` or something like that
+2. `mkdir build; cd build; cmake ..`
+3. `make Alloverse; and ./Alloverse ../deps/lodr ../lua`
+
 ### Oculus Quest or Pico Neo
 
 This only works from a Mac or Linux machine.
