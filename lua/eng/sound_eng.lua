@@ -79,7 +79,8 @@ function SoundEng:onStateChanged()
   end
   if self.head then
     local matrix = self.head.components.transform:getMatrix()
-    lovr.audio.setPose(matrix:unpack())
+    local x, y, z, sx, sy, sz, a, ax, ay, az = matrix:unpack()
+    lovr.audio.setPose(x, y, z, a, ax, ay, az)
   end
 end
 
@@ -97,7 +98,8 @@ function SoundEng:setAudioPositionForEntitiy(entity)
 
   local matrix = entity.components.transform:getMatrix()
 
-  track.source:setPose(matrix:unpack())
+  local x, y, z, sx, sy, sz, a, ax, ay, az = matrix:unpack()
+  track.source:setPose(x, y, z, a, ax, ay, az)
 end
 
 function SoundEng:onHeadAdded(head)
