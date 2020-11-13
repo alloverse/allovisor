@@ -111,7 +111,7 @@ function NetworkScene:onLoad()
       physics = engines.PhysicsEng(),
       text = engines.TextEng(),
     }
-    if engines.SoundEng.supported() then
+    if engines.SoundEng.supported() and not self.isMenu then
       self.engines.sound = engines.SoundEng()
     end
     

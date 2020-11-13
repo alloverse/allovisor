@@ -61,10 +61,24 @@ function SoundEng:onAudio(track_id, samples)
     local stream = lovr.data.newAudioStream(1, 48000)
     audio = {
       stream = stream,
-      source = lovr.audio.newSource(stream, "stream")
+      source = lovr.audio.newSource(stream, "stream"),
+      bitrate = 0.0
     }
     self.audio[track_id] = audio
+    audio.source:setRelative(true)
   end
+
+  local blobLength = #samples
+  local now = lovr.timer.getTime()
+  local previousAudioTime = audio.lastReceivedTime
+  audio.lastReceivedTime = now
+  if previousAudioTime and previousAudioTime > 0 then
+    local delta = now - previousAudioTime
+    local currentBitRate = blobLength / delta
+    audio.bitrate = audio.bitrate * 0.90 + currentBitRate * 0.10
+  end
+  audio.ping = true
+
   local blob = lovr.data.newBlob(samples, "audio for track #"..track_id)
   audio.stream:append(blob)
   if audio.source:isPlaying() == false and audio.stream:getDuration() >= 0.2 then
@@ -129,20 +143,27 @@ function SoundEng:onDraw()
   if self.parent.debug == false then
     return
   end
-  lovr.graphics.setShader(self.parent.engines.graphics.plainShader)
-  lovr.graphics.setColor(1.0, 0.0, 1.0, 0.5)
   for track_id, audio in pairs(self.audio) do
     local x, y, z = audio.source:getPosition()
+    lovr.graphics.setShader(self.parent.engines.graphics.plainShader)
+    if audio.source:isPlaying() then
+      lovr.graphics.setColor(0.0, 1.0, audio.ping and 1.0 or 0.2, 0.5)
+    else
+      lovr.graphics.setColor(1.0, 0.0, audio.ping and 1.0 or 0.2, 0.5)
+    end
+    audio.ping = false
     lovr.graphics.sphere(
       x, y, z,
       0.1,
       0, 0, 1, 0 -- rot
     )
 
-    local s = string.format("%d", track_id)
+    lovr.graphics.setShader()
+    lovr.graphics.setColor(0.0, 0.0, 0.0, 1.0)
+    local s = string.format("Track #%d\n%.2fkBps", track_id, audio.bitrate/1024.0)
     lovr.graphics.print(s, 
       x, y+0.15, z,
-      0.01, --  scale
+      0.07, --  scale
       0, 0, 1, 0,
       0, -- wrap
       "left"
