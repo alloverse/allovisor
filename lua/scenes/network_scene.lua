@@ -250,7 +250,7 @@ function NetworkScene:onDraw(isMirror)
       s = string.format("%s\n %.1f %.1f %.1f %.1f\n%.1f %.1f %.1f %.1f\n%.1f %.1f %.1f %.1f\n%.1f %.1f %.1f %.1f", s, rowmajor_mat:unpack(true))
       lovr.graphics.print(s, 
         pos.x, pos.y, pos.z,
-        0.001, --  scale
+        0.01, --  scale
         0, 0, 1, 0,
         0, -- wrap
         "left"
