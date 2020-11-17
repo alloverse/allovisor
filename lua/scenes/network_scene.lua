@@ -231,10 +231,13 @@ function NetworkScene:onDraw(isMirror)
   end
 
 
-  if self.debug == false then
-    return
+  if self.debug then
+    self:route("onDebugDraw")
   end
+  self.drawTime = lovr.timer.getTime() - atStartOfDraw
+end
 
+function NetworkScene:onDebugDraw()
   for eid, entity in pairs(self.state.entities) do
     local trans = entity.components.transform
 
@@ -257,7 +260,6 @@ function NetworkScene:onDraw(isMirror)
       )
     end
   end
-  self.drawTime = lovr.timer.getTime() - atStartOfDraw
 end
 
 function NetworkScene:after_onDraw()
@@ -283,16 +285,22 @@ function NetworkScene:onUpdate(dt)
   local stats = Stats.instance
   if stats and not self.isOverlayScene then
     stats:enable(self.debug)
-    stats:set("Server time", string.format("%.3fs", self.client.client:get_server_time()))
-    stats:set("Client time", string.format("%.3fs", self.client.client:get_time()))
+    stats:set("Clocks", string.format(
+      "Server %.3fs\nClient %.3fs", 
+      self.client.client:get_server_time(),
+      self.client.client:get_time()
+    ))
     stats:set("Network stats", self.client.client:get_stats())
     stats:set("Latency", string.format("%.0fms", self.client.client:get_latency()*1000.0))
     stats:set("C/S clock delta", string.format("%.3fs", self.client.client:get_clock_delta()))
     stats:set("FPS", string.format("%.1fhz", lovr.timer.getFPS()))
     stats:set("Entity count", string.format("%d", self.client.entityCount))
-    stats:set("Render duration", string.format("%.0fms", self.drawTime*1000.0))
-    stats:set("Network duration", string.format("%.0fms", self.pollTime*1000.0))
-    stats:set("Simulation duration", string.format("%.0fms", self.simulateTime*1000.0))
+    stats:set("Durations", string.format(
+      "Render %.1fms\nNetwork %.1fms\nSimulation %.1fms", 
+      self.drawTime*1000.0,
+      self.pollTime*1000.0,
+      self.simulateTime*1000.0
+    ))
   end
 
 

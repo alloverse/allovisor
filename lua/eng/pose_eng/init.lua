@@ -229,11 +229,11 @@ function PoseEng:wasPressed(device, button)
   if self.parent.active == false then return false end
   local down = false
   if lovr.headset then
-    down = lovr.headset.wasPressed(device, button)
+    down = down or lovr.headset.wasPressed(device, button)
   end
   if keyboard then
     if device == "hand/right" and button == "b" then
-      down = keyboard.wasPressed("r")
+      down = down or keyboard.wasPressed("r")
     end
   end
   return down

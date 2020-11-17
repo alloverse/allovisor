@@ -139,10 +139,7 @@ function SoundEng:onHeadAdded(head)
   end)
 end
 
-function SoundEng:onDraw()
-  if self.parent.debug == false then
-    return
-  end
+function SoundEng:onDebugDraw()
   for track_id, audio in pairs(self.audio) do
     local x, y, z = audio.source:getPosition()
     lovr.graphics.setShader(self.parent.engines.graphics.plainShader)

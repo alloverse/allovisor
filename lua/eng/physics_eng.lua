@@ -33,11 +33,7 @@ function PhysicsEng:onUpdate(dt)
 
 end
 
-function PhysicsEng:onDraw()
-  if self.parent.debug == false then
-    return
-  end
-
+function PhysicsEng:onDebugDraw()
   lovr.graphics.setShader()
   for eid, collider in pairs(self.colliders) do
     local entity = collider:getUserData()

@@ -35,7 +35,7 @@ function Stats:onMirror()
         
         local s = ""
         for k, v in pairs(self.stats) do
-            s = s .. k .. "   " .. v .. "\n"
+            s = s .. k .. ":   " .. v .. "\n"
         end
 
         lovr.graphics.setShader(nil)
