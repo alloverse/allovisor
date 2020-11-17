@@ -27,8 +27,7 @@ function PhysicsEng:onUpdate(dt)
     if x ~= x or a ~= a or ax ~= ax then
       print("HOOPS broken matrix", pretty.write({matrix:unpack(true)}))
     else
-      collider:setPosition(x, y, z)
-      collider:setOrientation(a, ax, ay, az)
+      collider:setPose(x, y, z, a, ax, ay, az)
     end
   end
 
@@ -42,8 +41,7 @@ function PhysicsEng:onDraw()
   lovr.graphics.setShader()
   for eid, collider in pairs(self.colliders) do
     local entity = collider:getUserData()
-    local x, y, z = collider:getPosition()
-    local a, ax, ay, az = collider:getOrientation()
+    local x, y, z, a, ax, ay, az = collider:getPose()
     local boxShape = collider:getShapes()[1]
     local w, h, d = boxShape:getDimensions()
 
