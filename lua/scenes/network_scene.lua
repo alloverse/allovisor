@@ -230,10 +230,6 @@ function NetworkScene:onDraw(isMirror)
     lovr.graphics.transform(self.transform)
   end
 
-
-  if self.debug then
-    self:route("onDebugDraw")
-  end
   self.drawTime = lovr.timer.getTime() - atStartOfDraw
 end
 
@@ -265,6 +261,9 @@ function NetworkScene:onDebugDraw()
 end
 
 function NetworkScene:after_onDraw()
+  if self.debug then
+    self:route("onDebugDraw")
+  end
   lovr.graphics.pop()
 end
 
@@ -304,10 +303,13 @@ function NetworkScene:onUpdate(dt)
       self.simulateTime*1000.0
     ))
   end
+end
 
+function NetworkScene:onButtonPressed(device, button)
+  if self.isMenu then return end -- can't toggle menu from menu
 
-  if self.engines.pose:wasPressed("hand/right", "b") and (not self.isMenu or self.isOverlayScene) then
-    lovr.scenes:toggleMenuVisible()
+  if button == "b" or button == "menu" then
+    lovr.scenes:setMenuVisible(not self.isOverlayScene)
   end
 end
 
