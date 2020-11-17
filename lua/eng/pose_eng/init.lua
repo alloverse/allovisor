@@ -3,134 +3,13 @@ namespace("pose_eng", "alloverse")
 local tablex = require "pl.tablex"
 local pretty = require "pl.pretty"
 local allomath = require "lib.allomath"
-local alloBasicShader = require "shader/alloBasicShader"
-local alloPointerRayShader = require "shader/alloPointerRayShader"
-local ok, keyboard = pcall(require, "lib.lovr-keyboard")
-if not ok then
-  print("No keyboard available", keyboard)
-  keyboard = nil
-end
-
-local HandRay = classNamed("HandRay")
-function HandRay:_init()
-  self.isPointing = true
-  self.highlightedEntity = nil
-  self.selectedEntity = nil
-  self.heldEntity = nil
-  self.heldPoint = lovr.math.newVec3()
-  self.from = lovr.math.newVec3()
-  self.to = lovr.math.newVec3()
-  self.hand = nil -- hand entity
-  self.grabber_from_entity_transform = lovr.math.newMat4()
-  self.rayLength = 1
-
-  local cursorTexture = lovr.graphics.newTexture("assets/textures/cursor.png", {})
-  self.cursorMaterial = lovr.graphics.newMaterial(cursorTexture)
-
-end
-function HandRay:highlightEntity(entity)
-  if self.highlightedEntity ~= nil then
-    --self.highlightedEntity.isHighlighted = false
-  end
-  self.highlightedEntity = entity
-  if self.highlightedEntity ~= nil then
-    --self.highlightedEntity.isHighlighted = true
-  end
-end
-function HandRay:selectEntity(entity)
-  if self.selectedEntity ~= nil then
-    --self.selectedEntity.isSelected = false
-  end
-  self.selectedEntity = entity
-  if self.selectedEntity ~= nil then
-    --self.selectedEntity.isSelected = true
-  end
-end
-function HandRay:getColor()
-  if self.highlightedEntity ~= nil then
-    return {0.91, 0.43, 0.29}
-  else
-    return {0.27,0.55,1}
-  end
-end
-
-function HandRay:draw()
-  if self.highlightedEntity then
-    -- user is pointing at an interactive entity, draw highlight ray & cursor
-    self:drawCursor()
-    self:drawCone({1,1,0,1.0})
-  else
-    -- user is not pointing at anything, draw the default ray
-    self:drawCone({0,1,1,1.0})
-  end
-end
-
-function HandRay:drawCone(color)
-  local coneCenter = self.from + ((self.to - self.from):normalize() * (self.rayLength/2))
-  lovr.graphics.push()
-  local mat = lovr.math.mat4():lookAt(coneCenter, self.to)
-  lovr.graphics.transform(mat)
-  
-  lovr.graphics.setColor(color)
-  lovr.graphics.setShader(alloPointerRayShader)
-
-  lovr.graphics.cylinder(0, 0, 0, self.rayLength, 0, 0, 0, 0, 0.005, 0.008)
-  lovr.graphics.pop()
-end
-
-function HandRay:drawCursor()
-  lovr.graphics.setShader(alloBasicShader)
-  local _, _, _, _, _, _, a, ax, ay, az = self.highlightedEntity.components.transform:getMatrix():unpack()
-
-  lovr.graphics.push()
-  lovr.graphics.translate(self.to)
-  lovr.graphics.rotate(a, ax, ay, az)
-
-  local cursor = self.highlightedEntity.components.cursor
-
-  if cursor ~= nil then
-    
-    if cursor.name == "brushCursor" then
-      local brushSize = self.highlightedEntity.components.cursor.size and self.highlightedEntity.components.cursor.size or 3
-      lovr.graphics.circle("line", 0, 0, 0, brushSize/100)
-    end
-
-  else
-    -- Display a default cursor
-    lovr.graphics.plane(self.cursorMaterial, 0, 0, 0.01, 0.2, 0.2, 0, 0, 0, 0, 0, 0)
-    --lovr.graphics.circle("line", 0, 0, 0, .03)
-  end
-
-
-  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 1)
-  -- lovr.graphics.circle("line", 0, 0, 0, 0.036)
-  -- lovr.graphics.circle("line", 0, 0, 0, 0.039)
-  -- lovr.graphics.circle("line", 0, 0, 0, 0.042)
-  -- lovr.graphics.circle("line", 0, 0, 0, 0.045)
-  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 0.9)
-  -- lovr.graphics.circle("line", 0, 0, 0, 0.048)
-  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 0.8)
-  -- lovr.graphics.circle("line", 0, 0, 0, 0.051)
-  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 0.7)
-  -- lovr.graphics.circle("line", 0, 0, 0, 0.054)
-  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 0.6)
-  -- lovr.graphics.circle("line", 0, 0, 0, 0.057)
-  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 0.5)
-  -- lovr.graphics.circle("line", 0, 0, 0, 0.060)
-  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 0.4)
-  -- lovr.graphics.circle("line", 0, 0, 0, 0.063)
-  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 0.3)
-  -- lovr.graphics.circle("line", 0, 0, 0, 0.066)
-  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 0.2)
-  -- lovr.graphics.circle("line", 0, 0, 0, 0.069)
-  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 0.1)
-  -- lovr.graphics.circle("line", 0, 0, 0, 0.072)
-
-  lovr.graphics.pop()
-end
+alloBasicShader = require "shader/alloBasicShader"
+alloPointerRayShader = require "shader/alloPointerRayShader"
+local HandRay = require "eng.pose_eng.hand_ray"
 
 
 PoseEng = classNamed("PoseEng", Ent)
+
 PoseEng.hands = {"hand/left", "hand/right"}
 PoseEng.buttons = {"trigger", "thumbstick", "touchpad", "grip", "menu", "a", "b", "x", "y", "proximity"}
 
@@ -234,106 +113,6 @@ function PoseEng:onDebugDraw()
   end
 
   lovr.graphics.pop()
-end
-
-
-function PoseEng:updateButtons()
-  self.previousButtonStates = self.currentButtonStates
-  self.currentButtonStates = {["hand/left"]={}, ["hand/right"]={}}
-  for handIndex, hand in ipairs(PoseEng.hands) do
-    for _, button in ipairs(PoseEng.buttons) do
-      self:updateButton(hand, button)
-    end
-  end
-end
-
-function PoseEng:routeButtonEvents()
-  if not self.previousButtonStates then return end
-  for handIndex, hand in ipairs(PoseEng.hands) do
-    for _, button in ipairs(PoseEng.buttons) do
-      if not self.previousButtonStates[hand][button] and self.currentButtonStates[hand][button] then
-        self.parent:route("onButtonPressed", hand, button)
-      end
-      if self.previousButtonStates[hand][button] and not self.currentButtonStates[hand][button] then
-        self.parent:route("onButtonReleased", hand, button)
-      end
-    end
-  end
-end
-
-function PoseEng:updateButton(device, button)
-  local down = false
-  if lovr.headset then
-    down = down or lovr.headset.isDown(device, button)
-  end
-  if device == "hand/left" and button == "trigger" then
-    down = down or (self.mouseIsDown and self.mouseMode == "interact")
-  elseif button == "menu" and keyboard then
-    down = down or keyboard.isDown("r")
-  end
-  self.currentButtonStates[device][button] = down
-end
-
-function PoseEng:isTouched(device, button)
-  if self.parent.active == false then return false end
-  local down = false
-  if lovr.headset then
-    down = down or lovr.headset.isTouched(device, button)
-  end
-  return down
-end
-
-function PoseEng:isDown(device, button)
-  if self.parent.active == false then return false end
-  if not self.currentButtonStates then return false end
-  return self.currentButtonStates[device][button]
-end
-
-function PoseEng:wasPressed(device, button)
-  if self.parent.active == false then return false end
-  if not self.currentButtonStates then return false end
-  local was = self.previousButtonStates and self.previousButtonStates[device][button] or false
-  return not was and self:isDown(device, button)
-end
-
-function PoseEng:wasReleased(device, button)
-  if self.parent.active == false then return false end
-  if not self.currentButtonStates then return false end
-  local was = self.previousButtonStates and self.previousButtonStates[device][button] or false
-  return was and not self:isDown(device, button)
-end
-
-
-function PoseEng:getAxis(device, axis)
-  if self.parent.active == false then return 0.0, 0.0 end
-
-  local x, y = 0, 0
-  if lovr.headset then
-    x, y = lovr.headset.getAxis(device, axis)
-  end
-  if keyboard then
-    if device == "hand/left" and axis == "thumbstick" then
-      if keyboard.isDown("a") then
-        x = -1
-      elseif keyboard.isDown("d") then
-        x = 1
-      end
-      if keyboard.isDown("w") then
-        y = 1
-      elseif keyboard.isDown("s") then
-        y = -1
-      end
-    elseif device == "hand/right" and axis == "thumbstick" then
-      if keyboard.isDown("q") then
-        x = -1
-      elseif keyboard.isDown("e") then
-        x = 1
-      end
-    elseif device == "hand/left" and axis == "grip" and x == 0 then
-      x = keyboard.isDown("f") and 1.0 or 0.0
-    end
-  end
-  return x, y
 end
 
 function PoseEng:onFocus(focused)
@@ -628,5 +407,6 @@ function PoseEng:updatePointing(hand_pose, ray)
 end
 
 require "eng.pose_eng.skeleton"
+require "eng.pose_eng.buttons"
 
 return PoseEng
