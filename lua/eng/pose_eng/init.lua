@@ -253,6 +253,11 @@ function PoseEng:updateIntent()
     tx = 0; ty = 0;
   end
 
+  -- not allowed to walk around in the overlay menu
+  if self.parent.isOverlayScene then
+    mx = 0; my = 0; tx = 0; ty = 0
+  end
+
   if math.abs(tx) > 0.5 and not self.didTurn then
     self.yaw = self.yaw + allomath.sign(tx) * math.pi/4
     self.didTurn = true
@@ -261,10 +266,7 @@ function PoseEng:updateIntent()
     self.didTurn = false
   end
 
-  -- not allowed to walk around in the overlay menu
-  if self.parent.isOverlayScene then
-    mx = 0; my = 0; tx = 0; ty = 0
-  end
+
   
   local intent = {
     entity_id = self.client.avatar_id,
