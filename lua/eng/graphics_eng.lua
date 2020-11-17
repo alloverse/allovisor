@@ -58,10 +58,11 @@ end
 -- @see Ent
 function GraphicsEng:onDraw() 
   lovr.graphics.setCullingEnabled(true)
-  lovr.graphics.setColor(1,1,1)
+  lovr.graphics.setColor(1,1,1,1)
   
   if not self.parent.isOverlayScene then
     lovr.graphics.setBackgroundColor(.3, .3, .40)
+    lovr.graphics.setShader()
     lovr.graphics.skybox(self.cloudSkybox)
     lovr.graphics.setShader(self.basicShader)
     self:drawDecorations()

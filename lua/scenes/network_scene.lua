@@ -238,6 +238,8 @@ function NetworkScene:onDraw(isMirror)
 end
 
 function NetworkScene:onDebugDraw()
+  lovr.graphics.setShader()
+  lovr.graphics.setColor(1,1,1,1)
   for eid, entity in pairs(self.state.entities) do
     local trans = entity.components.transform
 
