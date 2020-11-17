@@ -133,6 +133,7 @@ function NetMenuScene.dynamicActions:launchApp(appName)
         appName
     }
   })
+  self.parent:setMenuVisible(false)
 end
 
 --- Connect to a place.
@@ -145,7 +146,7 @@ function NetMenuScene.dynamicActions:connect(url)
   net.debug = settings.d.debug
 end
 
---- Quit Allovers.
+--- Quit Alloverse.
 function NetMenuScene.dynamicActions:quit(url)
   lovr.event.quit(0)
 end
