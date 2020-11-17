@@ -15,7 +15,7 @@ function Menu:createUI()
     main= require("alloapps.menu.main_menu_pane")(self),
     overlay= require("alloapps.menu.overlay_pane")(self)
   }
-  self.nav = ui.NavStack(ui.Bounds(0, 1.6, -2,   1.6, 1.2, 0.1))
+  self.nav = ui.NavStack(ui.Bounds(0, 1.6, -2.5,   1.6, 1.2, 0.1))
   return self.nav
 end
 

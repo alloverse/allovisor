@@ -57,7 +57,7 @@ function AppChooser:createUI()
 end
 
 function AppChooser:_createUI()
-  local root = ui.View(ui.Bounds(0, 0, 0,  0.3, 2, 0.3):rotate(-3.14/4, 0,1,0):move(1.6, 0, -1.4))
+  local root = ui.View(ui.Bounds(0, 0, -1.2,  0.3, 2, 0.3):rotate(-3.14/4, 0,1,0):move(0.70, 0, -1.3))
 
   local controls = ui.Surface(ui.Bounds(0, -0.1, 0,   1.3, 0.4, 0.02):rotate(-3.14/4, 1, 0, 0):move(0, 1.1, 0))
   root:addSubview(controls)
