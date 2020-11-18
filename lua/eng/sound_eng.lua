@@ -84,7 +84,7 @@ function SoundEng:onAudio(track_id, samples)
       bitrate = 0.0
     }
     self.audio[track_id] = audio
-    audio.source:setFalloff(1.0, 7.0, 2.5)
+    audio.source:setFalloff(1.0, 10.0, 1.6)
     audio.source:setVolumeLimits(0.0, 1.0)
   end
 
