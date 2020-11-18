@@ -30,7 +30,9 @@ function SceneManager:showPlace(...)
     self.menu.net.isOverlayScene = true
     self:setMenuVisible(false)
     self.menu:switchToMenu("overlay")
-    return self:_makeScene("net", ...)
+    self:_makeScene("net", ...)
+    self.menu:applySettingsToCurrentNet()
+    return self.net
 end
 
 function SceneManager:transitionToMainMenu()

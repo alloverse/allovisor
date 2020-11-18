@@ -27,7 +27,12 @@ function NetMenuScene:_init(menuServerPort)
   self.apps = {}
   self.visible = true
   settings.load()
+  self.settings = settings
   self:setupAvatars()
+  if not settings.d.currentMicrophone then
+    settings.d.currentMicrophone = lovr.audio and lovr.audio.getMicrophoneNames()[1]
+    if not settings.d.currentMicrophone then settings.d.currentMicrophone = "Mute" end
+  end
   self:updateDebugTitle()
   self:super()
 end
@@ -39,6 +44,7 @@ function NetMenuScene:onLoad()
   self.net.debug = settings.d.debug
   self.net.isMenu = true
   self.net:insert(self)
+  self:sendToApp("mainmenu", {"updateSubmenu", "audio", "setCurrentMicrophone", settings.d.currentMicrophone, true})
 
   local interactor = MenuInteractor()
   interactor.netmenu = self
@@ -176,6 +182,22 @@ function NetMenuScene.dynamicActions:changeAvatar(direction, sender)
   settings.d.avatarName = self.avatarNames[newI]
   settings.save()
   self:sendToApp("avatarchooser", {"showAvatar", settings.d.avatarName})
+end
+
+--- Pick a new microphone to record from
+function NetMenuScene.dynamicActions:chooseMic(newMicName)
+  settings.d.currentMicrophone = newMicName
+  settings.save()
+  local ok = true
+  if lovr.scenes.net then
+    ok = lovr.scenes.net.engines.sound and lovr.scenes.net.engines.sound:useMic(settings.d.currentMicrophone)
+  end
+
+  self:sendToApp("mainmenu", {"updateSubmenu", "audio", "setCurrentMicrophone", settings.d.currentMicrophone, ok})
+end
+
+function NetMenuScene:applySettingsToCurrentNet()
+  self.dynamicActions.chooseMic(self, settings.d.currentMicrophone)
 end
 
 return NetMenuScene

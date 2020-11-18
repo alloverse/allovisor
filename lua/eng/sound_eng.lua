@@ -14,29 +14,48 @@ end
 function SoundEng:_init()
   self.audio = {}
   self.track_id = 0
-  self.mic = self:_attemptOpenMicrophone()
   
   self:super()
 end
 
-function SoundEng:_attemptOpenMicrophone()
+function SoundEng:useMic(micName)
+  if self.currentMicName == micName then return end
+  self.currentMicName = micName
+
+  if self.mic then
+    self.mic:stopRecording()
+    self.mic = nil
+  end
+  if micName == "Mute" then
+    self.mic = nil
+    print("SoundEng: Muted microphone")
+    return true
+  end
+
+  self.mic = self:_attemptOpenMicrophone(micName)
+  if self.mic then
+    self.mic:startRecording()
+    return true
+  else
+    return false
+  end
+end
+
+function SoundEng:_attemptOpenMicrophone(micName)
   local sampleFmts = {48000}
   local bufferSizes = {960*3, 16384, 1024*4}
   local channelss = {1}
   local bitDepths = {16}
-  local drivers = lovr.audio.getMicrophoneNames()
-  for _, driver in ipairs(drivers) do
-    for _, sampleFmt in ipairs(sampleFmts) do
-      for _, bufferSize in ipairs(bufferSizes) do
-        for _, bitDepth in ipairs(bitDepths) do
-          for _, channels in ipairs(channelss) do
-            local ok, mic = pcall(lovr.audio.newMicrophone, driver, bufferSize, sampleFmt, bitDepth, channels)
-            if ok == true and mic ~= nil then
-              print("SoundEng: Opened microphone '", driver, "' at ", sampleFmt, "hz, ", channels, "channels,", bitDepth, "bits and ", bufferSize, "bytes per packet")
-              return mic
-            else
-              print("SoundEng: Incompatible microphone: ", driver, sampleFmt, bufferSize, bitDepth, channels, ":", mic)
-            end
+  for _, sampleFmt in ipairs(sampleFmts) do
+    for _, bufferSize in ipairs(bufferSizes) do
+      for _, bitDepth in ipairs(bitDepths) do
+        for _, channels in ipairs(channelss) do
+          local ok, mic = pcall(lovr.audio.newMicrophone, micName, bufferSize, sampleFmt, bitDepth, channels)
+          if ok == true and mic ~= nil then
+            print("SoundEng: Opened microphone '", micName, "' at ", sampleFmt, "hz, ", channels, "channels,", bitDepth, "bits and ", bufferSize, "bytes per packet")
+            return mic
+          else
+            print("SoundEng: Incompatible microphone: ", driver, sampleFmt, bufferSize, bitDepth, channels, ":", mic)
           end
         end
       end
@@ -109,9 +128,8 @@ function SoundEng:onHeadAdded(head)
   self.head = head
   if self.track_id ~= 0 then return end
   if self.track_allocation_request_id ~= nil then return end
-  if self.mic == nil then return end
 
-  print("Requesting track for mic", self.mic)
+  print("Requesting track for mic")
   self.track_allocation_request_id = self.client:sendInteraction({
     type = "request",
     sender_entity_id = self.parent.head_id,
@@ -121,7 +139,6 @@ function SoundEng:onHeadAdded(head)
     if body[2] == "ok" then
       self.track_id = body[3]
       print("Our head was allocated track ", self.track_id)
-      self.mic:startRecording()
     else
       print("Failed to allocate track:", pretty.write(body))
     end
