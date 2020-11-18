@@ -65,7 +65,6 @@ function SoundEng:onAudio(track_id, samples)
       bitrate = 0.0
     }
     self.audio[track_id] = audio
-    audio.source:setRelative(true)
   end
 
   local blobLength = #samples
@@ -86,18 +85,6 @@ function SoundEng:onAudio(track_id, samples)
     audio.source:play()
   end
 end
-
-function SoundEng:onStateChanged()
-  for _, entity in pairs(self.client.state.entities) do
-    self:setAudioPositionForEntitiy(entity)
-  end
-  if self.head then
-    local matrix = self.head.components.transform:getMatrix()
-    local x, y, z, sx, sy, sz, a, ax, ay, az = matrix:unpack()
-    lovr.audio.setPose(x, y, z, a, ax, ay, az)
-  end
-end
-
 
 -- set position of audio for each entity that has a track_id assigned
 function SoundEng:setAudioPositionForEntitiy(entity)
@@ -177,6 +164,15 @@ function SoundEng:onUpdate(dt)
     if self.track_id then
       self.client:sendAudio(self.track_id, sd:getBlob():getString():sub(1, 960*2+1))
     end
+  end
+
+  for _, entity in pairs(self.client.state.entities) do
+    self:setAudioPositionForEntitiy(entity)
+  end
+  if self.head then
+    local matrix = self.head.components.transform:getMatrix()
+    local x, y, z, sx, sy, sz, a, ax, ay, az = matrix:unpack()
+    lovr.audio.setPose(x, y, z, a, ax, ay, az)
   end
 end
 
