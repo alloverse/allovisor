@@ -376,27 +376,27 @@ function GraphicsEng:drawDecorations()
     lovr.graphics.circle( 
       self.greenMat,
       0, 0, 0, -- x y z
-      12,  -- radius
+      16,  -- radius
       -3.14/2, -- angle around axis of rotation
       1, 0, 0 -- rotation axis (x, y, z)
     )
     
     local forestModel = self.hardcoded_models.forest
     if forestModel then
-      forestModel:draw(0, .5, -10, 2, 0, 0, 1, 0, 1)
-      forestModel:draw(4, .5, -8, 2, 5, 0, 1, 0, 1)
-      forestModel:draw(8, .5, -4, 2, 0, 0, 1, 0, 1)
-      forestModel:draw(10, .5, 0, 2, 1, 0, 1, 0, 1)
+      forestModel:draw(0, .5, -14,   2, 0, 0, 1, 0, 1)
+      forestModel:draw(6, .5, -11,    2, 5, 0, 1, 0, 1)
+      forestModel:draw(11, .5, -6,    2, 0, 0, 1, 0, 1)
+      forestModel:draw(14, .5, 0,    2, 1, 0, 1, 0, 1)
 
-      forestModel:draw(8, .5, 4, 2, 0, 0, 1, 0, 1)
-      forestModel:draw(4, .5, 8, 2, 2, 0, 1, 0, 1)
-      forestModel:draw(0, .5, 10, 2, 0, 0, 1, 0, 1)
-      forestModel:draw(-4, .5, 8, 2, 3, 0, 1, 0, 1)
+      forestModel:draw(11, .5, 6,     2, 0, 0, 1, 0, 1)
+      forestModel:draw(6, .5, 11,     2, 2, 0, 1, 0, 1)
+      forestModel:draw(0, .5, 14,    2, 0, 0, 1, 0, 1)
+      forestModel:draw(-6, .5, 11,    2, 3, 0, 1, 0, 1)
 
-      forestModel:draw(-8, .5, 4, 2, 1, 0, 1, 0, 1)
-      forestModel:draw(-10, .5, 0, 2,  3, 0, 1, 0, 1)
-      forestModel:draw(-8, .5, -4, 2,  4, 0, 1, 0, 1)
-      forestModel:draw(-4, .5, -8, 2,   0, 0, 1, 0, 1)
+      forestModel:draw(-11, .5, 6,    2, 1, 0, 1, 0, 1)
+      forestModel:draw(-14, .5, 0,   2,  3, 0, 1, 0, 1)
+      forestModel:draw(-11, .5, -6,   2,  4, 0, 1, 0, 1)
+      forestModel:draw(-6, .5, -11,   2,   0, 0, 1, 0, 1)
     end
   end
 
