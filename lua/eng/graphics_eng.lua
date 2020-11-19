@@ -36,10 +36,18 @@ function GraphicsEng:onLoad()
   self.pbrShader = alloPbrShader
 
   lovr.graphics.setBackgroundColor(.05, .05, .05)
-  self.cloudSkybox = lovr.graphics.newTexture("assets/cloudy-sunset.png")
+  
+    self.cloudSkybox = lovr.graphics.newTexture({
+    left = 'assets/textures/skybox/skybox-left.jpg',
+    right = 'assets/textures/skybox/skybox-right.jpg',
+    top = 'assets/textures/skybox/skybox-top.jpg',
+    bottom = 'assets/textures/skybox/skybox-bottom.jpg',
+    back = 'assets/textures/skybox/skybox-back.jpg',
+    front = 'assets/textures/skybox/skybox-front.jpg'
+  })
 
-  local greenTex = lovr.graphics.newTexture("assets/textures/green.png", {})
-  self.greenMat = lovr.graphics.newMaterial(greenTex, 1, 1, 1, 1)
+  local oliveTex = lovr.graphics.newTexture("assets/textures/olive-noise.png", {})
+  self.oliveMat = lovr.graphics.newMaterial(oliveTex, 1, 1, 1, 1)
 
   local menuplateTex = lovr.graphics.newTexture("assets/textures/menuplate.png", {})
   self.menuplateMat = lovr.graphics.newMaterial(menuplateTex, 1, 1, 1, 1)
@@ -374,29 +382,50 @@ function GraphicsEng:drawDecorations()
   else
     -- "Floorplate"
     lovr.graphics.circle( 
-      self.greenMat,
+      self.oliveMat,
       0, 0, 0, -- x y z
-      16,  -- radius
+      32,  -- radius
       -3.14/2, -- angle around axis of rotation
       1, 0, 0 -- rotation axis (x, y, z)
     )
     
     local forestModel = self.hardcoded_models.forest
     if forestModel then
-      forestModel:draw(0, .5, -14,   2, 0, 0, 1, 0, 1)
-      forestModel:draw(6, .5, -11,    2, 5, 0, 1, 0, 1)
-      forestModel:draw(11, .5, -6,    2, 0, 0, 1, 0, 1)
-      forestModel:draw(14, .5, 0,    2, 1, 0, 1, 0, 1)
+      forestModel:draw(0,   .5,   -28,  2,  0,  0,  1,  0,  1)
+      forestModel:draw(4,   .5,   -24,  2,  2,  0,  1,  0,  1)
+      forestModel:draw(8,   .5,   -20,  2,  0,  0,  1,  0,  1)
+      forestModel:draw(12,  .5,   -16,  2,  0,  0,  1,  0,  1)
+      forestModel:draw(16,  .5,   -12,  2,  5,  0,  1,  0,  1)
+      forestModel:draw(20,  .5,   -8,   2,  5,  0,  1,  0,  1)
+      forestModel:draw(24,  .5,   -4,   2,  0,  0,  1,  0,  1)
+      forestModel:draw(28,  .5,   0,    2,  1,  0,  1,  0,  1)
 
-      forestModel:draw(11, .5, 6,     2, 0, 0, 1, 0, 1)
-      forestModel:draw(6, .5, 11,     2, 2, 0, 1, 0, 1)
-      forestModel:draw(0, .5, 14,    2, 0, 0, 1, 0, 1)
-      forestModel:draw(-6, .5, 11,    2, 3, 0, 1, 0, 1)
+      forestModel:draw(28,  .5,   0,    2,  3,  0,  1,  0,  1)
+      forestModel:draw(24,  .5,   4,    2,  0,  0,  1,  0,  1)
+      forestModel:draw(20,  .5,   8,    2,  0,  0,  1,  0,  1)
+      forestModel:draw(16,  .5,   12,   2,  0,  0,  1,  0,  1)
+      forestModel:draw(12,  .5,   16,   2,  2,  0,  1,  0,  1)
+      forestModel:draw(8,   .5,   20,   2,  2,  0,  1,  0,  1)
+      forestModel:draw(4,   .5,   24,   2,  0,  0,  1,  0,  1)
+      forestModel:draw(0,   .5,   28,   2,  3,  0,  1,  0,  1)
 
-      forestModel:draw(-11, .5, 6,    2, 1, 0, 1, 0, 1)
-      forestModel:draw(-14, .5, 0,   2,  3, 0, 1, 0, 1)
-      forestModel:draw(-11, .5, -6,   2,  4, 0, 1, 0, 1)
-      forestModel:draw(-6, .5, -11,   2,   0, 0, 1, 0, 1)
+      forestModel:draw(0,   .5,   -28,  2,  0,  0,  1,  0,  1)
+      forestModel:draw(-4,   .5,   -24,  2,  2,  0,  1,  0,  1)
+      forestModel:draw(-8,   .5,   -20,  2,  0,  0,  1,  0,  1)
+      forestModel:draw(-12,  .5,   -16,  2,  0,  0,  1,  0,  1)
+      forestModel:draw(-16,  .5,   -12,  2,  5,  0,  1,  0,  1)
+      forestModel:draw(-20,  .5,   -8,   2,  5,  0,  1,  0,  1)
+      forestModel:draw(-24,  .5,   -4,   2,  0,  0,  1,  0,  1)
+      forestModel:draw(-28,  .5,   0,    2,  1,  0,  1,  0,  1)
+
+      forestModel:draw(-28,  .5,   0,    2,  3,  0,  1,  0,  1)
+      forestModel:draw(-24,  .5,   4,    2,  0,  0,  1,  0,  1)
+      forestModel:draw(-20,  .5,   8,    2,  0,  0,  1,  0,  1)
+      forestModel:draw(-16,  .5,   12,   2,  0,  0,  1,  0,  1)
+      forestModel:draw(-12,  .5,   16,   2,  2,  0,  1,  0,  1)
+      forestModel:draw(-8,   .5,   20,   2,  2,  0,  1,  0,  1)
+      forestModel:draw(-4,   .5,   24,   2,  0,  0,  1,  0,  1)
+      forestModel:draw(-0,   .5,   28,   2,  3,  0,  1,  0,  1)
     end
   end
 
