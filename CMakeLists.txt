@@ -18,6 +18,7 @@ if(APPLE OR ANDROID)
   set(ALLONET_BUILD_STATIC ON CACHE BOOL "Always build allonet static")
 endif()
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON CACHE BOOL "always export all symbols")
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 if(ANDROID)
     SET(BUILD_SHARED_LIBS OFF CACHE BOOL "Default to static linking, otherwise libluajit becomes dynamic??")
