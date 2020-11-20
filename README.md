@@ -63,6 +63,11 @@ absolute paths to lodr and lua that work on your computer to the ALloverse targe
 2. `mkdir build; cd build; cmake ..`
 3. `make Alloverse; and ./Alloverse ../deps/lodr ../lua`
 
+Random things:
+
+* Here's my standard invocation, from build/: `make Alloverse; and ~/.steam/steam/ubuntu12_32/steam-runtime/run.sh gdb --args ./Alloverse ../deps/lodr ../lua`
+* steam's libode is going to override lovr's, smashing the stack. Either use LOVR_SYSTEM_ODE, or set ODE_BUILD_SHARED to OFF to make it link statically 
+
 ### Oculus Quest or Pico Neo
 
 This only works from a Mac or Linux machine.

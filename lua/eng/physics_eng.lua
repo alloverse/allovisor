@@ -61,6 +61,12 @@ function PhysicsEng:onComponentAdded(component_key, component)
   if component_key ~= "collider" then
     return
   end
+  local entity = component:getEntity()
+
+  if not (component.width > 0 and component.height > 0 and component.depth > 0) then
+    print("physics_eng: ERROR: entity<", entity.id, "> tried to add zero-mass collider", pretty.write(component))
+    return
+  end
 
   local collider = self.world:newBoxCollider(0, 0, 0, component.width, component.height, component.depth)
   local entity = component:getEntity()
