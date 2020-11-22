@@ -20,6 +20,7 @@ function PoseEng:_init()
   self.mvp = lovr.math.newMat4()
   self.oldMousePos = lovr.math.newVec2()
   self.fakeMousePos = lovr.math.newVec2()
+  self.mousePitch = 0
   self:super()
 end
 
@@ -126,6 +127,7 @@ function PoseEng:getPose(device)
   else
     if device == "head" then
       pose:translate(0, 1.7, 0)
+      pose:rotate(self.mousePitch, 1,0,0)
     elseif device == "hand/left" then
       pose:translate(-0.18, 1.45, -0.0)
       local ava = self.parent:getAvatar()
@@ -232,6 +234,7 @@ function PoseEng:updateMouse()
     local newMousePos = lovr.math.vec2(x, y)
     local delta = lovr.math.vec2(newMousePos) - self.oldMousePos
     self.yaw = self.yaw + (delta.x/500)
+    self.mousePitch = utils.clamp(self.mousePitch - (delta.y/500), -3.14/2, 3.14/2)
     self.oldMousePos:set(newMousePos)
   end
 end
