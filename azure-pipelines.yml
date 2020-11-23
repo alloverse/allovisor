@@ -6,8 +6,12 @@
 jobs:
 - job: Mac
   pool:
-    vmImage: 'macOS-10.14'
+    vmImage: 'macOS-10.15'
   steps:
+  - script: sudo xcode-select -s /Applications/Xcode_12.2.app
+    displayName: "Select Xcode 12.2"
+  - script: brew update; brew upgrade cmake
+    displayName: "Upgrade CMake"
   - task: CMake@1
     inputs:
       workingDirectory: 'build'
