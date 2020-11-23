@@ -217,7 +217,7 @@ elseif(ANDROID)
     # TODO: modify manifest with app name etc...
     add_custom_target(
         Alloverse ALL
-        DEPENDS lovr
+        DEPENDS lovr buildAPK
         BYPRODUCTS ${APKNAME}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_PROPERTY:lovr,BINARY_DIR>/lovr.apk ${CMAKE_CURRENT_BINARY_DIR}/${APKNAME}
     )
