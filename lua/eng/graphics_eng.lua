@@ -305,30 +305,44 @@ function GraphicsEng:createMesh(geom, old_geom)
     --print("createMesh", tablex.deepcompare(geom.triangles, old_geom.triangles), tablex.deepcompare(geom.vertices, old_geom.vertices), tablex.deepcompare(geom.uvs, old_geom.uvs))
   end
 
-  if mesh == nil or not tablex.deepcompare(geom.triangles, old_geom.triangles) or not tablex.deepcompare(geom.vertices, old_geom.vertices) or not tablex.deepcompare(geom.uvs, old_geom.uvs) then
+  if mesh == nil 
+    or not tablex.deepcompare(geom.triangles, old_geom.triangles) 
+    or not tablex.deepcompare(geom.vertices, old_geom.vertices)
+    or not tablex.deepcompare(geom.uvs, old_geom.uvs) 
+    or not tablex.deepcompare(geom.normals, old_geom.normals) then
+
+    local geom = geom -- localise reference in case we aberrate the geometry
+    if (geom.normals == nil) then geom = self:aberrateGeometry(geom) end
+
     -- convert the flattened zero-based indices list
     local z_indices = array2d.flatten(geom.triangles)
     -- convert to 1-based 
     local indices = tablex.map(function (x) return x + 1 end, z_indices)
-    -- zip together verts, normals, and uv
-    local combined = tablex.zip(
-      geom.vertices, 
-      -- geom.normals, 
-      geom.uvs
-    )
+
+    -- figure out vertex format
+    local vertex_data = {geom.vertices}
+    local mesh_format = {{'lovrPosition', 'float', 3}}
+    if (geom.uvs) then 
+      table.insert(vertex_data, geom.uvs)
+      table.insert(mesh_format, {'lovrTexCoord', 'float', 2})
+    end
+    if (geom.normals) then 
+      table.insert(vertex_data, geom.normals)
+      table.insert(mesh_format, {'lovrNormal', 'float', 3})
+    end
+    -- zip together vertex data
+    local combined = tablex.zip(unpack(vertex_data))
+
     -- flatten the inner tables
     local vertices = tablex.map(function (x) return array2d.flatten(x) end, combined)
 
     -- Setup the mesh
-    mesh = lovr.graphics.newMesh({
-      { 'lovrPosition', 'float', 3 },
-      -- { 'lovrNormal', 'float', 3 },
-      { 'lovrTexCoord', 'float', 2 }
-    },
-    vertices,
-    'triangles', -- DrawMode
-    'static', -- MeshUsage. dynamic, static, stream
-    false -- do we need to read the data from the mesh later
+    mesh = lovr.graphics.newMesh(
+      mesh_format,
+      vertices,
+      'triangles', -- DrawMode
+      'static', -- MeshUsage. dynamic, static, stream
+      false -- do we need to read the data from the mesh later
     )
 
     mesh:setVertices(vertices)
@@ -433,6 +447,74 @@ function GraphicsEng:drawDecorations()
     model:draw()
   end
 
+end
+
+--- Get cross product of two vectors
+-- @tparam vector vec1 first vector
+-- @tparam vector vec2 second vector
+-- @treturn vector cross product of vec1 and vec2
+local function vector_cross(vec1, vec2) 
+  return {
+    vec1[2] * vec2[3] - vec1[3] * vec2[2], 
+    vec1[1] * vec2[2] - vec1[2] * vec2[1], 
+    vec1[3] * vec2[1] - vec1[1] * vec2[3]
+  } 
+end
+
+--- Get normalized vector
+-- @tparam vector vec vector to normalize
+-- @treturn vector normalized vector of vector vec
+local function vector_normal(vec) 
+  local len = math.sqrt(math.pow(vec[1], 2) + math.pow(vec[2], 2) + math.pow(vec[3], 2)) 
+  return {vec[1] / len, vec[2] / len, vec[3] / len} 
+end
+
+--- Calculate vector normal from three vectors
+-- @tparam vector vec1 first vector
+-- @tparam vector vec2 second vector
+-- @tparam vector vec3 third vector
+-- @treturn vector calculated normal vector of vec1, vec2 and vec3
+local function get_triangle_normal(vec1, vec2, vec3) 
+  return vector_normal(vector_cross(
+    {vec3[1] - vec1[1], vec3[3] - vec1[3], vec3[2] - vec1[2]}, 
+    {vec2[1] - vec1[1], vec2[3] - vec1[3], vec2[2] - vec1[2]}
+  )) 
+end
+
+-- "Verb. aberrate - diverge from the expected"
+--     quite suiting, no?
+-- Create a new geom from the old one with unique triangle vertices and sharp normals
+-- @tparam geometry_component geom
+-- @treturn geometry_component new_geom
+function GraphicsEng:aberrateGeometry(geom)
+  local new_geom = {
+    vertices = {}, triangles = {}, normals = {}, 
+    uvs = geom.uvs and {} or nil
+  }
+  for _, tri in ipairs(geom.triangles) do
+    local a, b, c = tri[1] + 1, tri[2] + 1, tri[3] + 1 -- vertex indices
+    local tri_vertices = {
+      geom.vertices[a], 
+      geom.vertices[b],
+      geom.vertices[c]
+    }
+    local normal = get_triangle_normal(unpack(tri_vertices))
+    for _, v in ipairs(tri_vertices) do
+      table.insert(new_geom.vertices, v)
+      table.insert(new_geom.normals, normal)
+    end
+    table.insert(new_geom.triangles, {
+      #new_geom.vertices - 3, 
+      #new_geom.vertices - 2, 
+      #new_geom.vertices - 1
+    })
+    if (geom.uvs) then
+      table.insert(new_geom.uvs, geom.uvs[a])
+      table.insert(new_geom.uvs, geom.uvs[b])
+      table.insert(new_geom.uvs, geom.uvs[c])
+    end
+  end
+  return new_geom
 end
 
 return GraphicsEng
