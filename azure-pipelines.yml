@@ -8,6 +8,8 @@ jobs:
   pool:
     vmImage: 'macOS-10.15'
   steps:
+  - script: sudo xcode-select -s /Applications/Xcode_12.2.app
+  - script: brew upgrade cmake
   - task: CMake@1
     inputs:
       workingDirectory: 'build'
