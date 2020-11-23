@@ -9,7 +9,9 @@ jobs:
     vmImage: 'macOS-10.15'
   steps:
   - script: sudo xcode-select -s /Applications/Xcode_12.2.app
-  - script: brew upgrade cmake
+    displayName: "Select Xcode 12.2"
+  - script: brew update; brew upgrade cmake
+    displayName: "Upgrade CMake"
   - task: CMake@1
     inputs:
       workingDirectory: 'build'
