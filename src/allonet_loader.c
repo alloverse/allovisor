@@ -9,6 +9,7 @@
 #include <stdlib.h>
 
 extern int luaopen_liballonet(lua_State* L);
+extern bool AskMicrophonePermission(void);
 
 // call from gdb to print lua stack
 void allo_printstacks(lua_State* L)
@@ -21,6 +22,10 @@ void allo_printstacks(lua_State* L)
 int main(int argc, char** argv)
 {
   lovrAssert(lovrPlatformInit(), "Failed to initialize platform");
+  
+  #if __APPLE__
+    AskMicrophonePermission();
+  #endif
 
   int status;
   bool restart;

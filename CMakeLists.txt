@@ -139,6 +139,7 @@ elseif(APPLE)
     # Setup the executable
     add_executable (${APP_NAME} MACOSX_BUNDLE 
         ${ALLO_SOURCES}
+        src/allomac.m
         ${ALLO_ICON}
     )
 
@@ -158,7 +159,7 @@ elseif(APPLE)
         MACOSX_RPATH TRUE
         BUILD_WITH_INSTALL_RPATH TRUE
         INSTALL_RPATH "@loader_path"
-        # MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/src/resources/Info.plist"
+        MACOSX_BUNDLE_INFO_PLIST "${CMAKE_CURRENT_SOURCE_DIR}/src/mac/MacOSXBundleInfo.plist.in"
         # RESOURCE "${CMAKE_CURRENT_SOURCE_DIR}/src/resources/lovr.icns"
     )
 

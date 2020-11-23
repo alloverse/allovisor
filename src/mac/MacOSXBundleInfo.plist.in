@@ -16,5 +16,7 @@
 	<string>0.2.0</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
+  <key>NSMicrophoneUsageDescription</key>
+  <string>Alloverse records your microphone so you can talk to other users</string>
 </dict>
 </plist>
