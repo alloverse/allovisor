@@ -19,6 +19,7 @@ if(APPLE OR ANDROID)
 endif()
 set(CMAKE_WINDOWS_EXPORT_ALL_SYMBOLS ON CACHE BOOL "always export all symbols")
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+set(LUAJIT_ENABLE_GC64 ON CACHE BOOL "GC64 needed to avoid changing -image_base, which breaks the linker cache")
 
 if(ANDROID)
     SET(BUILD_SHARED_LIBS OFF CACHE BOOL "Default to static linking, otherwise libluajit becomes dynamic??")
