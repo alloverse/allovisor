@@ -63,9 +63,8 @@ function ControlsOverlay:onLoad()
       self:onClickDown()
     end},
 
-    ui2.AlloLabelUiEnt{id="lookLabel", label="Look"},
     ui2.AlloLabelUiEnt{id="interactLabel", label="Interact"},
-    ui2.AlloLabelUiEnt{id="pointLabel", label="Point"},
+    --ui2.AlloLabelUiEnt{id="pointLabel", label="Point"},
 
   }
 
@@ -182,12 +181,12 @@ function AlloCustomLayout:layout(relayout)
       bound = bound2(vec2(rightedge-dummyMouseRightMargin-dummyMouseWidth, bottomedge-labelHeight/2+labelHeight+labelSpacing+dummyMouseHeight-mouseButtonHeight), vec2(rightedge-dummyMouseRightMargin-dummyMouseWidth+mouseButtonWidth, bottomedge-labelHeight/2+labelHeight+labelSpacing+dummyMouseHeight))
     elseif e.id == "rmb" then
       bound = bound2(vec2(rightedge-dummyMouseRightMargin-dummyMouseWidth+mouseButtonWidth, bottomedge-labelHeight/2+labelHeight+labelSpacing+dummyMouseHeight-mouseButtonHeight), vec2(rightedge-dummyMouseRightMargin, bottomedge-labelHeight/2+labelHeight+labelSpacing+dummyMouseHeight))
-    elseif e.id == "lookLabel" then
-      bound = bound2(vec2(rightedge-0.78, bottomedge-labelHeight/2+labelHeight+labelSpacing+dummyMouseHeight-labelHeight), vec2(rightedge-0.58, bottomedge-labelHeight/2+labelHeight+labelSpacing+dummyMouseHeight))
+    -- elseif e.id == "lookLabel" then
+    --   bound = bound2(vec2(rightedge-dummyMouseRightMargin-dummyMouseWidth, bottomedge-labelHeight/2), vec2(rightedge-dummyMouseRightMargin, bottomedge-labelHeight/2+labelHeight))
     elseif e.id == "interactLabel" then
-      bound = bound2(vec2(rightedge-0.22, bottomedge-labelHeight/2+labelHeight+labelSpacing+dummyMouseHeight-labelHeight), vec2(rightedge-0.02, bottomedge-labelHeight/2+labelHeight+labelSpacing+dummyMouseHeight))
+      bound = bound2(vec2(rightedge-0.78, bottomedge-labelHeight/2+labelHeight+labelSpacing+dummyMouseHeight-labelHeight), vec2(rightedge-0.58, bottomedge-labelHeight/2+labelHeight+labelSpacing+dummyMouseHeight))
     elseif e.id == "pointLabel" then
-      bound = bound2(vec2(rightedge-dummyMouseRightMargin-dummyMouseWidth, bottomedge-labelHeight/2), vec2(rightedge-dummyMouseRightMargin, bottomedge-labelHeight/2+labelHeight))
+      bound = bound2(vec2(rightedge-0.22, bottomedge-labelHeight/2+labelHeight+labelSpacing+dummyMouseHeight-labelHeight), vec2(rightedge-0.02, bottomedge-labelHeight/2+labelHeight+labelSpacing+dummyMouseHeight))
 
     else
       print("UNEXPECTED: Layouting something not strictly defined")
