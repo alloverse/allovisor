@@ -146,6 +146,7 @@ elseif(APPLE)
     # Link the libs
     target_link_libraries (Alloverse 
         ${ALLO_LINK_LIBS}
+        "-framework AVFoundation"
     )
 
     # Set xcode launch arguments for hot reload of the lua folder
