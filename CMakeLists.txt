@@ -128,11 +128,6 @@ elseif(APPLE)
     SET(MACOSX_BUNDLE_ICON_FILE alloverse.icns)
     # Give the location of the icon
     set_source_files_properties(${ALLO_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
-    
-    ## LuaJit requires some special linking
-    # If you're building a 64 bit application on OSX which links directly or indirectly against LuaJIT, you need to link your main executable with these flags:
-    # http://luajit.org/install.html
-    set(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS} "-pagezero_size 10000 -image_base 100000000")
 
     set(APP_NAME Alloverse)
 
@@ -143,13 +138,16 @@ elseif(APPLE)
         ${ALLO_ICON}
     )
 
-    FIND_LIBRARY(AVFOUNDATION NAMES AVFoundation)
+    find_library(AVFOUNDATION_LIBRARY NAMES AVFoundation)
 
     # Link the libs
     target_link_libraries (Alloverse 
         ${ALLO_LINK_LIBS}
         ${AVFOUNDATION_LIBRARY}
     )
+
+    # stack-check breaks luajit
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-stack-check")
 
     # Set xcode launch arguments for hot reload of the lua folder
     set_property(TARGET Alloverse 
