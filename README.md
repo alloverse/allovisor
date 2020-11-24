@@ -8,6 +8,12 @@ with, and easier to extend with low level functionality.
 
 ## Developing Allovisor
 
+For all platforms:
+
+* You must have [Git LFS](https://git-lfs.github.com) installed to fetch assets
+* If LFS doesn't fetch assets for you automatically after cloning, do `git lfs fetch`
+* You must also fetch submodules: `git submodule update --init --recursive`
+
 ### Mac
 
 #### Xcode project
@@ -18,6 +24,9 @@ with, and easier to extend with low level functionality.
 4. Build and run the Alloverse target
 
 When running from xcode the lua code will hot reload when any file in the lua folder is saved. This can be disabled from the scheme run arguments. 
+
+If you're using Xcode 12.2 or newer, for now you'll have to opt into the old
+build system. Change `cmake -GXcode ..` to `cmake -Tbuildsystem=1 -GXcode ..`.
 
 #### make
 
