@@ -311,8 +311,9 @@ function GraphicsEng:createMesh(geom, old_geom)
     or not tablex.deepcompare(geom.uvs, old_geom.uvs) 
     or not tablex.deepcompare(geom.normals, old_geom.normals) then
 
-    local geom = geom -- localise reference in case we aberrate the geometry
-    if (geom.normals == nil) then geom = self:aberrateGeometry(geom) end
+    if geom.normals == nil then 
+      geom = self:generateGeometryWithNormals(geom)
+    end
 
     -- convert the flattened zero-based indices list
     local z_indices = array2d.flatten(geom.triangles)
@@ -449,44 +450,17 @@ function GraphicsEng:drawDecorations()
 
 end
 
---- Get cross product of two vectors
--- @tparam vector vec1 first vector
--- @tparam vector vec2 second vector
--- @treturn vector cross product of vec1 and vec2
-local function vector_cross(vec1, vec2) 
-  return {
-    vec1[2] * vec2[3] - vec1[3] * vec2[2], 
-    vec1[1] * vec2[2] - vec1[2] * vec2[1], 
-    vec1[3] * vec2[1] - vec1[1] * vec2[3]
-  } 
+--- Calculate vertex normal from three corner vertices
+local function get_triangle_normal(vert1, vert2, vert3) 
+  return vec3.new(vert3.x - vert1.x, vert3.z - vert1.z, vert3.y - vert1.y)
+    :cross(vec3.new(vert2.x - vert1.x, vert2.z - vert1.z, vert2.y - vert1.y))
+    :normalize()
 end
 
---- Get normalized vector
--- @tparam vector vec vector to normalize
--- @treturn vector normalized vector of vector vec
-local function vector_normal(vec) 
-  local len = math.sqrt(math.pow(vec[1], 2) + math.pow(vec[2], 2) + math.pow(vec[3], 2)) 
-  return {vec[1] / len, vec[2] / len, vec[3] / len} 
-end
-
---- Calculate vector normal from three vectors
--- @tparam vector vec1 first vector
--- @tparam vector vec2 second vector
--- @tparam vector vec3 third vector
--- @treturn vector calculated normal vector of vec1, vec2 and vec3
-local function get_triangle_normal(vec1, vec2, vec3) 
-  return vector_normal(vector_cross(
-    {vec3[1] - vec1[1], vec3[3] - vec1[3], vec3[2] - vec1[2]}, 
-    {vec2[1] - vec1[1], vec2[3] - vec1[3], vec2[2] - vec1[2]}
-  )) 
-end
-
--- "Verb. aberrate - diverge from the expected"
---     quite suiting, no?
 -- Create a new geom from the old one with unique triangle vertices and sharp normals
 -- @tparam geometry_component geom
 -- @treturn geometry_component new_geom
-function GraphicsEng:aberrateGeometry(geom)
+function GraphicsEng:generateGeometryWithNormals(geom)
   local new_geom = {
     vertices = {}, triangles = {}, normals = {}, 
     uvs = geom.uvs and {} or nil
@@ -494,14 +468,14 @@ function GraphicsEng:aberrateGeometry(geom)
   for _, tri in ipairs(geom.triangles) do
     local a, b, c = tri[1] + 1, tri[2] + 1, tri[3] + 1 -- vertex indices
     local tri_vertices = {
-      geom.vertices[a], 
-      geom.vertices[b],
-      geom.vertices[c]
+      vec3.new(geom.vertices[a]),
+      vec3.new(geom.vertices[b]),
+      vec3.new(geom.vertices[c])
     }
     local normal = get_triangle_normal(unpack(tri_vertices))
     for _, v in ipairs(tri_vertices) do
-      table.insert(new_geom.vertices, v)
-      table.insert(new_geom.normals, normal)
+      table.insert(new_geom.vertices, {v:unpack()})
+      table.insert(new_geom.normals, {normal:unpack()})
     end
     table.insert(new_geom.triangles, {
       #new_geom.vertices - 3, 
