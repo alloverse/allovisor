@@ -70,6 +70,18 @@ function NetworkScene:_init(displayName, url, avatarName)
         intent = {
           actuate_pose = "head"
         }
+      },
+      {
+        geometry = {
+          type = "hardcoded-model",
+          name = "avatars/"..avatarName.."/torso"
+        },
+        material= {
+          shader_name= "pbr"
+        },
+        intent = {
+          actuate_pose = "torso"
+        }
       }
     }
   }

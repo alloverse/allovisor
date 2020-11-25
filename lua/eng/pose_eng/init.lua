@@ -122,12 +122,14 @@ end
 
 function PoseEng:getPose(device)
   local pose = lovr.math.mat4()
-  if lovr.headset then
+  if lovr.headset and lovr.headset.isTracked(device) then
     pose = lovr.math.mat4(lovr.headset.getPose(device))
   else
     if device == "head" then
       pose:translate(0, 1.7, 0)
       pose:rotate(self.mousePitch, 1,0,0)
+    elseif device == "torso" then
+      pose:translate(0, 1.34, 0)
     elseif device == "hand/left" then
       pose:translate(-0.18, 1.45, -0.0)
       local ava = self.parent:getAvatar()
@@ -143,7 +145,6 @@ function PoseEng:getPose(device)
       else
         pose:rotate(-3.1416/2, 1,0,0):translate(0,0,-0.35)
       end
-      -- todo: let this location override headset if not tracking too
     end
   end
   return pose
@@ -281,7 +282,7 @@ function PoseEng:updateIntent()
   }
 
   -- child entity positioning
-  for i, device in ipairs({"hand/left", "hand/right", "head"}) do
+  for i, device in ipairs({"hand/left", "hand/right", "head", "torso"}) do
     intent.poses[device] = {
       matrix = {self:getPose(device):unpack(true)},
       skeleton = self:getSkeletonTable(device),
@@ -294,7 +295,7 @@ end
 
 local requiredGripStrength = 0.4
 function PoseEng:grabForDevice(handIndex, device)
-  if device == "head" then return nil end
+  if device == "head" or device == "torso" then return nil end
   local ray = self.handRays[handIndex]
   if ray.hand == nil then return nil end
 
