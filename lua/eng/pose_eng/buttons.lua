@@ -99,7 +99,8 @@ function PoseEng:getAxis(device, axis)
         x = 1
       end
     elseif device == "hand/left" and axis == "grip" and x == 0 then
-      x = keyboard.isDown("f") and 1.0 or 0.0
+      -- x = keyboard.isDown("f") and 1.0 or 0.0
+      x = self.rightMouseIsDown and 1.0 or 0.0
     end
   end
   return x, y

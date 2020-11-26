@@ -202,6 +202,7 @@ function PoseEng:updateMouse()
   --   print("self.fakeMousePos.y   ", self.fakeMousePos.y)
   --   print("self.mouseMode        ", self.mouseMode)
   --   print("self.mouseIsDown      ", self.mouseIsDown)
+  --   print("RMB is down:          ", lovr.mouse.buttons[2])
   -- end
 
   if self.mouseMode == "move" and self.mouseIsDown then
@@ -214,6 +215,7 @@ function PoseEng:updateMouse()
   -- okay great, we know where the mouse is.
   -- Now figure out what to do with mouse buttons.
   local mouseIsDown = lovr.mouse.buttons[1]
+  local rightMouseIsDown = lovr.mouse.buttons[2]
 
   -- started clicking/dragging; choose mousing mode
   if not self.mouseIsDown and mouseIsDown then
@@ -227,6 +229,7 @@ function PoseEng:updateMouse()
     end
   end
   self.mouseIsDown = mouseIsDown
+  self.rightMouseIsDown = rightMouseIsDown
   if self.mouseMode == "move" and not mouseIsDown then
     lovr.mouse.setRelativeMode(false)
   end

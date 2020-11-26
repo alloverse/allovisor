@@ -47,10 +47,10 @@ function ControlsOverlay:onLoad()
 
 
     -- Grab button
-    ui2.AlloKeyEnt{id="f", label="F", onButton = function()
-      self:onKeyPress("f")
-    end},
-    ui2.AlloLabelUiEnt{id="grablabel", label="Grab"},
+    -- ui2.AlloKeyEnt{id="f", label="F", onButton = function()
+    --   self:onKeyPress("f")
+    -- end},
+    -- ui2.AlloLabelUiEnt{id="grablabel", label="Grab"},
 
 
     -- Mouse
@@ -64,7 +64,7 @@ function ControlsOverlay:onLoad()
     end},
 
     ui2.AlloLabelUiEnt{id="interactLabel", label="Interact"},
-    --ui2.AlloLabelUiEnt{id="pointLabel", label="Point"},
+    ui2.AlloLabelUiEnt{id="grabLabel", label="Grab"},
 
   }
 
@@ -163,16 +163,16 @@ function AlloCustomLayout:layout(relayout)
       bound = bound2(vec2(leftedge, topedge-buttonHeight-labelHeight-labelSpacing-spacing), vec2(leftedge+buttonWidth, topedge-buttonHeight-labelSpacing-spacing))
 
     -- grab
-    elseif e.id == "f" then
-      bound = bound2(vec2(.8+leftedge, bottomedge-labelHeight/2+labelHeight+labelSpacing), vec2(.8+leftedge+buttonWidth, bottomedge-labelHeight/2+buttonHeight+labelHeight+labelSpacing))
-    elseif e.id == "grablabel" then
-      bound = bound2(vec2(.8+leftedge, bottomedge-labelHeight/2), vec2(.8+leftedge+buttonWidth, bottomedge-labelHeight/2+labelHeight))
+    -- elseif e.id == "f" then
+    --   bound = bound2(vec2(.8+leftedge, bottomedge-labelHeight/2+labelHeight+labelSpacing), vec2(.8+leftedge+buttonWidth, bottomedge-labelHeight/2+buttonHeight+labelHeight+labelSpacing))
+    -- elseif e.id == "grablabel" then
+    --   bound = bound2(vec2(.8+leftedge, bottomedge-labelHeight/2), vec2(.8+leftedge+buttonWidth, bottomedge-labelHeight/2+labelHeight))
 
 	-- menu
 	elseif e.id == "r" then
-		bound = bound2(vec2(1.2+leftedge, bottomedge-labelHeight/2+labelHeight+labelSpacing), vec2(1.2+leftedge+buttonWidth, bottomedge-labelHeight/2+buttonHeight+labelHeight+labelSpacing))
+		bound = bound2(vec2(.8+leftedge, bottomedge-labelHeight/2+labelHeight+labelSpacing), vec2(.8+leftedge+buttonWidth, bottomedge-labelHeight/2+buttonHeight+labelHeight+labelSpacing))
 	elseif e.id == "menulabel" then
-		bound = bound2(vec2(1.2+leftedge, bottomedge-labelHeight/2), vec2(1.2+leftedge+buttonWidth, bottomedge-labelHeight/2+labelHeight))
+		bound = bound2(vec2(.8+leftedge, bottomedge-labelHeight/2), vec2(.8+leftedge+buttonWidth, bottomedge-labelHeight/2+labelHeight))
 
     -- mouse
     elseif e.id == "dummyMouse" then
@@ -185,7 +185,7 @@ function AlloCustomLayout:layout(relayout)
     --   bound = bound2(vec2(rightedge-dummyMouseRightMargin-dummyMouseWidth, bottomedge-labelHeight/2), vec2(rightedge-dummyMouseRightMargin, bottomedge-labelHeight/2+labelHeight))
     elseif e.id == "interactLabel" then
       bound = bound2(vec2(rightedge-0.78, bottomedge-labelHeight/2+labelHeight+labelSpacing+dummyMouseHeight-labelHeight), vec2(rightedge-0.58, bottomedge-labelHeight/2+labelHeight+labelSpacing+dummyMouseHeight))
-    elseif e.id == "pointLabel" then
+    elseif e.id == "grabLabel" then
       bound = bound2(vec2(rightedge-0.22, bottomedge-labelHeight/2+labelHeight+labelSpacing+dummyMouseHeight-labelHeight), vec2(rightedge-0.02, bottomedge-labelHeight/2+labelHeight+labelSpacing+dummyMouseHeight))
 
     else
