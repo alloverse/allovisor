@@ -120,9 +120,15 @@ function PoseEng:onFocus(focused)
   self.isFocused = focused
 end
 
+function PoseEng:isTracked(device)
+  if device == "torso" then return false end
+  if not lovr.headset then return false end
+  return lovr.headset.isTracked(device)
+end
+
 function PoseEng:getPose(device)
   local pose = lovr.math.mat4()
-  if lovr.headset and lovr.headset.isTracked(device) then
+  if lovr.headset and self:isTracked(device) then
     pose = lovr.math.mat4(lovr.headset.getPose(device))
   else
     if device == "head" then
