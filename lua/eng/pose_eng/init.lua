@@ -135,7 +135,7 @@ function PoseEng:getPose(device)
       pose:translate(0, 1.7, 0)
       pose:rotate(self.mousePitch, 1,0,0)
     elseif device == "torso" then
-      pose:translate(0, 1.34, 0)
+      pose:translate(self:getPose("head"):mul(lovr.math.vec3())):translate(0, -0.4, 0)
     elseif device == "hand/left" then
       pose:translate(-0.18, 1.45, -0.0)
       local ava = self.parent:getAvatar()
