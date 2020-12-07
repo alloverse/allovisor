@@ -98,7 +98,6 @@ function NetworkScene:_init(displayName, url, avatarName)
   self.isOverlayScene = false
   self.head_id = ""
   self.drawTime = 0.0
-  self.client.delegates.onStateChanged = function() self:route("onStateChanged") end
   self.client.delegates.onEntityAdded = function(e) self:route("onEntityAdded", e) end
   self.client.delegates.onEntityRemoved = function(e) self:route("onEntityRemoved", e) end
   self.client.delegates.onComponentAdded = function(k, v) self:route("onComponentAdded", k, v) end
@@ -110,7 +109,6 @@ function NetworkScene:_init(displayName, url, avatarName)
   if self.client:connect(avatar) == false then
     self:onDisconnect(1003, "Failed to connect")
   end
-  self:onStateChanged()
   self:super()
 end
 
@@ -137,13 +135,6 @@ function NetworkScene:onLoad()
   end
 end
 
-function NetworkScene:onStateChanged()
-  -- compatibility with older code
-  if self.client then
-    self.state = self.client.state
-  end
-end
-
 function NetworkScene:onComponentAdded(cname, component)
   if cname == "intent" and component.actuate_pose == "head" then
     self:lookForHead()
@@ -155,7 +146,7 @@ function NetworkScene:lookForHead()
   if self.head_id ~= "" then return end
   if self.avatar_id == "" then return end
 
-  for eid, entity in pairs(self.state.entities) do
+  for eid, entity in pairs(self.client.state.entities) do
     if 
       entity.components.intent and entity.components.intent.actuate_pose == "head" and 
       entity.components.relationships and entity.components.relationships.parent == self.avatar_id then
@@ -181,14 +172,14 @@ function NetworkScene:getAvatar()
   if self.avatar_id == "" then	
     return nil
   end
-  return self.state.entities[self.avatar_id]
+  return self.client.state.entities[self.avatar_id]
 end
 
 function NetworkScene:getHead()
   if self.head_id == "" then	
     return nil
   end
-  return self.state.entities[self.head_id]
+  return self.client.state.entities[self.head_id]
 end
 
 function NetworkScene:moveToOrigin()
@@ -248,7 +239,7 @@ end
 function NetworkScene:onDebugDraw()
   lovr.graphics.setShader()
   lovr.graphics.setColor(1,1,1,1)
-  for eid, entity in pairs(self.state.entities) do
+  for eid, entity in pairs(self.client.state.entities) do
     local trans = entity.components.transform
 
     if trans ~= nil then
