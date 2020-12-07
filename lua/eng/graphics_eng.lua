@@ -9,7 +9,7 @@ local pretty = require "pl.pretty"
 local allomath = require("lib.allomath")
 local alloBasicShader = require "shader/alloBasicShader"
 local alloPbrShader = require "shader/alloPbrShader"
-local loader = require "lib.model-loader"
+local loader = require "lib.async-loader"
 
 
 local GraphicsEng = classNamed("GraphicsEng", Ent)
@@ -166,7 +166,6 @@ end
 -- @tparam number dt, seconds since last frame
 -- @see Ent
 function GraphicsEng:onUpdate(dt)
-  loader:poll()
   if self.client == nil then return end
   local head = self.client.state.entities[self.parent.head_id]
   if head then
@@ -215,6 +214,7 @@ function GraphicsEng:loadHardcodedModel(name, callback, path)
   end
   callback(self.hardcoded_models["loading"])
   loader:load(
+    "model",
     path,
     function(modelData, status)
        if modelData == nil or status == false then

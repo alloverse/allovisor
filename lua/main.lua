@@ -62,6 +62,7 @@ end)
 -- Route all the Lovr callbacks to the ent subsystem
 namespace "standard"
 local flat = require "engine.flat"
+local loader = require "lib.async-loader"
 
 local loadCo = nil
 function lovr.load()
@@ -169,6 +170,7 @@ function lovr.restart()
   lovr.thread.getChannel("appserv"):push("exit")
   menuServerThread:wait()
   menuAppsThread:wait()
+  loader:shutdown()
   print("Done, restarting.")
   return true
 end
@@ -202,6 +204,7 @@ function lovr.update(dt)
   if lovr.mouse then
     _updateMouse()
   end
+  loader:poll()
   if ent.root then
     ent.root:route("onUpdate", dt)
     entity_cleanup()
