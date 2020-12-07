@@ -165,6 +165,8 @@ function _asyncLoadResume()
 end
 
 function lovr.restart()
+  print("Restarting; disconnecting...")
+  optchainm(lovr.scenes, "net.onDisconnect", 1000, "Disconnected from lovr.restart")
   print("Shutting down threads...")
   lovr.thread.getChannel("menuserv"):push("exit")
   lovr.thread.getChannel("appserv"):push("exit")

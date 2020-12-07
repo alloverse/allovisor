@@ -55,6 +55,8 @@ function load_allonet()
   return allonet
 end
 
+-- Return thing at path from obj, or nil if any part in path is nil
+-- e g optchain(foo, "bar.baz.qyp") returns qyp only if bar is non-nil and bar.baz is non-nil
 function optchain(obj, path)
   local prevObj = nil
   local parts = stringx.split(path, ".")
@@ -65,7 +67,17 @@ function optchain(obj, path)
   end
   return obj, prevObj
 end
+
+-- Call function at path with vargs if the whole chain in path is non-nil
 function optchainf(obj, path, ...)
+  local f = optchain(obj, path)
+  if f then
+    f(...)
+  end
+end
+
+-- Call a method at path with self and vargs if the whole chain in path is non-nil
+function optchainm(obj, path, ...)
   local f, self = optchain(obj, path)
   if f then
     f(self, ...)
