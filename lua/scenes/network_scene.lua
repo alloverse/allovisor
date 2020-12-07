@@ -92,7 +92,7 @@ function NetworkScene:_init(displayName, url, avatarName)
   self.transform = lovr.math.newMat4()
 
   local threadedClient = allonet.create(true)
-  self.client = Client(url, displayName, threadedClient)
+  self.client = Client(url, displayName, threadedClient, false)
   
   self.active = true
   self.isOverlayScene = false
@@ -286,6 +286,10 @@ function NetworkScene:onUpdate(dt)
   self.client:simulate()
   self.simulateTime = lovr.timer.getTime() - atStartOfSimulate
 
+  local atStartOfStateUpdate = lovr.timer.getTime()
+  self.client:updateState()
+  self.updateStateTime = lovr.timer.getTime() - atStartOfStateUpdate
+
   local stats = Stats.instance
   if stats and not self.isOverlayScene then
     stats:enable(self.debug)
@@ -300,10 +304,11 @@ function NetworkScene:onUpdate(dt)
     stats:set("FPS", string.format("%.1fhz", lovr.timer.getFPS()))
     stats:set("Entity count", string.format("%d", self.client.entityCount))
     stats:set("Durations", string.format(
-      "Render %.1fms\nNetwork %.1fms\nSimulation %.1fms", 
+      "Render %.1fms\nNetwork %.1fms\nSimulation %.1fms\nStateUp %.1fms", 
       self.drawTime*1000.0,
       self.pollTime*1000.0,
-      self.simulateTime*1000.0
+      self.simulateTime*1000.0,
+      self.updateStateTime*1000.0
     ))
   end
 end
