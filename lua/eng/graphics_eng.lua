@@ -457,7 +457,7 @@ local function get_triangle_normal(vert1, vert2, vert3)
     :normalize()
 end
 
--- Create a new geom from the old one with unique triangle vertices and sharp normals
+--- Create a new geom from the old one with unique triangle vertices and sharp normals
 -- @tparam geometry_component geom
 -- @treturn geometry_component new_geom
 function GraphicsEng:generateGeometryWithNormals(geom)
