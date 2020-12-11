@@ -264,12 +264,6 @@ function lovr.run()
     if lovr.headset then
       lovr.headset.update(dt)
     end
-    if lovr.audio then
-      lovr.audio.update()
-      if lovr.headset then
-        lovr.audio.setVelocity(lovr.headset.getVelocity())
-      end
-    end
     if lovr.update then lovr.update(dt) end
     if lovr.graphics then
       lovr.graphics.origin()

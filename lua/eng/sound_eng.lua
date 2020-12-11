@@ -4,6 +4,7 @@
 namespace("networkscene", "alloverse")
 
 local pretty = require "pl.pretty"
+local util = require "lib.util"
 
 local SoundEng = classNamed("SoundEng", Ent)
 
@@ -14,7 +15,8 @@ end
 function SoundEng:_init()
   self.audio = {}
   self.track_id = 0
-  
+  self.capture_buffer = lovr.data.newSoundData(960, 1, 44100, "f32")
+  self.currentMicName = "invalid---"
   self:super()
 end
 
@@ -22,47 +24,34 @@ function SoundEng:useMic(micName)
   if self.currentMicName == micName then return end
   self.currentMicName = micName
 
-  if self.mic then
-    self.mic:stopRecording()
-    self.mic = nil
+  if self.hasMic then
+    lovr.audio.stop("capture")
+    self.hasMic = false
   end
-  if micName == "Mute" then
-    self.mic = nil
+  if micName == "Off" or micName == "Mute" then
+    self.hasMic = false
     print("SoundEng: Muted microphone")
     return true
   end
-
-  self.mic = self:_attemptOpenMicrophone(micName)
-  if self.mic then
-    self.mic:startRecording()
-    return true
-  else
-    return false
-  end
+  self:_selectMic(micName)
+  self.hasMic = lovr.audio.start("capture")
+  return self.hasMic
 end
 
-function SoundEng:_attemptOpenMicrophone(micName)
-  local sampleFmts = {48000}
-  local bufferSizes = {960*3, 16384, 1024*4}
-  local channelss = {1}
-  local bitDepths = {16}
-  for _, sampleFmt in ipairs(sampleFmts) do
-    for _, bufferSize in ipairs(bufferSizes) do
-      for _, bitDepth in ipairs(bitDepths) do
-        for _, channels in ipairs(channelss) do
-          local ok, mic = pcall(lovr.audio.newMicrophone, micName, bufferSize, sampleFmt, bitDepth, channels)
-          if ok == true and mic ~= nil then
-            print("SoundEng: Opened microphone '", micName, "' at ", sampleFmt, "hz, ", channels, "channels,", bitDepth, "bits and ", bufferSize, "bytes per packet")
-            return mic
-          else
-            print("SoundEng: Incompatible microphone: ", driver, sampleFmt, bufferSize, bitDepth, channels, ":", mic)
-          end
-        end
-      end
+function SoundEng:_selectMic(micName)
+  local devices = lovr.audio.getDevices()
+  local device
+  if micName == nil or micName == "" then
+    _, device = util.tabley.first(devices, function(i, dev) return dev.type == "capture" and dev.isDefault end)
+    if device == nil then
+      _, device = util.tabley.first(devices, function(i, dev) return dev.type == "capture" end)
     end
+  else
+    _, device = util.tabley.first(devices, function(i, dev) return dev.type == "capture" and dev.name == micName end)
+    if not device then return false end
   end
-  print("SoundEng: No compatible microphones found in", pretty.write(drivers), ":(")
-  return nil
+  print("Using microphone", device.name)
+  lovr.audio.useDevice(device.identifier)
 end
 
 function SoundEng:onLoad()
@@ -77,15 +66,14 @@ function SoundEng:onAudio(track_id, samples)
   end
   local audio = self.audio[track_id]
   if audio == nil then
-    local stream = lovr.data.newAudioStream(1, 48000)
+    local soundData = lovr.data.newSoundDataStream(48000*1.0, 1, 48000, "i16")
     audio = {
-      stream = stream,
-      source = lovr.audio.newSource(stream, "stream"),
-      bitrate = 0.0
+      soundData = soundData,
+      source = lovr.audio.newSource(soundData),
+      position = {0,0,0},
+      bitrate = 0.0,
     }
     self.audio[track_id] = audio
-    audio.source:setFalloff(1.0, 10.0, 1.6)
-    audio.source:setVolumeLimits(0.0, 1.0)
   end
 
   local blobLength = #samples
@@ -100,8 +88,8 @@ function SoundEng:onAudio(track_id, samples)
   audio.ping = true
 
   local blob = lovr.data.newBlob(samples, "audio for track #"..track_id)
-  audio.stream:append(blob)
-  if audio.source:isPlaying() == false and audio.stream:getDuration() >= 0.2 then
+  audio.soundData:append(blob)
+  if audio.source:isPlaying() == false and audio.source:getDuration() >= 0.2 then
     print("Starting playback audio in track "..track_id)
     audio.source:play()
   end
@@ -121,6 +109,7 @@ function SoundEng:setAudioPositionForEntitiy(entity)
   local matrix = entity.components.transform:getMatrix()
 
   local x, y, z, sx, sy, sz, a, ax, ay, az = matrix:unpack()
+  track.position = {x, y, z}
   track.source:setPose(x, y, z, a, ax, ay, az)
 end
 
@@ -147,7 +136,7 @@ end
 
 function SoundEng:onDebugDraw()
   for track_id, audio in pairs(self.audio) do
-    local x, y, z = audio.source:getPosition()
+    local x, y, z = unpack(audio.position)
     lovr.graphics.setShader(self.parent.engines.graphics.plainShader)
     if audio.source:isPlaying() then
       lovr.graphics.setColor(0.0, 1.0, audio.ping and 1.0 or 0.2, 0.5)
@@ -177,11 +166,10 @@ end
 function SoundEng:onUpdate(dt)
   if self.client == nil then return end
 
-  if self.mic ~= nil and self.mic:getSampleCount() >= 960 then
-    local sd = lovr.data.newSoundData(16384, 48000, 16, 1)
-    sd = self.mic:getData(960, sd, 0)
+  if self.hasMic and lovr.audio.getCaptureDuration("samples") >= 960 then
+    lovr.audio.capture(960, self.capture_buffer, 0)
     if self.track_id then
-      self.client:sendAudio(self.track_id, sd:getBlob():getString():sub(1, 960*2+1))
+      self.client:sendAudio(self.track_id, self.capture_buffer:getBlob():getString())
     end
   end
 
@@ -191,7 +179,7 @@ function SoundEng:onUpdate(dt)
   if self.head then
     local matrix = self.head.components.transform:getMatrix()
     local x, y, z, sx, sy, sz, a, ax, ay, az = matrix:unpack()
-    lovr.audio.setPose(x, y, z, a, ax, ay, az)
+    lovr.audio.setListenerPose(x, y, z, a, ax, ay, az)
   end
 end
 

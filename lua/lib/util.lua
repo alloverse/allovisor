@@ -84,7 +84,9 @@ function optchainm(obj, path, ...)
   end
 end
 
-function table:remove_value(value)
+local tabley={}
+
+function tabley:remove_value(value)
   local idx = tablex.find(self, value)
   if idx ~= -1 then
     return table.remove(self, idx)
@@ -92,6 +94,14 @@ function table:remove_value(value)
   return nil
 end
 
+function tabley:first(pred)
+  for k, v in pairs(self) do
+    if pred(k, v) == true then return k, v end
+  end
+  return nil
+end
+
 return {
-  load_allonet = load_allonet
+  load_allonet = load_allonet,
+  tabley=tabley
 }
