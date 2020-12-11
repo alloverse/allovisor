@@ -15,7 +15,7 @@ end
 function SoundEng:_init()
   self.audio = {}
   self.track_id = 0
-  self.capture_buffer = lovr.data.newSoundData(960, 1, 44100, "f32")
+  self.capture_buffer = lovr.data.newSoundData(960, 1, 48000, "i16")
   self.currentMicName = "invalid---"
   self:super()
 end
@@ -51,7 +51,7 @@ function SoundEng:_selectMic(micName)
     if not device then return false end
   end
   print("Using microphone", device.name)
-  lovr.audio.useDevice(device.identifier)
+  lovr.audio.useDevice(device.identifier, 48000, "i16")
 end
 
 function SoundEng:onLoad()
