@@ -67,7 +67,7 @@ function EmbeddedApp:onInteraction(interaction, body, receiver, sender)
 end
 
 function EmbeddedApp:update()
-  self.app:runOnce(1.0/40.0)
+  self.app:runOnce(0.0) -- sleep in menuapps_main instead
 end
 
 return EmbeddedApp

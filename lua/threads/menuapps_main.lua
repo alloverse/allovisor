@@ -1,7 +1,7 @@
 print("Booting allomenu apps")
 
 lovr = require 'lovr'
-lovr.filesystem, lovr.thread = require 'lovr.filesystem', require 'lovr.thread'
+lovr.filesystem, lovr.thread, lovr.timer = require 'lovr.filesystem', require 'lovr.thread', require 'lovr.timer'
 local util = require "lib.util"
 local allonet = util.load_allonet()
 local running = true
@@ -21,6 +21,7 @@ while running do
   for _, app in ipairs(apps) do
     app:update()
   end
+  lovr.timer.sleep(1/20.0)
   local m = chan:pop()
   if m == "exit" then running = false end
 end
