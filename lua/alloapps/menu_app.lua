@@ -3,8 +3,12 @@ local ui = require("alloui.ui")
 local pretty = require("pl.pretty")
 local class = require("pl.class")
 
-class.EmbeddedApp()
-function EmbeddedApp:_init(appname, port)
+local MenuView = require("alloapps.menu.view")
+local AppChooserView = require("alloapps.app_chooser")
+local AvatarChooserView = require("alloapps.avatar_chooser")
+
+class.MenuApp()
+function MenuApp:_init(appname, port)
   self.appname = appname
   self.client = Client(
     "alloplace://localhost:"..tostring(port), 
@@ -28,11 +32,11 @@ function EmbeddedApp:_init(appname, port)
   end
 end
 
-function EmbeddedApp:createUI()
+function MenuApp:createUI()
   assert(false, "Please implement createUI()")
 end
 
-function EmbeddedApp:onComponentAdded(key, comp)
+function MenuApp:onComponentAdded(key, comp)
   if key == "visor" then
     self.visor = comp.getEntity()
     self.app.client:sendInteraction({
@@ -46,7 +50,7 @@ function EmbeddedApp:onComponentAdded(key, comp)
   end
 end
 
-function EmbeddedApp:actuate(what)
+function MenuApp:actuate(what)
   if self.app.client == nil or self.visor == nil or self.app.mainView.entity == nil then
     print("can't actuate")
     return
@@ -63,11 +67,11 @@ function EmbeddedApp:actuate(what)
   })
 end
 
-function EmbeddedApp:onInteraction(interaction, body, receiver, sender)
+function MenuApp:onInteraction(interaction, body, receiver, sender)
 end
 
-function EmbeddedApp:update()
+function MenuApp:update()
   self.app:runOnce(0.0) -- sleep in menuapps_main instead
 end
 
-return EmbeddedApp
+return MenuApp
