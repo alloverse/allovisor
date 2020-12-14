@@ -33,25 +33,31 @@ function SoundEng:useMic(micName)
     print("SoundEng: Muted microphone")
     return true
   end
-  self:_selectMic(micName)
-  self.hasMic = lovr.audio.start("capture")
+  
+  self.hasMic = self:_selectMic(micName) and lovr.audio.start("capture")
   return self.hasMic
 end
 
 function SoundEng:_selectMic(micName)
   local devices = lovr.audio.getDevices()
   local device
-  if micName == nil or micName == "" then
+  
+  _, device = util.tabley.first(devices, function(i, dev) return dev.type == "capture" and dev.name == micName end)
+  
+  if device == nil or micName == nil or micName == "" then
     _, device = util.tabley.first(devices, function(i, dev) return dev.type == "capture" and dev.isDefault end)
     if device == nil then
       _, device = util.tabley.first(devices, function(i, dev) return dev.type == "capture" end)
     end
-  else
-    _, device = util.tabley.first(devices, function(i, dev) return dev.type == "capture" and dev.name == micName end)
-    if not device then return false end
   end
+  if device == nil then
+    print("No microphone available")
+    return false
+  end
+  
   print("Using microphone", device.name)
   lovr.audio.useDevice(device.identifier, 48000, "i16")
+  return true
 end
 
 function SoundEng:onLoad()
