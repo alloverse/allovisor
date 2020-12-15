@@ -72,7 +72,7 @@ function SoundEng:onAudio(track_id, samples)
   end
   local audio = self.audio[track_id]
   if audio == nil then
-    local soundData = lovr.data.newSoundDataStream(48000*1.0, 1, 48000, "i16")
+    local soundData = lovr.data.newSoundData(48000*1.0, 1, 48000, "i16", "stream")
     audio = {
       soundData = soundData,
       source = lovr.audio.newSource(soundData),
