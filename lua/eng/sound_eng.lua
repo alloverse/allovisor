@@ -172,7 +172,7 @@ end
 function SoundEng:onUpdate(dt)
   if self.client == nil then return end
 
-  if self.hasMic and lovr.audio.getCaptureDuration("samples") >= 960 then
+  while self.hasMic and lovr.audio.getCaptureDuration("samples") >= 960 do
     lovr.audio.capture(960, self.capture_buffer, 0)
     if self.track_id then
       self.client:sendAudio(self.track_id, self.capture_buffer:getBlob():getString())
