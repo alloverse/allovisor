@@ -177,11 +177,13 @@ end
 function SoundEng:onUpdate(dt)
   if self.client == nil then return end
 
-  if self.mic ~= nil and self.mic:getSampleCount() >= 960 then
+  if self.mic ~= nil then
     local sd = lovr.data.newSoundData(16384, 48000, 16, 1)
-    sd = self.mic:getData(960, sd, 0)
-    if self.track_id then
-      self.client:sendAudio(self.track_id, sd:getBlob():getString():sub(1, 960*2+1))
+    while self.mic:getSampleCount() >= 960 do
+      self.mic:getData(960, sd, 0)
+      if self.track_id then
+        self.client:sendAudio(self.track_id, sd:getBlob():getString():sub(1, 960*2+1))
+      end
     end
   end
 
