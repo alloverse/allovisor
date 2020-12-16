@@ -244,6 +244,12 @@ function lovr.focus(focused)
   end
 end
 
+function lovr.permission(permission, granted)
+  if permission == "audiocapture" and granted and lovr.scenes.net then
+    lovr.scenes.net.engines.sound:retryMic()
+  end
+end
+
 
 -- need a custom lovr.run to disable built-in lovr.audio.setPose
 function lovr.run()

@@ -15,18 +15,19 @@ end
 function SoundEng:_init()
   self.audio = {}
   self.track_id = 0
-  self.capture_buffer = lovr.data.newSoundData(960, 1, 48000, "i16")
   self.currentMicName = "invalid---"
   self:super()
 end
 
 function SoundEng:useMic(micName)
-  if self.currentMicName == micName then return end
+  if self.currentMicName == micName and self.hasMic then return end
   self.currentMicName = micName
 
   if self.hasMic then
     lovr.audio.stop("capture")
     self.hasMic = false
+    self.captureStream = nil
+    self.captureBuffer = nil
   end
   if micName == "Off" or micName == "Mute" then
     self.hasMic = false
@@ -35,7 +36,15 @@ function SoundEng:useMic(micName)
   end
   
   self.hasMic = self:_selectMic(micName) and lovr.audio.start("capture")
+  if self.hasMic then
+    self.captureBuffer = lovr.data.newSoundData(960, 1, 48000, "i16")
+    self.captureStream = lovr.audio.getCaptureStream()
+  end
   return self.hasMic
+end
+
+function SoundEng:retryMic()
+  self:useMic(self.currentMicName)
 end
 
 function SoundEng:_selectMic(micName)
@@ -172,10 +181,10 @@ end
 function SoundEng:onUpdate(dt)
   if self.client == nil then return end
 
-  while self.hasMic and lovr.audio.getCaptureDuration("samples") >= 960 do
-    lovr.audio.capture(960, self.capture_buffer, 0)
+  while self.captureStream and self.captureStream:getDuration("samples") >= 960 do
+    local sd = self.captureStream:read(self.captureBuffer, 960)
     if self.track_id then
-      self.client:sendAudio(self.track_id, self.capture_buffer:getBlob():getString())
+      self.client:sendAudio(self.track_id, sd:getBlob():getString())
     end
   end
 
