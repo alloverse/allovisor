@@ -257,13 +257,14 @@ function PoseEng:updateIntent()
   local mx, my = self:getAxis("hand/left", "thumbstick")
   local tx, ty = self:getAxis("hand/right", "thumbstick")
 
-  -- It'd be nice if we could have some ownership model, where grabbing "took ownership" of the
-  -- stick so this code wouldn't have to hard-code whether it's allowed to use the sticks or not.
+  -- XXX<nevyn> It'd be nice if we could have some ownership model, where grabbing "took ownership" of the
+  --            stick so this code wouldn't have to hard-code whether it's allowed to use the sticks or not.
+  -- Stick up-down is used to move entity, so stop moving user
   if self.handRays[1].heldEntity ~= nil then 
-    mx = 0; my = 0;
+    my = 0;
   end
   if self.handRays[2].heldEntity ~= nil then
-    tx = 0; ty = 0;
+    ty = 0;
   end
 
   -- not allowed to walk around in the overlay menu
