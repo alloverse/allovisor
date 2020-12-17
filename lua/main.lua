@@ -244,8 +244,10 @@ function lovr.focus(focused)
   end
 end
 
+local permissionsHaveRetried = false
 function lovr.permission(permission, granted)
-  if permission == "audiocapture" and granted and lovr.scenes.net then
+  if permission == "audiocapture" and granted and lovr.scenes.net and not permissionsHaveRetried then
+    permissionsHaveRetried = true
     lovr.scenes.net.engines.sound:retryMic()
   end
 end

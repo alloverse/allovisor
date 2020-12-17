@@ -20,7 +20,7 @@ function SoundEng:_init()
 end
 
 function SoundEng:useMic(micName)
-  if self.currentMicName == micName and self.hasMic then return end
+  if self.currentMicName == micName and self.hasMic then return true end
   self.currentMicName = micName
 
   if self.hasMic then
@@ -32,14 +32,16 @@ function SoundEng:useMic(micName)
   if micName == "Off" or micName == "Mute" then
     self.hasMic = false
     print("SoundEng: Muted microphone")
+    lovr.event.push("micchanged", self.currentMicName, true)
     return true
   end
   
-  self.hasMic = self:_selectMic(micName) and lovr.audio.start("capture")
+  self.hasMic = self:_selectMic(micName) and (lovr.audio.isRunning("capture") or lovr.audio.start("capture"))
   if self.hasMic then
     self.captureBuffer = lovr.data.newSoundData(960, 1, 48000, "i16")
     self.captureStream = lovr.audio.getCaptureStream()
   end
+  lovr.event.push("micchanged", self.currentMicName, self.hasMic)
   return self.hasMic
 end
 

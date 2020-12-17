@@ -84,6 +84,10 @@ function optchainm(obj, path, ...)
   end
 end
 
+function default(thing, fallback)
+  return thing and thing or fallback
+end
+
 local tabley={}
 
 function tabley:remove_value(value)

@@ -39,12 +39,14 @@ function AudioPane:setAvailableMicrophones(mics)
     end
 end
 
-function AudioPane:setCurrentMicrophone(mic, working)
+function AudioPane:setCurrentMicrophone(mic, status)
     for _, micButton in ipairs(self.micList.subviews) do
         local color = {0.6, 0.6, 0.6, 1.0}
         if micButton.label.text == mic or (mic == "" and micButton.isDefault) then
-            if working then
+            if status == "ok" then
                 color = {0.3, 0.7, 0.5, 1.0}
+            elseif status == "working" then
+                color = {0.6, 0.6, 0.3, 1.0}
             else
                 color = {0.99, 0.0, 0.0, 1.0}
             end
