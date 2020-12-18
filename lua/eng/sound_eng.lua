@@ -169,7 +169,7 @@ function SoundEng:onDebugDraw()
 
     lovr.graphics.setShader()
     lovr.graphics.setColor(0.0, 0.0, 0.0, 1.0)
-    local s = string.format("Track #%d\n%.2fkBps", track_id, audio.bitrate/1024.0)
+    local s = string.format("Track #%d\n%.2fkBps\n%.2fs buffered", track_id, audio.bitrate/1024.0, audio.source:getDuration())
     lovr.graphics.print(s, 
       x, y+0.15, z,
       0.07, --  scale
