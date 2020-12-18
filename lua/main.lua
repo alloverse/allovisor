@@ -16,6 +16,11 @@ path = path ..
 lovr.filesystem.setRequirePath(path, cpath)
 package.cpath = cpath
 
+-- load util and allonet into globals in all namespaces on the main thread
+local util = require "lib.util"
+allonet = nil
+allonet = util.load_allonet()
+
 namespace = require "engine.namespace"
 
 local ok, mouse = pcall(require, "lib.lovr-mouse")
@@ -55,7 +60,6 @@ do
 end
 
 namespace.prepare("alloverse", "standard", function(space)
-
 end)
 
 -- Ent driver
@@ -244,6 +248,14 @@ function lovr.focus(focused)
   end
 end
 
+local permissionsHaveRetried = false
+function lovr.permission(permission, granted)
+  if permission == "audiocapture" and granted and lovr.scenes.net and not permissionsHaveRetried then
+    permissionsHaveRetried = true
+    lovr.scenes.net.engines.sound:retryMic()
+  end
+end
+
 
 -- need a custom lovr.run to disable built-in lovr.audio.setPose
 function lovr.run()
@@ -263,12 +275,6 @@ function lovr.run()
     local dt = lovr.timer.step()
     if lovr.headset then
       lovr.headset.update(dt)
-    end
-    if lovr.audio then
-      lovr.audio.update()
-      if lovr.headset then
-        lovr.audio.setVelocity(lovr.headset.getVelocity())
-      end
     end
     if lovr.update then lovr.update(dt) end
     if lovr.graphics then

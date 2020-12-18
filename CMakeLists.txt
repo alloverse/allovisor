@@ -71,7 +71,6 @@ if(WIN32)
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:glfw> ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libluajit> ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ode> ${CMAKE_CURRENT_BINARY_DIR}
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:OpenAL> ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:openvr_api64> ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:lib_msdfgen> ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:opus> ${CMAKE_CURRENT_BINARY_DIR}
@@ -106,7 +105,6 @@ if(WIN32)
     install(FILES $<TARGET_FILE:glfw> DESTINATION .)
     install(FILES $<TARGET_FILE:libluajit> DESTINATION .)
     install(FILES $<TARGET_FILE:ode> DESTINATION .)
-    install(FILES $<TARGET_FILE:OpenAL> DESTINATION .)
     install(FILES $<TARGET_FILE:openvr_api64> DESTINATION .)
     install(FILES $<TARGET_FILE:lib_msdfgen> DESTINATION .)
     install(FILES $<TARGET_FILE:opus> DESTINATION .)
@@ -187,7 +185,6 @@ elseif(APPLE)
     move_lib(libluajit)
     move_lib(lib_msdfgen)
     move_lib(ode)
-    move_lib(OpenAL)
     move_lib(openvr_api)
     
     # Add the target to install package

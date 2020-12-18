@@ -19,6 +19,7 @@ local MenuInteractor = classNamed("MenuInteractor", Ent)
 
 --- lovr settings.
 local settings = require("lib.lovr-settings")
+require("lib.util")
 
 
 function NetMenuScene:_init(menuServerPort)
@@ -29,11 +30,10 @@ function NetMenuScene:_init(menuServerPort)
   settings.load()
   self.settings = settings
   self:setupAvatars()
-  if not settings.d.currentMicrophone then
-    settings.d.currentMicrophone = lovr.audio and lovr.audio.getMicrophoneNames()[1]
-    if not settings.d.currentMicrophone then settings.d.currentMicrophone = "Mute" end
-  end
   self:updateDebugTitle()
+  lovr.handlers["micchanged"] = function(micName, status)
+    self:sendToApp("mainmenu", {"updateSubmenu", "audio", "setCurrentMicrophone", default(micName, ""), status and "ok" or "error"})
+  end
   self:super()
 end
 
@@ -44,7 +44,9 @@ function NetMenuScene:onLoad()
   self.net.debug = settings.d.debug
   self.net.isMenu = true
   self.net:insert(self)
-  self:sendToApp("mainmenu", {"updateSubmenu", "audio", "setCurrentMicrophone", settings.d.currentMicrophone, true})
+
+  
+  NetMenuScene.dynamicActions.chooseMic(self, settings.d.currentMicrophone)
 
   local interactor = MenuInteractor()
   interactor.netmenu = self
@@ -189,11 +191,8 @@ function NetMenuScene.dynamicActions:chooseMic(newMicName)
   settings.d.currentMicrophone = newMicName
   settings.save()
   local ok = true
-  if lovr.scenes.net then
-    ok = lovr.scenes.net.engines.sound and lovr.scenes.net.engines.sound:useMic(settings.d.currentMicrophone)
-  end
-
-  self:sendToApp("mainmenu", {"updateSubmenu", "audio", "setCurrentMicrophone", settings.d.currentMicrophone, ok})
+  self:sendToApp("mainmenu", {"updateSubmenu", "audio", "setCurrentMicrophone", default(settings.d.currentMicrophone, ""), "working"})
+  optchainm(lovr.scenes, "net.engines.sound.useMic", settings.d.currentMicrophone)
 end
 
 function NetMenuScene:applySettingsToCurrentNet()
