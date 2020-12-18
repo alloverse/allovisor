@@ -1,6 +1,3 @@
-namespace = require "engine.namespace"
-namespace "standard"
-
 local stringx = require("pl.stringx")
 
 function load_allonet()

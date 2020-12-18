@@ -25,7 +25,6 @@ local engines = {
 
 require "lib.allostring"
 local util = require "lib.util"
-allonet = util.load_allonet()
 
 local NetworkScene = classNamed("NetworkScene", OrderedEnt)
 function NetworkScene:_init(displayName, url, avatarName)
