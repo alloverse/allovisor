@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.13.0) # 3.13 minimum for CMP0079
+set(CMAKE_OSX_DEPLOYMENT_TARGET "10.14" CACHE STRING "Minimum OS X deployment version")
 project(allovisor VERSION 0.2.0)
 cmake_policy(SET CMP0079 NEW)
 cmake_policy(SET CMP0068 NEW)
@@ -115,7 +116,6 @@ elseif(APPLE)
     set(INSTALL_NAME_DIR .)
     set(CMAKE_INSTALL_RPATH "@loader_path")
     set(CMAKE_XCODE_GENERATE_SCHEME ON)
-    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE STRING "Minimum OS X deployment version")
 
     # Add the mac source dir to the module path, for the info plist
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/src/mac")
