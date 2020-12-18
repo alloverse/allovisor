@@ -187,7 +187,6 @@ elseif(APPLE)
     move_lib(libluajit)
     move_lib(lib_msdfgen)
     move_lib(ode)
-    move_lib(OpenAL)
     move_lib(openvr_api)
     
     # Add the target to install package
