@@ -115,6 +115,7 @@ elseif(APPLE)
     set(INSTALL_NAME_DIR .)
     set(CMAKE_INSTALL_RPATH "@loader_path")
     set(CMAKE_XCODE_GENERATE_SCHEME ON)
+    set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9" CACHE STRING "Minimum OS X deployment version")
 
     # Add the mac source dir to the module path, for the info plist
     list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/src/mac")
