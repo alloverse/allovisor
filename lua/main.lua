@@ -216,6 +216,8 @@ function lovr.update(dt)
     ent.root:route("onUpdate", dt)
     entity_cleanup()
   end
+
+  calculateFramerateBasedOnActivity()
 end
 
 function lovr.draw(isMirror)
@@ -240,7 +242,30 @@ function lovr.mirror()
   end
 end
 
+
+local ffi = require 'ffi'
+local C = ffi.os == 'Windows' and ffi.load('glfw3') or ffi.C
+ffi.cdef [[
+  void glfwSwapInterval(int interval);
+]]
+
+local wasActive = false
+function calculateFramerateBasedOnActivity()
+  local isActive = lovr.isFocused
+  if lovr.headset then
+    isActive = lovr.headset.isTracked()
+  end
+  if wasActive ~= isActive then
+    wasActive = isActive
+    if C.glfwSwapInterval then
+      local interval = isActive and 1 or 50
+      C.glfwSwapInterval(interval)
+    end
+  end
+end
+
 function lovr.focus(focused)
+  lovr.isFocused = focused
   if ent.root then
     ent.root:route("onFocus", focused)
   end
