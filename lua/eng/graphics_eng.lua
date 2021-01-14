@@ -142,25 +142,6 @@ function GraphicsEng:drawOutlines()
   lovr.graphics.setDepthTest('lequal', true)
 end
 
---- Called efter onDraw for a change to configure how the desktop app mirror image is drawn
--- Called by Ent
--- @see Ent
-function GraphicsEng:onMirror()
-  drawMode()
-  lovr.graphics.reset()
-  lovr.graphics.origin()
-  local pixwidth = lovr.graphics.getWidth()
-  local pixheight = lovr.graphics.getHeight()
-  local aspect = pixwidth/pixheight
-  local proj = lovr.math.mat4():perspective(0.01, 100, 67*(3.14/180), aspect)
-  lovr.graphics.setProjection(1, proj)
-	lovr.graphics.setShader(nil)
-	lovr.graphics.setColor(1,1,1,1)
-  lovr.graphics.clear()
-
-  lovr.draw(true)
-end
-
 --- The simulation tick
 -- Called by Ent
 -- @tparam number dt, seconds since last frame

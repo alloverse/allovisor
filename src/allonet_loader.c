@@ -19,8 +19,10 @@ void allo_printstacks(lua_State* L)
   lua_pop(L, 1);
 }
 
+bool wasFocused = false;
 static void onFocus(bool focused) {
   lovrEventPush((Event) { .type = EVENT_FOCUS, .data.boolean = { focused } });
+  wasFocused = focused;
 }
 
 int main(int argc, char** argv)
@@ -142,6 +144,8 @@ int main(int argc, char** argv)
 
     lovrSetErrorCallback(luax_vthrow, T);
     lovrSetLogCallback(luax_vlog, T);
+
+    onFocus(wasFocused);
 
     while (lua_resume(T, 0) == LUA_YIELD) {
       lovrPlatformSleep(0.);

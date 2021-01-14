@@ -71,7 +71,7 @@ local loader = require "lib.async-loader"
 local loadCo = nil
 function lovr.load()
   print("lovr.load()")
-  lovr.isFocused = true
+  lovr.isFocused = false
   loadCo = coroutine.create(_asyncLoad)
 end
 function _asyncLoad()
@@ -228,8 +228,16 @@ function lovr.draw(isMirror)
   end
 end
 
-
+local skippedFrames = 0
+local frameskip = 0
 function lovr.mirror()
+  if skippedFrames < frameskip then
+    skippedFrames = skippedFrames + 1
+    return
+  end
+  skippedFrames = 0
+
+  drawMode()
   lovr.graphics.reset()
   lovr.graphics.origin()
   local pixwidth = lovr.graphics.getWidth()   -- Window pixel width and height
@@ -237,31 +245,22 @@ function lovr.mirror()
   local aspect = pixwidth/pixheight
   local proj = lovr.math.mat4():perspective(0.01, 100, 67*(3.14/180), aspect)
   lovr.graphics.setProjection(1, proj)
+  lovr.graphics.setShader(nil)
+  lovr.graphics.setColor(1,1,1,1)
+  lovr.graphics.clear()
+  lovr.draw(true)
+
   if ent.root then
     ent.root:route("onMirror")
   end
 end
 
-
-local ffi = require 'ffi'
-local C = ffi.os == 'Windows' and ffi.load('glfw3') or ffi.C
-ffi.cdef [[
-  void glfwSwapInterval(int interval);
-]]
-
-local wasActive = false
 function calculateFramerateBasedOnActivity()
   local isActive = lovr.isFocused
   if lovr.headset then
     isActive = lovr.headset.isTracked()
   end
-  if wasActive ~= isActive then
-    wasActive = isActive
-    if C.glfwSwapInterval then
-      local interval = isActive and 1 or 50
-      C.glfwSwapInterval(interval)
-    end
-  end
+  frameskip = isActive and 1 or 50
 end
 
 function lovr.focus(focused)
@@ -303,7 +302,7 @@ function lovr.run()
     if lovr.graphics then
       lovr.graphics.origin()
       if lovr.draw then
-        if lovr.headset then
+        if lovr.headset and lovr.headset.isTracked() then
           lovr.headset.renderTo(lovr.draw)
         end
         if lovr.graphics.hasWindow() then
