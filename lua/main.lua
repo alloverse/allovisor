@@ -71,6 +71,7 @@ local loader = require "lib.async-loader"
 local loadCo = nil
 function lovr.load()
   print("lovr.load()")
+  lovr.isFocused = true
   loadCo = coroutine.create(_asyncLoad)
 end
 function _asyncLoad()
@@ -242,9 +243,6 @@ end
 function lovr.focus(focused)
   if ent.root then
     ent.root:route("onFocus", focused)
-  end
-  if lovr.mouse then
-    lovr.mouse.setHidden(focused)
   end
 end
 

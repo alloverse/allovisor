@@ -19,9 +19,14 @@ void allo_printstacks(lua_State* L)
   lua_pop(L, 1);
 }
 
+static void onFocus(bool focused) {
+  lovrEventPush((Event) { .type = EVENT_FOCUS, .data.boolean = { focused } });
+}
+
 int main(int argc, char** argv)
 {
   lovrAssert(lovrPlatformInit(), "Failed to initialize platform");
+  lovrPlatformOnWindowFocus(onFocus);
   
   #if __APPLE__
     AskMicrophonePermission();
@@ -57,8 +62,8 @@ int main(int argc, char** argv)
     // arguments (if any) intended for the script/game are at successive indices starting with 1,
     // and the exe and its arguments are in normal order but stored in negative indices.
     //
-    // LÖVR can be run in ways normal Lua can't. It can be run with an empty argv, or with no script
-    // (if fused).  So in the case of LÖVR:
+    // Lï¿½VR can be run in ways normal Lua can't. It can be run with an empty argv, or with no script
+    // (if fused).  So in the case of Lï¿½VR:
     // * The script path will always be at index 0, but it can be nil.
     // * For a fused executable, whatever is given in argv as script name is still at 0, but will be ignored.
     // * The exe (argv[0]) will always be the lowest-integer index. If it's present, it will always be -1 or less.
