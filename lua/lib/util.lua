@@ -52,6 +52,11 @@ function load_allonet()
   return allonet
 end
 
+function isDesktop()
+  local os = lovr.getOS()
+  return os == "macOS" or os == "Windows" or os == "Linux"
+end
+
 -- Return thing at path from obj, or nil if any part in path is nil
 -- e g optchain(foo, "bar.baz.qyp") returns qyp only if bar is non-nil and bar.baz is non-nil
 function optchain(obj, path)
@@ -104,5 +109,6 @@ end
 
 return {
   load_allonet = load_allonet,
+  isDesktop = isDesktop,
   tabley=tabley
 }

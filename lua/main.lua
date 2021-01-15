@@ -250,9 +250,11 @@ end
 
 local ffi = require 'ffi'
 local C = ffi.os == 'Windows' and ffi.load('glfw3') or ffi.C
-ffi.cdef [[
-  void glfwSwapInterval(int interval);
-]]
+if util.isDesktop() then
+  ffi.cdef [[
+    void glfwSwapInterval(int interval);
+  ]]
+end
 
 local wasActive = false
 function calculateFramerateBasedOnActivity()
@@ -262,7 +264,7 @@ function calculateFramerateBasedOnActivity()
   end
   if wasActive ~= isActive then
     wasActive = isActive
-    if C.glfwSwapInterval then
+    if util.isDesktop() and C.glfwSwapInterval then
       if lovr.getOS() == "macOS" then
         -- glfwSwapInterval broken on 11.0/m1: https://github.com/glfw/glfw/issues/1834
         frameSkip = isActive and 0 or 25
