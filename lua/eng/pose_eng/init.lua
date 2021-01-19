@@ -379,13 +379,23 @@ function PoseEng:updatePointing(hand_pose, ray)
   ray.to = lovr.math.newVec3(hand.components.transform:getMatrix():mul(lovr.math.vec3(0,0,-10)))
 
   -- Raycast from the hand
+  local nearestHit = nil
+  local nearestDistance = 10000
+  local nearestHitLocation = lovr.math.vec3()
   self.parent.engines.physics.world:raycast(handPos.x, handPos.y, handPos.z, ray.to.x, ray.to.y, ray.to.z, function(shape, hx, hy, hz)
-    -- assuming first hit is nearest; skip all other hovered entities.
-    if ray.highlightedEntity == nil then
-      ray:highlightEntity(shape:getCollider():getUserData())
-      ray.to = lovr.math.newVec3(hx, hy, hz)
+    local newHit = shape:getCollider():getUserData()
+    local newLocation = newHit.components.transform:getMatrix():mul(lovr.math.vec3(0,0,0))
+    local newDistance = (newLocation - ray.from):length()
+    if newDistance < nearestDistance then
+      nearestHit = newHit
+      nearestDistance = newDistance
+      nearestHitLocation = lovr.math.vec3(hx, hy, hz)
     end
   end)
+  if ray.highlightedEntity ~= nearestHit then
+    ray:highlightEntity(nearestHit)
+    ray.to = nearestHitLocation
+  end
 
   if previouslyHighlighted and previouslyHighlighted ~= ray.highlightedEntity then
     self.client:sendInteraction({
