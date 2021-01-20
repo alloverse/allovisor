@@ -31,6 +31,7 @@ function GraphicsEng:onLoad()
   self.models_for_eids = {}
   self.materials_for_eids = {}
   self.shaders_for_eids = {}
+  self.textures_from_assets = {}
   
   self.basicShader = alloBasicShader
   self.pbrShader = alloPbrShader
@@ -229,6 +230,15 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
     local blob = lovr.data.newBlob(data, "texture")
     local texture = lovr.graphics.newTexture(blob)
     mat:setTexture(texture)
+  end
+  if component.asset_texture ~= nil then 
+    local name = component.asset_texture
+    local tex = self.textures_from_assets[name]
+    if tex == nil then
+      self.client.request_asset(name)
+    else
+      mat:setTexture(tex)
+    end
   end
   self.materials_for_eids[eid] = mat
 
