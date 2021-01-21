@@ -66,6 +66,7 @@ include_directories(deps/lovr/deps/luajit/src ${CMAKE_BINARY_DIR}/deps/lovr/luaj
 if(WIN32)
     add_executable(Alloverse ${ALLO_SOURCES})
     target_link_libraries(Alloverse ${ALLO_LINK_LIBS})
+    target_compile_options(Alloverse PRIVATE /W4)
 
     add_custom_command(
         TARGET Alloverse POST_BUILD
@@ -146,6 +147,8 @@ elseif(APPLE)
         ${AVFOUNDATION_LIBRARY}
     )
 
+    target_compile_options(Alloverse PRIVATE -Wall -Wextra -pedantic)
+
     # stack-check breaks luajit
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-stack-check")
 
@@ -225,10 +228,5 @@ elseif(ANDROID)
 elseif(UNIX)
     add_executable(Alloverse ${ALLO_SOURCES})
     target_link_libraries(Alloverse ${ALLO_LINK_LIBS})
-endif()
-
-if(MSVC)
-  target_compile_options(Alloverse PRIVATE /W4)
-else()
-  target_compile_options(Alloverse PRIVATE -Wall -Wextra -pedantic)
+    target_compile_options(Alloverse PRIVATE -Wall -Wextra -pedantic)
 endif()
