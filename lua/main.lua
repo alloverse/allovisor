@@ -71,7 +71,6 @@ local loader = require "lib.async-loader"
 local loadCo = nil
 function lovr.load()
   print("lovr.load()")
-  lovr.isFocused = false
   loadCo = coroutine.create(_asyncLoad)
 end
 function _asyncLoad()
@@ -229,14 +228,8 @@ function lovr.draw(isMirror)
 end
 
 local skippedFrames = 0
-local frameskip = 0
+local frameSkip = 0
 function lovr.mirror()
-  if skippedFrames < frameskip then
-    skippedFrames = skippedFrames + 1
-    return
-  end
-  skippedFrames = 0
-
   drawMode()
   lovr.graphics.reset()
   lovr.graphics.origin()
@@ -257,9 +250,11 @@ end
 
 local ffi = require 'ffi'
 local C = ffi.os == 'Windows' and ffi.load('glfw3') or ffi.C
-ffi.cdef [[
-  void glfwSwapInterval(int interval);
-]]
+if util.isDesktop() then
+  ffi.cdef [[
+    void glfwSwapInterval(int interval);
+  ]]
+end
 
 local wasActive = false
 function calculateFramerateBasedOnActivity()
@@ -269,9 +264,13 @@ function calculateFramerateBasedOnActivity()
   end
   if wasActive ~= isActive then
     wasActive = isActive
-    if C.glfwSwapInterval then
-      local interval = isActive and 1 or 50
-      C.glfwSwapInterval(interval)
+    if util.isDesktop() and C.glfwSwapInterval then
+      if lovr.getOS() == "macOS" then
+        -- glfwSwapInterval broken on 11.0/m1: https://github.com/glfw/glfw/issues/1834
+        frameSkip = isActive and 0 or 25
+      else
+        C.glfwSwapInterval(isActive and 1 or 25)
+      end
       
     end
   end
@@ -293,7 +292,7 @@ function lovr.permission(permission, granted)
 end
 
 
--- need a custom lovr.run to disable built-in lovr.audio.setPose
+local lastFrameTime = 0.0
 function lovr.run()
   lovr.timer.step()
   if lovr.load then lovr.load(arg) end
@@ -309,6 +308,7 @@ function lovr.run()
       if lovr.handlers[name] then lovr.handlers[name](a, b, c, d) end
     end
     local dt = lovr.timer.step()
+    local beforeWork = lovr.timer.getTime()
     if lovr.headset then
       lovr.headset.update(dt)
     end
@@ -316,15 +316,30 @@ function lovr.run()
     if lovr.graphics then
       lovr.graphics.origin()
       if lovr.draw then
-        if lovr.headset and lovr.headset.isTracked() then
-          lovr.headset.renderTo(lovr.draw)
-        end
-        if lovr.graphics.hasWindow() then
-          lovr.mirror()
+        skippedFrames = skippedFrames + 1
+        if skippedFrames > frameSkip then
+          skippedFrames = 0
+          if lovr.headset and lovr.headset.isTracked() then
+            lovr.headset.renderTo(lovr.draw)
+          end
+          if lovr.graphics.hasWindow() then
+            lovr.mirror()
+          end
+          lovr.graphics.present()
         end
       end
-      lovr.graphics.present()
     end
+
+    -- XXX HACK vsync doesn't work on mac, so cap framerate
+    local afterWork = lovr.timer.getTime()
+    local deltaFramLastFrame = beforeWork-lastFrameTime
+    local maxFramerate = 60.0
+    local sleepAmount = 1.0/maxFramerate - deltaFramLastFrame
+    if lovr.getOS() == "macOS" and sleepAmount > 0 then
+      lovr.timer.sleep(sleepAmount)
+    end
+    lastFrameTime = beforeWork
+
     if lovr.math then
       lovr.math.drain()
     end
