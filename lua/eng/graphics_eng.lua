@@ -32,9 +32,39 @@ function GraphicsEng:onLoad()
   self.materials_for_eids = {}
   self.shaders_for_eids = {}
   self.textures_from_assets = {}
+  self.loading_assets = {}
   
   self.basicShader = alloBasicShader
   self.pbrShader = alloPbrShader
+
+  local allonet = self.parent.client.client
+  allonet:set_asset_receive_callback(function (name, data, offset, total_size)
+    local asset = self.loading_assets[name]
+    if asset == nil then
+      print("Not expecting asset", name)
+      return
+    end
+    print("Appending " .. string.len(data) .. " bytes to asset " .. name)
+    print("Did offset match? " .. string.len(asset.data) .. " vs " .. offset-1)
+    asset.data = asset.data .. data
+  end)
+
+  allonet:set_asset_state_callback(function (name, state)
+    if state == 0 then
+      print("Asset " .. name .. " is complete")
+      local asset = self.loading_assets[name]
+
+      if asset == nil then
+        print("Not expecting asset", name)
+      end
+
+      asset.whenDone(asset.data)
+
+      self.loading_assets[name] = nil
+    else
+      print("Could not fetch asset " .. name .. " (" .. state ")")
+    end
+  end)
 
   lovr.graphics.setBackgroundColor(.05, .05, .05)
   
@@ -62,6 +92,26 @@ function GraphicsEng:onLoad()
   end
 end
 
+function GraphicsEng:request_asset(name, whenDone)
+  local allonet = self.parent.client.client
+  local asset = self.loading_assets[name]
+
+  if asset == nil then
+    asset = {
+      name = name,
+      whenDone = whenDone,
+      data = ""
+    }
+  else
+    local next = asset.whenDone
+    asset.whenDone = function (data)
+      next(data)
+      whenDone(data)
+    end
+  end
+  self.loading_assets[name] = asset
+  allonet:asset_request(name)
+end
 --- Called each frame to draw the world
 -- Called by Ent
 -- @see Ent
@@ -169,6 +219,10 @@ function GraphicsEng:loadComponentModel(component, old_component)
     end)
   elseif component.type == "inline" then 
     self.models_for_eids[eid] = self:createMesh(component, old_component)
+  elseif component.type == "asset" then
+    self:loadAssetModel(component.name, function(model)
+      self.models_for_eids[eid] = model
+    end)
   end
 
   -- after loading, apply material if already loaded
@@ -211,6 +265,27 @@ function GraphicsEng:loadHardcodedModel(name, callback, path)
   )
 end
 
+function GraphicsEng:loadAssetModel(name, callback)
+  if self.hardcoded_models[name] ~= nil then 
+    callback(self.hardcoded_models[name])
+    return
+  end
+
+  callback(self.hardcoded_models["loading"])
+  self:request_asset(name, function (data)
+    if data == nil then 
+      print("Asset data is nil; asset " .. name .. " was not found on network")
+      callback(self.hardcoded_models["broken"])
+    else 
+      print("Completed loading asset " .. name)
+      local blob = lovr.data.newBlob(data, name)
+      local model = lovr.graphics.newModel(blob)
+      self.hardcoded_models[name] = model;
+      callback(model)
+    end
+  end)
+end
+
 --- Loads a material for supplied component.
 -- @tparam component component The component to load a material for
 -- @tparam component old_component not used
@@ -231,11 +306,16 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
     local texture = lovr.graphics.newTexture(blob)
     mat:setTexture(texture)
   end
-  if component.asset_texture ~= nil then 
+  if component.asset_texture ~= nil then
     local name = component.asset_texture
     local tex = self.textures_from_assets[name]
     if tex == nil then
-      self.client.request_asset(name)
+      self:request_asset(name, function (data)
+        local blob = lovr.data.newBlob(data, "texture")
+        local texture = lovr.graphics.newTexture(blob)
+        self.textures_from_assets[name] = texture
+        mat:setTexture(texture)
+      end)
     else
       mat:setTexture(tex)
     end
