@@ -6,7 +6,8 @@ local alloPbrShader = lovr.graphics.newShader(
       indirectLighting = true,
       occlusion = true,
       emissive = true,
-      skipTonemap = false
+      skipTonemap = false,
+      animated = true
     },
     stereo = lovr.headset == nil or (lovr.headset.getName() ~= "Pico") -- turn off stereo on pico: it's not supported
   }
