@@ -123,7 +123,6 @@ function GraphicsEng:onDraw()
     lovr.graphics.setBackgroundColor(.3, .3, .40)
     lovr.graphics.setShader()
     lovr.graphics.skybox(self.cloudSkybox)
-    lovr.graphics.setShader(self.basicShader)
     self:drawDecorations()
   else
     self:drawOutlines()
@@ -175,6 +174,9 @@ function GraphicsEng:_drawEntity(entity, applyShader)
     lovr.graphics.setShader(shader)
   end
 
+  if model.animate and model:getAnimationCount() > 0 then
+    model:animate("autoplay", lovr.timer.getTime())
+  end
   model:draw()
 end
 
@@ -457,6 +459,7 @@ function GraphicsEng:drawDecorations()
   local place = self.client.state.entities["place"]
   local deco = optchain(place, "components.decorations.type")
 
+  lovr.graphics.setShader(self.basicShader)
   if deco == "mainmenu" then
     lovr.graphics.circle( 
       self.menuplateMat,
@@ -515,14 +518,18 @@ function GraphicsEng:drawDecorations()
     end
   end
 
+  lovr.graphics.setShader(self.pbrShader)
   for name, model in pairs(self.houseAssets) do
+    if model.animate and model:getAnimationCount() > 0 then
+      model:animate(1, lovr.timer.getTime())
+    end
     model:draw()
   end
 
 end
 
 --- Calculate vertex normal from three corner vertices
-local function get_triangle_normal(vert1, vert2, vert3) 
+local function get_triangle_normal(vert1, vert2, vert3)   
   return vec3.new(vert3.x - vert1.x, vert3.z - vert1.z, vert3.y - vert1.y)
     :cross(vec3.new(vert2.x - vert1.x, vert2.z - vert1.z, vert2.y - vert1.y))
     :normalize()
