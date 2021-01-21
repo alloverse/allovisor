@@ -31,10 +31,25 @@ function TextEng:onDraw()
       end
       lovr.graphics.push()
       lovr.graphics.transform(entity.components.transform:getMatrix())
+
+      -- sets a dynamic text scale that fits within a width, if such parameter has been set
+      local dynamicTextScale = 0
+      if text.fitToWidth and text.fitToWidth ~= 0 then
+        local textLabelWidth = lovr.graphics.getFont():getWidth(text.string)
+        dynamicTextScale = (text.fitToWidth/textLabelWidth)
+
+        -- arbitrary failsafe for the name tag heigh (so text doesn't get super tall if the name has a very low #letters
+        if dynamicTextScale > 0.04 then
+          dynamicTextScale = 0.04
+        end
+      else 
+        dynamicTextScale = text.height and text.height or 1.0
+      end
+
       lovr.graphics.print(
         text.string,
         0, 0, 0.01,
-        text.height and text.height or 1.0, 
+        dynamicTextScale, --text.height and text.height or 1.0, 
         0, 0, 0, 0,
         text.wrap and text.wrap / (text.height and text.height or 1) or 0,
         text.halign and text.halign or "center"
