@@ -10,7 +10,7 @@ local allomath = require("lib.allomath")
 local alloBasicShader = require "shader/alloBasicShader"
 local alloPbrShader = require "shader/alloPbrShader"
 local loader = require "lib.async-loader"
-
+local util = require("lib.util")
 
 local GraphicsEng = classNamed("GraphicsEng", Ent)
 
@@ -267,6 +267,46 @@ function GraphicsEng:loadHardcodedModel(name, callback, path)
   )
 end
 
+function GraphicsEng:loadTexture(eid, base64, callback)
+  loader:load(
+    "base64png",
+    "base64png/"..eid,
+    function(texdata, status)
+       if texdata== nil or status == false then
+         print("Failed to load base64 texture", eid, ":", texdata)
+       else
+         local tex = lovr.graphics.newTexture(texdata)
+         callback(tex)
+       end
+    end,
+    base64
+  )
+end
+
+function GraphicsEng:loadAssetModel(name, callback)
+  if self.hardcoded_models[name] ~= nil then 
+    callback(self.hardcoded_models[name])
+    return
+  end
+
+  callback(self.hardcoded_models["loading"])
+  self:request_asset(name, function (data)
+    if data == nil then 
+      print("Asset data is nil; asset " .. name .. " was not found on network")
+      callback(self.hardcoded_models["broken"])
+    else 
+      print("Completed loading asset " .. name)
+      local blob = lovr.data.newBlob(data, name)
+      local model = lovr.graphics.newModel(blob)
+      self.hardcoded_models[name] = model;
+      callback(model)
+    end
+  end)
+end
+
+--- Loads a material for supplied component.
+-- @tparam component component The component to load a material for
+-- @tparam component old_component not used
 function GraphicsEng:loadAssetModel(name, callback)
   if self.hardcoded_models[name] ~= nil then 
     callback(self.hardcoded_models[name])
@@ -302,13 +342,22 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
   elseif component.shader_name == "pbr" then
     self.shaders_for_eids[eid] = self.pbrShader
   end
-  if component.texture ~= nil then
-    local data = base64decode(component.texture)
-    local blob = lovr.data.newBlob(data, "texture")
-    local texture = lovr.graphics.newTexture(blob)
-    mat:setTexture(texture)
+
+  local apply = function()
+    self.materials_for_eids[eid] = mat
+    -- apply the material to matching mesh, if loaded
+    local mesh = self.models_for_eids[eid]
+    if mesh and mesh.setMaterial then
+      mesh:setMaterial(mat)
+    end
   end
-  if component.asset_texture ~= nil then
+  
+  if component.texture ~= nil then
+    local texture = self:loadTexture(eid, component.texture, function(tex)
+      mat:setTexture(tex)
+      apply()
+    end)
+  elseif component.asset_texture ~= nil then
     local name = component.asset_texture
     local tex = self.textures_from_assets[name]
     if tex == nil then
@@ -321,16 +370,11 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
     else
       mat:setTexture(tex)
     end
-  end
-  self.materials_for_eids[eid] = mat
-
-  -- apply the material to matching mesh, if loaded
-  local mesh = self.models_for_eids[eid]
-  if mesh and mesh.setMaterial then
-    mesh:setMaterial(mat)
+    apply()
+  else
+    apply()
   end
 end
-
 --- Called when a new component is added
 -- @tparam string component_key The component type
 -- @tparam component component The new component
@@ -425,34 +469,15 @@ function GraphicsEng:createMesh(geom, old_geom)
 
   if (old_geom == nil or old_geom.texture ~= geom.texture) and geom.texture then
     -- decode texture data and setup material
-    local data = base64decode(geom.texture)
-    local blob = lovr.data.newBlob(data, "texture")
-    local texture = lovr.graphics.newTexture(blob)
-    local material = lovr.graphics.newMaterial(texture)
-    mesh:setMaterial(material)
+    self:loadTexture(eid, geom.texture, function(tex)
+      local material = lovr.graphics.newMaterial(tex)
+      mesh:setMaterial(material)
+    end)
   end
 
   return mesh
 end
 
---- Decodes a base64 string
--- @tparam string data A string of base64 encoded data
--- @treturn string The decoded data
-function base64decode(data)
-  local b = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/' -- You will need this for encoding/decoding
-  data = string.gsub(data, '[^'..b..'=]', '')
-  return (data:gsub('.', function(x)
-      if (x == '=') then return '' end
-      local r,f='',(b:find(x)-1)
-      for i=6,1,-1 do r=r..(f%2^i-f%2^(i-1)>0 and '1' or '0') end
-      return r;
-  end):gsub('%d%d%d?%d?%d?%d?%d?%d?', function(x)
-      if (#x ~= 8) then return '' end
-      local c=0
-      for i=1,8 do c=c+(x:sub(i,i)=='1' and 2^(8-i) or 0) end
-          return string.char(c)
-  end))
-end
 
 --- Draws some forest decorantions
 function GraphicsEng:drawDecorations()
