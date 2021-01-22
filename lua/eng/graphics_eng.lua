@@ -68,7 +68,7 @@ function GraphicsEng:onLoad()
 
   lovr.graphics.setBackgroundColor(.05, .05, .05)
   
-    self.cloudSkybox = lovr.graphics.newTexture({
+  self.cloudSkybox = lovr.graphics.newTexture({
     left = 'assets/textures/skybox/skybox-left.jpg',
     right = 'assets/textures/skybox/skybox-right.jpg',
     top = 'assets/textures/skybox/skybox-top.jpg',
