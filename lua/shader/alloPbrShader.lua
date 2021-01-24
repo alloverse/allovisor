@@ -25,7 +25,7 @@ environmentMap = lovr.graphics.newTexture({
 })
 
 alloPbrShader:send('lovrLightDirection', { -1, -1, -1 })
-alloPbrShader:send('lovrLightColor', { .9, .9, .8, 1.0 })
+alloPbrShader:send('lovrLightColor', { 1, 1, 1, 1.0 })
 alloPbrShader:send('lovrExposure', 2)
 alloPbrShader:send('lovrEnvironmentMap', environmentMap)
 

@@ -201,11 +201,18 @@ end
 -- @see Ent
 function GraphicsEng:onUpdate(dt)
   if self.client == nil then return end
-  local head = self.client.state.entities[self.parent.head_id]
+  local head = self.parent:getHead()
+  local avatar = self.parent:getAvatar()
   if head then
-    local hx, hy, hz = (head.components.transform:getMatrix() * lovr.math.vec3()):unpack()
-    self.basicShader:send('viewPos', { hx, hy, hz } )
-    self.pbrShader:send('viewPos', { hx, hy, hz } )
+    local hm = head.components.transform:getMatrix()
+    self.basicShader:send('viewPos', hm * lovr.math.vec3() )
+    
+    -- todo: use setViewPose instead so light direction is in world coordinates properly
+    -- https://app.clubhouse.io/alloverse/story/2031/use-setviewpose-instead-of-transform
+    local aqi = lovr.math.quat(head.components.transform:getMatrix()):conjugate()
+    local lightDirection = lovr.math.vec3(0.7,-0.8,-0.5)
+    local compensatedLightDirection = aqi * lightDirection
+    self.pbrShader:send('lovrLightDirection', compensatedLightDirection)
   end
 end
 
