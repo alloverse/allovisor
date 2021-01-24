@@ -68,7 +68,7 @@ function NetMenuScene:setupAvatars()
   end
   local i = tablex.find(self.avatarNames, settings.d.avatarName)
   if settings.d.avatarName == nil or i == -1 then
-    settings.d.avatarName = self.avatarNames[1]
+    settings.d.avatarName = "female"
     settings.save()
   end
   self:sendToApp("avatarchooser", {"showAvatar", settings.d.avatarName})
