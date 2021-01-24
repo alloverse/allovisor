@@ -13,7 +13,7 @@ local inChan = lovr.thread.getChannel("AlloLoaderResponses")
 -- Type = <"model"> (only model loading supported atm)
 -- Callback = callback(data: {ErrorString|data}, status: bool) -> Void
 -- AsyncLoader:load(type: Type, path: string, callback: Callback) -> Void
-function AsyncLoader:load(type, path, callback)
+function AsyncLoader:load(type, path, callback, extra)
   local cached = self.cache[path]
   if cached then
     callback(cached, true)
@@ -29,11 +29,11 @@ function AsyncLoader:load(type, path, callback)
     end
     return
   end
-  
-  req = {callback= callback}
+  req = {callback= callback, type= type}
   self.requests[path] = req
   outChan:push(type)
   outChan:push(path)
+  outChan:push(extra)
 end
 
 function AsyncLoader:poll()
@@ -43,7 +43,7 @@ function AsyncLoader:poll()
   local dataOrError = inChan:pop(true)
   local req = self.requests[path]
   self.requests[path] = nil
-  if status == true then
+  if status == true and req.type ~= "base64png" then
     self.cache[path] = dataOrError
   end
   req.callback(dataOrError, status)
