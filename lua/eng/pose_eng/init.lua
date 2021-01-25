@@ -51,7 +51,7 @@ function PoseEng:onDraw()
   local view = lovr.math.mat4()
   lovr.graphics.getViewPose(1, view, false)
   self.mvp:mul(view)
-  self.mvp:mul(self.parent.transform) -- todo use lovr.graphics.getTransform when it exists
+  self.mvp:mul(self.parent.cameraTransform) -- todo use lovr.graphics.getTransform when it exists
 
   if self.parent.active then
     for _, ray in ipairs(self.handRays) do

@@ -88,7 +88,7 @@ function NetworkScene:_init(displayName, url, avatarName)
     table.remove(avatar.children, 2) -- remove right hand as it can't be simulated
   end
   -- base transform for all other engines
-  self.transform = lovr.math.newMat4()
+  self.cameraTransform = lovr.math.newMat4()
 
   local threadedClient = allonet.create(true)
   self.client = Client(url, displayName, threadedClient)
@@ -228,8 +228,8 @@ function NetworkScene:onDraw(isMirror)
     head = self:getAvatar()
   end
   if head then
-    self.transform:set(head.components.transform:getMatrix():invert())
-    lovr.graphics.transform(self.transform)
+    self.cameraTransform:set(head.components.transform:getMatrix():invert())
+    lovr.graphics.transform(self.cameraTransform)
   end
 
   self.drawTime = lovr.timer.getTime() - atStartOfDraw
