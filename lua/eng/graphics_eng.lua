@@ -56,6 +56,7 @@ function GraphicsEng:onLoad()
 
       if asset == nil then
         print("Not expecting asset", name)
+        return
       end
 
       asset.whenDone(asset.data)
@@ -350,11 +351,12 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
         local texture = lovr.graphics.newTexture(blob)
         self.textures_from_assets[name] = texture
         mat:setTexture(texture)
+        apply()
       end)
     else
       mat:setTexture(tex)
+      apply()
     end
-    apply()
   else
     apply()
   end
