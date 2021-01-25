@@ -315,30 +315,6 @@ end
 --- Loads a material for supplied component.
 -- @tparam component component The component to load a material for
 -- @tparam component old_component not used
-function GraphicsEng:loadAssetModel(name, callback)
-  if self.hardcoded_models[name] ~= nil then 
-    callback(self.hardcoded_models[name])
-    return
-  end
-
-  callback(self.hardcoded_models["loading"])
-  self:request_asset(name, function (data)
-    if data == nil then 
-      print("Asset data is nil; asset " .. name .. " was not found on network")
-      callback(self.hardcoded_models["broken"])
-    else 
-      print("Completed loading asset " .. name)
-      local blob = lovr.data.newBlob(data, name)
-      local model = lovr.graphics.newModel(blob)
-      self.hardcoded_models[name] = model;
-      callback(model)
-    end
-  end)
-end
-
---- Loads a material for supplied component.
--- @tparam component component The component to load a material for
--- @tparam component old_component not used
 function GraphicsEng:loadComponentMaterial(component, old_component)
   local eid = component.getEntity().id
   local mat = lovr.graphics.newMaterial()
