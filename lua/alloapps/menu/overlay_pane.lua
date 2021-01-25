@@ -7,10 +7,13 @@ function OverlayPane:_init(menu)
     self.name = "overlay"
     self:super(ui.Bounds{size=ui.Size(1.6, 1.2, 0.1)})
     self:setColor({1,1,1,1})
-    local quitButton = ui.Button(ui.Bounds(0, -0.4, 0.01,     1.4, 0.2, 0.15))
-    quitButton.label.text = "Quit!"
-    quitButton.onActivated = function() menu:actuate({"quit"}) end
-    self:addSubview(quitButton)
+    
+    if lovr.headsetName ~= "Oculus Quest" then
+      local quitButton = ui.Button(ui.Bounds(0, -0.4, 0.01,     1.4, 0.2, 0.15))
+      quitButton.label.text = "Quit!"
+      quitButton.onActivated = function() menu:actuate({"quit"}) end
+      self:addSubview(quitButton)
+    end
   
     local dismissButton = ui.Button(ui.Bounds(0, 0.4, 0.01,   1.4, 0.2, 0.15))
     dismissButton.label.text = "Dismiss"

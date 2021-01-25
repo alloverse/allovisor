@@ -1,12 +1,16 @@
 print("Booting allomenu apps")
 
 lovr = require 'lovr'
-lovr.filesystem, lovr.thread, lovr.timer = require 'lovr.filesystem', require 'lovr.thread', require 'lovr.timer'
+lovr.filesystem = require 'lovr.filesystem'
+lovr.thread = require 'lovr.thread'
+lovr.timer = require 'lovr.timer'
+
 local util = require "lib.util"
 local allonet = util.load_allonet()
 local running = true
 local chan = lovr.thread.getChannel("appserv")
 local port = chan:pop(true)
+lovr.headsetName = chan:pop(true)
 print("Connecting apps to port", port)
 local apps = {
    require("alloapps.menu.app")(port),

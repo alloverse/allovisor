@@ -9,12 +9,14 @@ function MainMenuPane:_init(menu)
     self:super(ui.Bounds{size=ui.Size(1.6, 1.2, 0.1)})
     self:setColor({1,1,1,1})
 
-    local quitButton = ui.Button(ui.Bounds(0, -0.4, 0.01,     1.4, 0.2, 0.15))
-    quitButton.label.text = "Quit"
-    quitButton.onActivated = function() 
-      menu:actuate({"quit"})
+    if lovr.headsetName ~= "Oculus Quest" then
+      local quitButton = ui.Button(ui.Bounds(0, -0.4, 0.01,     1.4, 0.2, 0.15))
+      quitButton.label.text = "Quit"
+      quitButton.onActivated = function() 
+        menu:actuate({"quit"})
+      end
+      self:addSubview(quitButton)
     end
-    self:addSubview(quitButton)
   
     local connectButton = ui.Button(ui.Bounds(0, 0.4, 0.01,   1.4, 0.2, 0.15))
     connectButton.label.text = "Connect..."
