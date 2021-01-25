@@ -394,7 +394,7 @@ function PoseEng:updatePointing(hand_pose, ray)
   end)
   if ray.highlightedEntity ~= nearestHit then
     ray:highlightEntity(nearestHit)
-    ray.to = nearestHitLocation
+    ray.to:set(nearestHitLocation)
   end
 
   if previouslyHighlighted and previouslyHighlighted ~= ray.highlightedEntity then
