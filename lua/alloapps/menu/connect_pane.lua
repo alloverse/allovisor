@@ -9,6 +9,7 @@ function ConnectPane:_init(menu)
 
     local connectionList = {
         {"Nevyn's place", "alloplace://nevyn.places.alloverse.com"},
+        {"R4", "alloplace://r4.nevyn.nu"},
         {"Localhost", "alloplace://localhost"},
     }
 
