@@ -91,6 +91,8 @@ function AppChooser:_createUI()
   self.appList = {}
   table.insert(self.appList, {name="Drawing board", modelname="drawing-board"})
   table.insert(self.appList, {name="Jukebox", modelname="jukebox"})
+  table.insert(self.appList, {name="Clock", modelname="clock"})
+  table.insert(self.appList, {name="File Viewer", modelname="fileviewer"})
   
   -- puts the first app on display
   self:setActivePreview(1)
