@@ -50,7 +50,7 @@ local alloBasicShader = lovr.graphics.newShader(
       emissive = true,
       skipTonemap = false
     },
-      stereo = lovr.headset == nil or (lovr.headset.getName() ~= "Pico") -- turn off stereo on pico: it's not supported
+    stereo = lovr.headset == nil or (lovr.headset.getName() ~= "Pico") -- turn off stereo on pico: it's not supported
   }
 )
 

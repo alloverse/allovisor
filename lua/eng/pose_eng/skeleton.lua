@@ -61,6 +61,9 @@ function PoseEng:getSkeleton(device)
   if not lovr.headset then
     return nil
   end
+  if lovr.headset.getName() ~= "Oculus Quest" then
+    return nil
+  end
   local globalNodes = lovr.headset.getSkeleton(hand)
   if not globalNodes then
     return nil
