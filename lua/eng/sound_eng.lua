@@ -50,24 +50,10 @@ function SoundEng:retryMic()
 end
 
 function SoundEng:_selectMic(micName)
-  local devices = lovr.audio.getDevices()
-  local device
-  
-  _, device = util.tabley.first(devices, function(i, dev) return dev.type == "capture" and dev.name == micName end)
-  
-  if device == nil or micName == nil or micName == "" then
-    _, device = util.tabley.first(devices, function(i, dev) return dev.type == "capture" and dev.isDefault end)
-    if device == nil then
-      _, device = util.tabley.first(devices, function(i, dev) return dev.type == "capture" end)
-    end
-  end
-  if device == nil then
-    print("No microphone available")
-    return false
-  end
-  
-  print("Using microphone", device.name)
-  lovr.audio.useDevice(device.identifier, 48000, "i16")
+
+  print("Using microphone", micName)
+  lovr.audio.setCaptureFormat("i16", 48000)
+  lovr.audio.useDevice("capture", micName)
   return true
 end
 

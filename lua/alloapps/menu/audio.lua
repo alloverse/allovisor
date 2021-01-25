@@ -19,8 +19,15 @@ function AudioPane:_init(menu)
     self.micList = ui.View(ui.Bounds{})
     self:addSubview(self.micList)
 
-    local devices = lovr.audio and lovr.audio.getDevices() or {}
-    local microphones = tablex.filter(devices, function(x) return x.type == "capture" end)
+    local microphones = lovr.audio and lovr.audio.getDevices("capture")
+    if microphones == nil or #microphones == 0 then
+        microphones = {{
+            isDefault = true,
+            name = "Default",
+            type = "capture"
+        }}
+    end
+    print("Available capture devices: ", pretty.write(microphones))
     self:setAvailableMicrophones(microphones)
 end
 
