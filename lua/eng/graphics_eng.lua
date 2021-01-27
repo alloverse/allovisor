@@ -11,6 +11,7 @@ local alloBasicShader = require "shader/alloBasicShader"
 local alloPbrShader = require "shader/alloPbrShader"
 local loader = require "lib.async-loader"
 local util = require("lib.util")
+local AssetManager = require("lib.alloui.lua.alloui.asset").Manager
 
 local GraphicsEng = classNamed("GraphicsEng", Ent)
 
@@ -19,7 +20,7 @@ function GraphicsEng:_init()
   self:super()
 end
 
---- Called when the application loadsio.
+--- Called when the application loads.
 -- Loads the default models, shaders, etc. 
 function GraphicsEng:onLoad()
   self.hardcoded_models = {
@@ -32,40 +33,11 @@ function GraphicsEng:onLoad()
   self.materials_for_eids = {}
   self.shaders_for_eids = {}
   self.textures_from_assets = {}
-  self.loading_assets = {}
   
   self.basicShader = alloBasicShader
   self.pbrShader = alloPbrShader
 
-  local allonet = self.parent.client.client
-  allonet:set_asset_receive_callback(function (name, data, offset, total_size)
-    local asset = self.loading_assets[name]
-    if asset == nil then
-      print("Not expecting asset", name)
-      return
-    end
-    print("Appending " .. string.len(data) .. " bytes to asset " .. name)
-    print("Did offset match? " .. string.len(asset.data) .. " vs " .. offset-1)
-    asset.data = asset.data .. data
-  end)
-
-  allonet:set_asset_state_callback(function (name, state)
-    if state == 0 then
-      print("Asset " .. name .. " is complete")
-      local asset = self.loading_assets[name]
-
-      if asset == nil then
-        print("Not expecting asset", name)
-        return
-      end
-
-      asset.whenDone(asset.data)
-
-      self.loading_assets[name] = nil
-    else
-      print("Could not fetch asset " .. name .. " (" .. state ")")
-    end
-  end)
+  self.assetManager = AssetManager(self.parent.client.client)
 
   lovr.graphics.setBackgroundColor(.05, .05, .05)
   
@@ -94,24 +66,12 @@ function GraphicsEng:onLoad()
 end
 
 function GraphicsEng:request_asset(name, whenDone)
-  local allonet = self.parent.client.client
-  local asset = self.loading_assets[name]
-
-  if asset == nil then
-    asset = {
-      name = name,
-      whenDone = whenDone,
-      data = ""
-    }
-  else
-    local next = asset.whenDone
-    asset.whenDone = function (data)
-      next(data)
-      whenDone(data)
+  self.assetManager:load(name, function (name, asset)
+    if asset == nil then 
+      print("Asset " .. name .. " was not found on network")
     end
-  end
-  self.loading_assets[name] = asset
-  allonet:asset_request(name)
+    whenDone(asset.data)
+  end)
 end
 --- Called each frame to draw the world
 -- Called by Ent
