@@ -11,9 +11,27 @@ local alloBasicShader = require "shader/alloBasicShader"
 local alloPbrShader = require "shader/alloPbrShader"
 local loader = require "lib.async-loader"
 local util = require("lib.util")
-local AssetManager = require("lib.alloui.lua.alloui.asset").Manager
+local Asset = require("lib.alloui.lua.alloui.asset")
 
 local GraphicsEng = classNamed("GraphicsEng", Ent)
+
+
+function Asset:model()
+  if self._model == nil then
+    local blob = lovr.data.newBlob(self.data, self:id())
+    self._model = lovr.graphics.newModel(blob)
+  end
+  return self._model
+end
+
+function Asset:texture()
+  if self._texture == nil then
+    local blob = lovr.data.newBlob(self.data, self:id())
+    self._texture = lovr.graphics.newTexture(blob)
+  end
+  return self._texture
+end
+
 
 --- Initialize the graphics engine.
 function GraphicsEng:_init()
@@ -29,6 +47,7 @@ function GraphicsEng:onLoad()
   }
   self:loadHardcodedModel('forest', function() end, '/assets/models/decorations/forest/PUSHILIN_forest.gltf')
 
+  self.assets = {}
   self.models_for_eids = {}
   self.materials_for_eids = {}
   self.shaders_for_eids = {}
@@ -37,7 +56,7 @@ function GraphicsEng:onLoad()
   self.basicShader = alloBasicShader
   self.pbrShader = alloPbrShader
 
-  self.assetManager = AssetManager(self.parent.client.client)
+  self.assetManager = Asset.Manager(self.parent.client.client)
 
   lovr.graphics.setBackgroundColor(.05, .05, .05)
   
@@ -70,7 +89,7 @@ function GraphicsEng:request_asset(name, whenDone)
     if asset == nil then 
       print("Asset " .. name .. " was not found on network")
     end
-    whenDone(asset.data)
+    whenDone(asset)
   end)
 end
 --- Called each frame to draw the world
@@ -259,17 +278,8 @@ function GraphicsEng:loadAssetModel(name, callback)
   end
 
   callback(self.hardcoded_models["loading"])
-  self:request_asset(name, function (data)
-    if data == nil then 
-      print("Asset data is nil; asset " .. name .. " was not found on network")
-      callback(self.hardcoded_models["broken"])
-    else 
-      print("Completed loading asset " .. name)
-      local blob = lovr.data.newBlob(data, name)
-      local model = lovr.graphics.newModel(blob)
-      self.hardcoded_models[name] = model;
-      callback(model)
-    end
+  self:request_asset(name, function (asset)
+    callback(asset:model())
   end)
 end
 
@@ -306,11 +316,8 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
     local name = component.asset_texture
     local tex = self.textures_from_assets[name]
     if tex == nil then
-      self:request_asset(name, function (data)
-        local blob = lovr.data.newBlob(data, "texture")
-        local texture = lovr.graphics.newTexture(blob)
-        self.textures_from_assets[name] = texture
-        mat:setTexture(texture)
+      self:request_asset(name, function (asset)
+        mat:setTexture(asset:texture())
         apply()
       end)
     else
