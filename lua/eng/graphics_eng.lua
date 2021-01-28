@@ -15,24 +15,6 @@ local Asset = require("lib.alloui.lua.alloui.asset")
 
 local GraphicsEng = classNamed("GraphicsEng", Ent)
 
-
-function Asset:model()
-  if self._model == nil then
-    local blob = lovr.data.newBlob(self.data, self:id())
-    self._model = lovr.graphics.newModel(blob)
-  end
-  return self._model
-end
-
-function Asset:texture()
-  if self._texture == nil then
-    local blob = lovr.data.newBlob(self.data, self:id())
-    self._texture = lovr.graphics.newTexture(blob)
-  end
-  return self._texture
-end
-
-
 --- Initialize the graphics engine.
 function GraphicsEng:_init()
   self:super()
@@ -79,19 +61,26 @@ function GraphicsEng:onLoad()
   local houseAssetNames = lovr.filesystem.getDirectoryItems("assets/models/house")
   for i, name in ipairs(houseAssetNames) do
     self:loadHardcodedModel('house/'..name, function(m) 
-      self.houseAssets[name] = m 
+      self.houseAssets[name] = m
     end)
   end
 end
 
-function GraphicsEng:request_asset(name, whenDone)
+
+-- callback(asset)
+-- returns the asset if it was found in cache
+function GraphicsEng:getAsset(name, callback)
+  local cached = nil
   self.assetManager:load(name, function (name, asset)
     if asset == nil then 
       print("Asset " .. name .. " was not found on network")
     end
-    whenDone(asset)
+    cached = asset
+    callback(asset)
   end)
+  return cached
 end
+
 --- Called each frame to draw the world
 -- Called by Ent
 -- @see Ent
@@ -210,9 +199,12 @@ function GraphicsEng:loadComponentModel(component, old_component)
   elseif component.type == "inline" then 
     self.models_for_eids[eid] = self:createMesh(component, old_component)
   elseif component.type == "asset" then
-    self:loadAssetModel(component.name, function(model)
-      self.models_for_eids[eid] = model
+    local cached = self:getAsset(component.name, function (asset)
+      self.models_for_eids[eid] = asset:model()
     end)
+    if cached == nil then 
+      self.models_for_eids[eid] = self.hardcoded_models["loading"]
+    end
   end
 
   -- after loading, apply material if already loaded
@@ -271,18 +263,6 @@ function GraphicsEng:loadTexture(eid, base64, callback)
   )
 end
 
-function GraphicsEng:loadAssetModel(name, callback)
-  if self.hardcoded_models[name] ~= nil then 
-    callback(self.hardcoded_models[name])
-    return
-  end
-
-  callback(self.hardcoded_models["loading"])
-  self:request_asset(name, function (asset)
-    callback(asset:model())
-  end)
-end
-
 --- Loads a material for supplied component.
 -- @tparam component component The component to load a material for
 -- @tparam component old_component not used
@@ -307,25 +287,23 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
     end
   end
   
-  if component.texture ~= nil then
-    local texture = self:loadTexture(eid, component.texture, function(tex)
-      mat:setTexture(tex)
-      apply()
-    end)
-  elseif component.asset_texture ~= nil then
-    local name = component.asset_texture
-    local tex = self.textures_from_assets[name]
-    if tex == nil then
-      self:request_asset(name, function (asset)
-        mat:setTexture(asset:texture())
+  local textureName = component.texture or component.asset_texture
+  if textureName == nil then
+    apply()
+  else
+    if string.len(textureName) > 64 then
+      -- backwards compat.
+      print("b64 tex")
+      local texture = self:loadTexture(eid, component.texture, function(tex)
+        mat:setTexture(tex)
         apply()
       end)
     else
-      mat:setTexture(tex)
-      apply()
+      self:getAsset(textureName, function(asset)
+        mat:setTexture(asset:texture())
+        apply()
+      end)
     end
-  else
-    apply()
   end
 end
 --- Called when a new component is added
@@ -547,4 +525,24 @@ function GraphicsEng:generateGeometryWithNormals(geom)
   return new_geom
 end
 
+
+function Asset:model()
+  if self._model == nil then
+    local blob = lovr.data.newBlob(self.data, self:id())
+    self._model = lovr.graphics.newModel(blob)
+  end
+  return self._model
+end
+
+function Asset:texture()
+  if self._texture == nil then
+    local blob = lovr.data.newBlob(self.data, self:id())
+    self._texture = lovr.graphics.newTexture(blob)
+  end
+  return self._texture
+end
+
+
 return GraphicsEng
+
+
