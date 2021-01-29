@@ -85,10 +85,13 @@ function PhysicsEng:onComponentRemoved(component_key, component)
 
   local eid = component.getEntity().id
   local collider = self.colliders[eid]
-
-  self.colliders[eid] = nil
-  collider:setUserData(nil)
-  collider:destroy()  
+  if collider then
+    self.colliders[eid] = nil
+    collider:setUserData(nil)
+    collider:destroy()
+  else
+    print("Tried to remove a collider that was not yet registered.")
+  end
 end
 
 function PhysicsEng:onComponentChanged(component_key, component, old_component)
