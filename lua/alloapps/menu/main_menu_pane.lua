@@ -33,7 +33,7 @@ function MainMenuPane:_init(menu)
     self:addSubview(self.debugButton)
   
     self.messageLabel = ui.Label{
-      bounds = ui.Bounds(-0.45, 0.8, 0.01,     1.4, 0.1, 0.1),
+      bounds = ui.Bounds(0.2, 0.8, 0.01,     1.4, 0.1, 0.1),
       text = "Welcome to Alloverse",
       color = {0,0,0,1},
       halign = "left"

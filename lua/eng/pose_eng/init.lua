@@ -21,6 +21,10 @@ function PoseEng:_init()
   self.oldMousePos = lovr.math.newVec2()
   self.fakeMousePos = lovr.math.newVec2()
   self.mousePitch = 0
+  self.focus = {
+    entity= nil,
+    type= nil
+  }
   self:super()
 end
 
@@ -414,21 +418,78 @@ function PoseEng:updatePointing(hand_pose, ray)
 
     if ray.selectedEntity == nil and self:isDown(hand_pose, "trigger") then
       ray:selectEntity(ray.highlightedEntity)
-      self.client:sendInteraction({
-        type = "request",
-        receiver_entity_id = ray.selectedEntity.id,
-        body = {"poke", true}
-      })
+      self:pokeEntity(ray.selectedEntity)
     end
   end
 
   if ray.selectedEntity and not self:isDown(hand_pose, "trigger") then
-    self.client:sendInteraction({
-      type = "request",
-      receiver_entity_id = ray.selectedEntity.id,
-      body = {"poke", false}
-    })
+    self:endPokeEntity(ray.selectedEntity)
     ray:selectEntity(nil)
+  end
+end
+
+function PoseEng:pokeEntity(ent)
+  self.client:sendInteraction({
+    type = "request",
+    receiver = ent,
+    body = {"poke", true}
+  })
+
+  if self.focus.entityid ~= ent.id then
+    self:setFocus(ent)
+  end
+end
+
+function PoseEng:endPokeEntity(ent)
+  self.client:sendInteraction({
+    type = "request",
+    receiver = ent,
+    body = {"poke", false}
+  })
+end
+
+function PoseEng:setFocus(ent)
+  if self.focus.entity and ent.id == self.focus.entity.id then return end
+
+  if self.focus.entity then
+    self.client:sendInteraction({
+      type = "oneway",
+      receiver = self.focus.entity,
+      body = {"defocus"}
+    })
+  end
+
+  -- todo: I dunno... I feel like text fields shouldn't be defocused just 'cause we press
+  -- a button. let's figure this out through experimentation what feels good...
+
+  local type = "attention"
+  local focuscomp = ent.components.focus
+  if focuscomp and focuscomp.type then
+    type = focuscomp.type
+  end
+  self.client:sendInteraction({
+    type = "oneway",
+    receiver = ent,
+    body = {"focus"}
+  })
+  self.focus = {
+    entity= ent,
+    type= type
+  }
+  print("Focus is now", ent.id, type)
+  self.parent:route("focusChanged", ent, type)
+end
+function PoseEng:defocus()
+  self.focus = {
+    entity= nil,
+    type= nil
+  }
+  self.parent:route("focusChanged", nil, nil)
+end
+
+function PoseEng:onEntityRemoved(e)
+  if self.focus.entity and e.id == self.focus.entity.id then
+    self:defocus()
   end
 end
 

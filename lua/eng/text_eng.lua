@@ -32,6 +32,12 @@ function TextEng:onDraw()
       lovr.graphics.push()
       lovr.graphics.transform(entity.components.transform:getMatrix())
 
+      if text.halign == "left" and text.wrap then
+        lovr.graphics.translate(-text.wrap/2,0,0)
+      elseif text.halign == "right" and text.wrap then
+        lovr.graphics.translate(text.wrap/2,0,0)
+      end
+
       -- sets a dynamic text scale that fits within a width, if such parameter has been set
       local dynamicTextScale = 0
       if text.fitToWidth and text.fitToWidth ~= 0 then

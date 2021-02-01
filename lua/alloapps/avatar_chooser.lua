@@ -80,6 +80,18 @@ end
 function AvatarChooser:_createUI()
   local root = ui.View(ui.Bounds(0, 0, -1,  0.3, 2, 0.3):rotate(3.14/4, 0,1,0):move(-0.70, 0, -1.3))
 
+  local displayNameFieldLabel = ui.Label{
+    bounds= ui.Bounds(0, 0, 0,   1.0, 0.07, 0.001):move(0, 2.34, -0.25),
+    color= {0.4,0.4,0.4,1},
+    text= "Hello, my name is",
+    halign= "left",
+  }
+  root:addSubview(displayNameFieldLabel)
+
+  local displayNameField = ui.TextField(ui.Bounds(0, 0, 0,   1.0, 0.16, 0.1):move(0, 2.2, -0.2))
+  displayNameField.label:setText("Unnamed")
+  root:addSubview(displayNameField)
+
   local controls = ui.Surface(ui.Bounds(0, 0, 0,   1.3, 0.2, 0.02):rotate(-3.14/4, 1, 0, 0):move(0, 1.1, 0))
   root:addSubview(controls)
 
