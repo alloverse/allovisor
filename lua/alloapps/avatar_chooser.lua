@@ -88,11 +88,16 @@ function AvatarChooser:_createUI()
   }
   root:addSubview(displayNameFieldLabel)
 
+  self.oldDisplayName = ""
   self.displayNameField = ui.TextField(ui.Bounds(0, 0, 0,   1.0, 0.16, 0.1):move(0, 2.2, -0.2))
-  self.displayNameField.label:setText("test")
   self.displayNameField.onReturn = function(field, text)
+    self.oldDisplayName = text
     self:actuate({"setDisplayName", text})
+    field:defocus()
     return false
+  end
+  self.displayNameField.onLostFocus = function()
+    self.displayNameField.label:setText(self.oldDisplayName)
   end
   root:addSubview(self.displayNameField)
 
@@ -201,6 +206,7 @@ function AvatarChooser:onInteraction(interaction, body, receiver, sender)
 end
 
 function AvatarChooser:setDisplayName(displayName)
+  self.oldDisplayName = displayName
   self.displayNameField.label:setText(displayName)
 end
 
