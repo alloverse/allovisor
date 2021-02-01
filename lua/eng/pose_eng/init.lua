@@ -469,21 +469,23 @@ function PoseEng:setFocus(ent)
     type = focuscomp.type
   end
   self.client:sendInteraction({
-    type = "oneway",
     receiver = ent,
     body = {"focus"}
-  })
-  self.focus = {
-    entity= ent,
-    type= type
-  }
-  print("Focus is now", ent.id, type)
-  self.parent:route("onFocusChanged", ent, type)
+  }, function(reply, body)
+    if body[2] == "ok" then
+      self.focus = {
+        entity= ent,
+        type= type
+      }
+      self.parent:route("onFocusChanged", ent, type)
+    else
+      print("Failed to focus", entid, ":", pretty.write(body))
+    end
+  end)
 end
 function PoseEng:defocus()
   if self.focus.entity == nil then return end
 
-  print("Defocusing", self.focus.entity.id, self.focus.type)
   self.client:sendInteraction({
     type = "oneway",
     receiver = self.focus.entity,
@@ -494,6 +496,12 @@ function PoseEng:defocus()
     type= nil
   }
   self.parent:route("onFocusChanged", nil, nil)
+end
+
+function PoseEng:onInteraction(interaction, body, receiver, sender)
+  if self.focus.entity and body[1] == "defocus" and self.focus.entity.id == sender.id then
+    self:defocus()
+  end
 end
 
 function PoseEng:onEntityRemoved(e)
