@@ -26,6 +26,7 @@ function PoseEng:_init()
     type= nil
   }
   self:super()
+  self:useKeyboardForControllerEmulation(true)
 end
 
 function PoseEng:onLoad()
@@ -477,18 +478,32 @@ function PoseEng:setFocus(ent)
     type= type
   }
   print("Focus is now", ent.id, type)
-  self.parent:route("focusChanged", ent, type)
+  self.parent:route("onFocusChanged", ent, type)
 end
 function PoseEng:defocus()
+  if self.focus.entity == nil then return end
+
+  print("Defocusing", self.focus.entity.id, self.focus.type)
+  self.client:sendInteraction({
+    type = "oneway",
+    receiver = self.focus.entity,
+    body = {"defocus"}
+  })
   self.focus = {
     entity= nil,
     type= nil
   }
-  self.parent:route("focusChanged", nil, nil)
+  self.parent:route("onFocusChanged", nil, nil)
 end
 
 function PoseEng:onEntityRemoved(e)
   if self.focus.entity and e.id == self.focus.entity.id then
+    self:defocus()
+  end
+end
+
+function PoseEng:onKeyPress(code, scancode, repetition)
+  if code == "escape" then
     self:defocus()
   end
 end

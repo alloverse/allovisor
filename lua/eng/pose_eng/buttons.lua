@@ -1,9 +1,17 @@
 namespace("pose_eng", "alloverse")
 
-local ok, keyboard = pcall(require, "lib.lovr-keyboard")
+local ok, keyboardmod = pcall(require, "lib.lovr-keyboard")
 if not ok then
   print("No keyboard available", keyboard)
-  keyboard = nil
+  keyboardmod = nil
+end
+
+function PoseEng:useKeyboardForControllerEmulation(emulateControllers)
+  if emulateControllers then
+    self.keyboard = keyboardmod
+  else
+    self.keyboard = nil
+  end
 end
 
 function PoseEng:updateButtons()
@@ -37,8 +45,8 @@ function PoseEng:updateButton(device, button)
   end
   if device == "hand/left" and button == "trigger" then
     down = down or (self.mouseIsDown and self.mouseMode == "interact")
-  elseif button == "menu" and keyboard then
-    down = down or keyboard.isDown("r")
+  elseif button == "menu" and self.keyboard then
+    down = down or self.keyboard.isDown("r")
   end
   self.currentButtonStates[device][button] = down
 end
@@ -80,26 +88,26 @@ function PoseEng:getAxis(device, axis)
   if lovr.headset then
     x, y = lovr.headset.getAxis(device, axis)
   end
-  if keyboard then
+  if self.keyboard then
     if device == "hand/left" and axis == "thumbstick" then
-      if keyboard.isDown("a") then
+      if self.keyboard.isDown("a") then
         x = -1
-      elseif keyboard.isDown("d") then
+      elseif self.keyboard.isDown("d") then
         x = 1
       end
-      if keyboard.isDown("w") then
+      if self.keyboard.isDown("w") then
         y = 1
-      elseif keyboard.isDown("s") then
+      elseif self.keyboard.isDown("s") then
         y = -1
       end
     elseif device == "hand/right" and axis == "thumbstick" then
-      if keyboard.isDown("q") then
+      if self.keyboard.isDown("q") then
         x = -1
-      elseif keyboard.isDown("e") then
+      elseif self.keyboard.isDown("e") then
         x = 1
       end
     elseif device == "hand/left" and axis == "grip" and x == 0 then
-      -- x = keyboard.isDown("f") and 1.0 or 0.0
+      -- x = self.keyboard.isDown("f") and 1.0 or 0.0
       x = self.rightMouseIsDown and 1.0 or 0.0
     end
   end

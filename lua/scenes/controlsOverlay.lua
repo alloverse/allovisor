@@ -75,9 +75,6 @@ end
 
 function ControlsOverlay:onKeyPress(code, scancode)
   --print("ControlsOverlay:onKeyPress", code)
-  if code == "escape" then
-    self:die()
-  end
 end
 
 function ControlsOverlay:onMousePress(x, y)

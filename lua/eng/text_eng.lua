@@ -52,17 +52,74 @@ function TextEng:onDraw()
         dynamicTextScale = text.height and text.height or 1.0
       end
 
+      local wrap = text.wrap and text.wrap / (text.height and text.height or 1) or 0
       lovr.graphics.print(
         text.string,
         0, 0, 0.01,
         dynamicTextScale, --text.height and text.height or 1.0, 
         0, 0, 0, 0,
-        text.wrap and text.wrap / (text.height and text.height or 1) or 0,
-        text.halign and text.halign or "center"
+        wrap,
+        text.halign and text.halign or "center",
+        text.valign and text.valign or "middle"
       )
+
+      if text.insertionMarker then
+        lovr.graphics.setColor(0, 0, 0, math.sin(lovr.timer.getTime()*5)*0.5 + 0.6)
+        local actualLabelWidth, lines = lovr.graphics.getFont():getWidth(text.string, wrap)
+        actualLabelWidth = actualLabelWidth * dynamicTextScale
+        local lastLine = string.match(text.string, "[^%c]*$")
+        local lastLineWidth = lovr.graphics.getFont():getWidth(lastLine) * dynamicTextScale
+        local height = self.font:getHeight()*dynamicTextScale
+        lovr.graphics.line(
+          lastLineWidth + 0.01, height/2 - height*(lines-1), 0,
+          lastLineWidth + 0.01, height/2 - height*lines, 0
+        )
+      end
+
       lovr.graphics.pop()
     end
   end
+end
+
+function TextEng:onFocusChanged(newEnt, focusType)
+  if focusType == "key" then
+    self.firstResponder = newEnt
+  else
+    self.firstResponder = nil
+  end
+  self.parent.engines.pose:useKeyboardForControllerEmulation(self.firstResponder == nil)
+end
+
+function TextEng:onKeyPress(code, scancode, repetition)
+  if not self.firstResponder then return end
+
+  if code == "escape" then
+    return
+  end
+
+  self.client:sendInteraction({
+    type = "one-way",
+    receiver = self.firstResponder,
+    body = {"keydown", code, scancode, repetition}
+  })
+end
+function TextEng:onKeyReleased(code, scancode)
+  if not self.firstResponder then return end
+
+  self.client:sendInteraction({
+    type = "one-way",
+    receiver = self.firstResponder,
+    body = {"keyup", code, scancode}
+  })
+end
+function TextEng:onTextInput(text, code)
+  if not self.firstResponder then return end
+
+  self.client:sendInteraction({
+    type = "one-way",
+    receiver = self.firstResponder,
+    body = {"textinput", text, code}
+  })
 end
 
 return TextEng

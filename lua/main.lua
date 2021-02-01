@@ -124,7 +124,7 @@ function _asyncLoadResume()
     ent.root:route("onKeyReleased", code, scancode)
   end
   lovr.handlers["textinput"] = function(text, code)
-    ent.root:route("onTextInput", code, scancode)
+    ent.root:route("onTextInput", text, code)
   end
   lovr.handlers["mousemoved"] = function(x, y, dx, dy)
     ent.root:route("onMouseMoved", x, y, dx, dy)
