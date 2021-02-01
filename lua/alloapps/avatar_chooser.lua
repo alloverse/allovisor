@@ -88,9 +88,13 @@ function AvatarChooser:_createUI()
   }
   root:addSubview(displayNameFieldLabel)
 
-  local displayNameField = ui.TextField(ui.Bounds(0, 0, 0,   1.0, 0.16, 0.1):move(0, 2.2, -0.2))
-  displayNameField.label:setText("Unnamed")
-  root:addSubview(displayNameField)
+  self.displayNameField = ui.TextField(ui.Bounds(0, 0, 0,   1.0, 0.16, 0.1):move(0, 2.2, -0.2))
+  self.displayNameField.label:setText("test")
+  self.displayNameField.onReturn = function(field, text)
+    self:actuate({"setDisplayName", text})
+    return false
+  end
+  root:addSubview(self.displayNameField)
 
   local controls = ui.Surface(ui.Bounds(0, 0, 0,   1.3, 0.2, 0.02):rotate(-3.14/4, 1, 0, 0):move(0, 1.1, 0))
   root:addSubview(controls)
@@ -163,6 +167,7 @@ function AvatarChooser:setVisible(visible)
   end
 end
 
+
 function AvatarChooser:onComponentAdded(key, comp)
   EmbeddedApp.onComponentAdded(self, key, comp)
   if self.visor ~= self.actuatingFor then
@@ -188,20 +193,28 @@ function AvatarChooser:onComponentRemoved(key, comp)
   end
 end
 function AvatarChooser:onInteraction(interaction, body, receiver, sender)
-  if body[1] == "showAvatar" then
-    local avatarName = body[2]
-    self.avatarName = avatarName
-    self.nameLabel:setText("Avatar: "..self.avatarName)
-    for _, part in ipairs(self.parts) do
-      part:setAvatar(self.avatarName)
-      
-      for _, other in ipairs(self.poseEnts[part.poseName]) do
-        part:updateOther(other)
-      end
-    end
-  elseif body[1] == "setVisible" then
-    self:setVisible(body[2])
+  local func = self[body[1]]
+  if func then
+    table.remove(body, 1)
+    func(self, unpack(body))
   end
 end
+
+function AvatarChooser:setDisplayName(displayName)
+  self.displayNameField.label:setText(displayName)
+end
+
+function AvatarChooser:showAvatar(avatarName)
+  self.avatarName = avatarName
+  self.nameLabel:setText("Avatar: "..self.avatarName)
+  for _, part in ipairs(self.parts) do
+    part:setAvatar(self.avatarName)
+    
+    for _, other in ipairs(self.poseEnts[part.poseName]) do
+      part:updateOther(other)
+    end
+  end
+end
+
 
 return AvatarChooser

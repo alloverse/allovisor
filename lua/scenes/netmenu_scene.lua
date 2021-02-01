@@ -31,6 +31,7 @@ function NetMenuScene:_init(menuServerPort)
   self.settings = settings
   self:setupAvatars()
   self:updateDebugTitle()
+  self:updateDisplayName()
   lovr.handlers["micchanged"] = function(micName, status)
     self:sendToApp("mainmenu", {"updateSubmenu", "audio", "setCurrentMicrophone", default(micName, ""), status and "ok" or "error"})
   end
@@ -76,6 +77,10 @@ end
 
 function NetMenuScene:updateDebugTitle()
   self:sendToApp("mainmenu", {"updateMenu", "updateDebugTitle", settings.d.debug and true or false })
+end
+
+function NetMenuScene:updateDisplayName()
+  self:sendToApp("avatarchooser", {"setDisplayName", default(settings.d.username, "Unnamed")})
 end
 
 function NetMenuScene:setMessage(message)
@@ -184,6 +189,11 @@ function NetMenuScene.dynamicActions:changeAvatar(direction, sender)
   settings.d.avatarName = self.avatarNames[newI]
   settings.save()
   self:sendToApp("avatarchooser", {"showAvatar", settings.d.avatarName})
+end
+
+function NetMenuScene.dynamicActions:setDisplayName(newName)
+  settings.d.username = newName
+  settings.save()
 end
 
 --- Pick a new microphone to record from
