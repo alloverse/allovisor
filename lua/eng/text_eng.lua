@@ -5,6 +5,7 @@
 namespace("networkscene", "alloverse")
 
 local tablex = require "pl.tablex"
+local letters = require("lib.letters.letters")
 
 local TextEng = classNamed("TextEng", Ent)
 function TextEng:_init()
@@ -13,6 +14,19 @@ end
 
 function TextEng:onLoad()
   self.font = lovr.graphics.newFont(32)
+  
+  letters.headset = self.parent.engines.pose
+  letters.load()
+  --self.virtualKeyboard = letters.HoverKeyboard:new{world=letters.world}
+end
+
+function TextEng:onUpdate()
+  if self.client == nil or self.parent.client == nil then return end
+
+  if self.virtualKeyboard then
+    letters.update()
+    self.virtualKeyboard:update()
+  end
 end
 
 --- Draws all text components
@@ -78,6 +92,10 @@ function TextEng:onDraw()
 
       lovr.graphics.pop()
     end
+  end
+
+  if self.virtualKeyboard then
+    self.virtualKeyboard:draw()
   end
 end
 

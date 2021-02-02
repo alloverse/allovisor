@@ -131,6 +131,20 @@ function PoseEng:isTracked(device)
   return lovr.headset.isTracked(device)
 end
 
+function PoseEng:vibrate(...)
+  if lovr.headset then
+    lovr.headset.vibrate(...)
+  end
+end
+
+function PoseEng:getPosition(device)
+  return self:getPose(device) * lovr.math.vec3()
+end
+
+function PoseEng:getOrientation(device)
+  return lovr.math.quat(self:getPose(device))
+end
+
 function PoseEng:getPose(device)
   local pose = lovr.math.mat4()
   if lovr.headset and self:isTracked(device) then
