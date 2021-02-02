@@ -189,7 +189,7 @@ function PoseEng:_recalculateMouseInWorld(x, y, w, h)
     end
   end)
   
-  self.mouseInWorld = mouseInWorld
+  self.mouseInWorld = lovr.math.newVec3(mouseInWorld)
   self.mouseTouchesEntity = nearestHit ~= nil
 end
 
