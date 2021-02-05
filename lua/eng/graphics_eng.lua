@@ -156,8 +156,15 @@ function GraphicsEng:_drawEntity(entity, applyShader)
     lovr.graphics.setShader(shader)
   end
 
-  if model.animate and model:getAnimationCount() > 0 then
-    model:animate("autoplay", lovr.timer.getTime())
+  local animationCount = model.animate and model:getAnimationCount()
+  if model.animate and animationCount > 0 then
+    local name = model:getAnimationName(1)
+    for i = 1, animationCount do 
+      if model:getAnimationName(i) == "autoplay" then
+        name = "autoplay"
+      end
+    end
+    model:animate(name, lovr.timer.getTime())
   end
   model:draw()
 end
