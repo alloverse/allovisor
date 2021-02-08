@@ -105,10 +105,16 @@ function TextEng:onDraw()
 
   lovr.graphics.push()
   lovr.graphics.transform(self.parent.inverseCameraTransform)
-  lovr.graphics.transform(self.parent.engines.pose:getPose("head"):invert())
+  if not lovr.headset then
+    lovr.graphics.transform(self.parent.engines.pose:getPose("head"):invert())
+  end
   letters.draw()
 
   lovr.graphics.pop()
+end
+
+function TextEng:onDebugDraw()
+  letters.debugDraw()
 end
 
 function TextEng:onFocusChanged(newEnt, focusType)
