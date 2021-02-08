@@ -6,7 +6,7 @@ local allomath = require "lib.allomath"
 alloBasicShader = require "shader/alloBasicShader"
 alloPointerRayShader = require "shader/alloPointerRayShader"
 local HandRay = require "eng.pose_eng.hand_ray"
-
+local letters = require("lib.letters.letters")
 
 PoseEng = classNamed("PoseEng", Ent)
 
@@ -245,7 +245,7 @@ function PoseEng:updateMouse()
 
   -- started clicking/dragging; choose mousing mode
   if not self.mouseIsDown and mouseIsDown then
-    if self.handRays[1].highlightedEntity then
+    if self.handRays[1].highlightedEntity or #letters.hands[1].highlightedNodes > 0 then
       self.mouseMode = "interact"
     else
       self.mouseMode = "move"

@@ -45,6 +45,8 @@ function PoseEng:updateButton(device, button)
   end
   if device == "hand/left" and button == "trigger" then
     down = down or (self.mouseIsDown and self.mouseMode == "interact")
+  elseif device == "hand/left" and button == "grip" then
+    down = down or self:getAxis(device, button) > 0.5
   elseif button == "menu" and self.keyboard then
     down = down or self.keyboard.isDown("r")
   end
@@ -107,7 +109,6 @@ function PoseEng:getAxis(device, axis)
         x = 1
       end
     elseif device == "hand/left" and axis == "grip" and x == 0 then
-      -- x = self.keyboard.isDown("f") and 1.0 or 0.0
       x = self.rightMouseIsDown and 1.0 or 0.0
     end
   end
