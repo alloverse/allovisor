@@ -44,7 +44,7 @@ function PoseEng:onUpdate(dt)
   end
   self:updateIntent()
   for handIndex, hand in ipairs(PoseEng.hands) do
-    self:updatePointing(hand, self.handRays[handIndex])
+    self:updatePointing(hand, self.handRays[handIndex], handIndex)
   end
 
   self:routeButtonEvents()
@@ -369,7 +369,7 @@ function PoseEng:grabForDevice(handIndex, device)
   end
 end
 
-function PoseEng:updatePointing(hand_pose, ray)
+function PoseEng:updatePointing(hand_pose, ray, handIndex)
   -- Find the  hand whose parent is my avatar and whose pose is hand_pose
   -- todo: save this in HandRay
   local hand_id = tablex.find_if(self.client.state.entities, function(entity)
@@ -432,7 +432,7 @@ function PoseEng:updatePointing(hand_pose, ray)
       body = {"point", {ray.from.x, ray.from.y, ray.from.z}, {ray.to.x, ray.to.y, ray.to.z}}
     })
 
-    if ray.selectedEntity == nil and self:isDown(hand_pose, "trigger") then
+    if ray.selectedEntity == nil and self:isDown(hand_pose, "trigger") and #letters.hands[handIndex].highlightedNodes == 0 then
       ray:selectEntity(ray.highlightedEntity)
       self:pokeEntity(ray.selectedEntity)
     end
