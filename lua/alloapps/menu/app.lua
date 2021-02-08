@@ -4,6 +4,7 @@ local pretty = require("pl.pretty")
 local tablex = require("pl.tablex")
 local class = require("pl.class")
 local EmbeddedApp = require("alloapps.embedded_app")
+local AudioPane = require("alloapps.menu.audio_pane")
 
 class.Menu(EmbeddedApp)
 function Menu:_init(port)
@@ -14,17 +15,24 @@ function Menu:createUI()
   self.menus = {
     main= require("alloapps.menu.main_menu_pane")(self),
     overlay= require("alloapps.menu.overlay_pane")(self),
-    audio= require("alloapps.menu.audio")(self)
   }
   self.root = ui.View()
   self.nav = ui.NavStack(ui.Bounds(0, 1.6, -2.5,   1.6, 1.2, 0.1))
   self.root:addSubview(self.nav)
-  self.root:addSubview(self.menus.audio)
   return self.root
 end
 
 function Menu:updateDebugTitle(newState)
   self.menus.main.optionsPane.debugButton.label:setText(newState and "Debug (On)" or "Debug (Off)")
+  self.menus.overlay.optionsPane.debugButton.label:setText(newState and "Debug (On)" or "Debug (Off)")
+end
+function Menu:setCurrentMicrophone(mic, status)
+  -- XXX ugly hack save it for if there's no current AudioPane up
+  AudioPane.currentMicrophone = {mic, status}
+  -- XXX ugly hack set it if there IS an AudioPane up
+  if self.nav:top() and self.nav:top().setCurrentMicrophone then
+    self.nav:top():setCurrentMicrophone(mic, status)
+  end
 end
 function Menu:updateMessage(msg)
   self.menus.main.messageLabel:setText(msg)

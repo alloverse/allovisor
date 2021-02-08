@@ -6,6 +6,7 @@ lovr.audio = require("lovr.audio")
 
 class.AudioPane(ui.Surface)
 function AudioPane:_init(menu)
+    self.menu = menu
     self:super(ui.Bounds{size=ui.Size(1.6, 1.2, 0.1)})
     self:setColor({1,1,1,1})
 
@@ -49,6 +50,8 @@ function AudioPane:setAvailableMicrophones(mics)
         micButton.isDefault = mic.isDefault
         self.micList:addSubview(micButton)
     end
+
+    self:setCurrentMicrophone(AudioPane.currentMicrophone[1], AudioPane.currentMicrophone[2])
 end
 
 function AudioPane:setCurrentMicrophone(mic, status)

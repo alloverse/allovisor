@@ -33,7 +33,7 @@ function NetMenuScene:_init(menuServerPort)
   self:updateDebugTitle()
   self:updateDisplayName()
   lovr.handlers["micchanged"] = function(micName, status)
-    self:sendToApp("mainmenu", {"updateSubmenu", "audio", "setCurrentMicrophone", default(micName, ""), status and "ok" or "error"})
+    self:sendToApp("mainmenu", {"updateMenu", "setCurrentMicrophone", default(micName, ""), status and "ok" or "error"})
   end
   self:super()
 end
@@ -201,7 +201,7 @@ function NetMenuScene.dynamicActions:chooseMic(newMicName)
   settings.d.currentMicrophone = newMicName
   settings.save()
   local ok = true
-  self:sendToApp("mainmenu", {"updateSubmenu", "audio", "setCurrentMicrophone", default(settings.d.currentMicrophone, ""), "working"})
+  self:sendToApp("mainmenu", {"updateMenu", "setCurrentMicrophone", default(settings.d.currentMicrophone, ""), "working"})
   optchainm(lovr.scenes, "net.engines.sound.useMic", settings.d.currentMicrophone)
 end
 

@@ -1,6 +1,7 @@
 local ui = require("alloui.ui")
 local pretty = require("pl.pretty")
 local class = require("pl.class")
+local OptionsPane = require("alloapps.menu.options_pane")
 
 class.OverlayPane(ui.Surface)
 OverlayPane.assets = {
@@ -8,35 +9,48 @@ OverlayPane.assets = {
 }
 function OverlayPane:_init(menu)
     self.name = "overlay"
-    self:super(ui.Bounds{size=ui.Size(1.6, 1.2, 0.1)})
+    self:super(ui.Bounds{size=ui.Size(1.6, 1.6, 0.1)})
     self:setColor({1,1,1,1})
+
+    self.optionsPane = OptionsPane(menu)
+    local optionsButton = ui.Button(ui.Bounds(0, 0.6, 0.01,   1.4, 0.2, 0.15))
+    optionsButton.color = {0.6, 0.6, 0.3, 1.0}
+    optionsButton.label.text = "Options..."
+    optionsButton.onActivated = function() 
+      self.nav:push(self.optionsPane)
+    end
+    self:addSubview(optionsButton)
     
+  
+    local disconnectButton = ui.Button(ui.Bounds(0, 0.2, 0.01,     1.4, 0.2, 0.15))
+    disconnectButton.label.text = "Disconnect"
+    disconnectButton.onActivated = function() menu:actuate({"disconnect"}) end
+    self:addSubview(disconnectButton)
+
+
     if lovr.headsetName ~= "Oculus Quest" then
-      local quitButton = ui.Button(ui.Bounds(0, -0.4, 0.01,     1.4, 0.2, 0.15))
+      local quitButton = ui.Button(ui.Bounds(0, -0.05, 0.01,     1.4, 0.2, 0.15))
       quitButton.label.text = "Quit!"
       quitButton.onActivated = function() menu:actuate({"quit"}) end
       self:addSubview(quitButton)
     end
-  
-    local dismissButton = ui.Button(ui.Bounds(0, 0.4, 0.01,   1.4, 0.2, 0.15))
+
+    local dismissButton = ui.Button(ui.Bounds(0, -0.6, 0.01,   1.4, 0.2, 0.15))
+    dismissButton.color = {0.6, 0.6, 0.3, 1.0}
     dismissButton.label.text = "Dismiss"
     dismissButton.onActivated = function() menu:actuate({"dismiss"}) end
     self:addSubview(dismissButton)
   
-    local disconnectButton = ui.Button(ui.Bounds(0, 0.1, 0.01,     1.4, 0.2, 0.15))
-    disconnectButton.label.text = "Disconnect"
-    disconnectButton.onActivated = function() menu:actuate({"disconnect"}) end
-    self:addSubview(disconnectButton)
   
     self.messageLabel = ui.Label{
-      bounds = ui.Bounds(-0.45, 0.8, 0.01,     1.4, 0.1, 0.1),
+      bounds = ui.Bounds(0.2, 1.0, 0.01,     1.4, 0.1, 0.1),
       text = "Not connected",
       color = {0,0,0,1},
       halign = "left"
     }
     self:addSubview(self.messageLabel)
   
-    local logo = ui.Surface(ui.Bounds(-0.65, 0.8, 0.01, 0.2, 0.2, 0.2))
+    local logo = ui.Surface(ui.Bounds(-0.65, 1.0, 0.01, 0.2, 0.2, 0.2))
     logo:setTexture(OverlayPane.assets.logo)
     self:addSubview(logo)
 end
