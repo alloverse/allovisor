@@ -121,6 +121,7 @@ function NetworkScene:_init(displayName, url, avatarName)
   end
   -- base transform for all other engines
   self.cameraTransform = lovr.math.newMat4()
+  self.inverseCameraTransform = lovr.math.newMat4()
 
   local threadedClient = allonet.create(true)
   self.client = Client(url, displayName, threadedClient)
@@ -260,7 +261,8 @@ function NetworkScene:onDraw(isMirror)
     head = self:getAvatar()
   end
   if head then
-    self.cameraTransform:set(head.components.transform:getMatrix():invert())
+    self.inverseCameraTransform:set(head.components.transform:getMatrix())
+    self.cameraTransform:set(self.inverseCameraTransform):invert()
     lovr.graphics.transform(self.cameraTransform)
   end
 

@@ -17,16 +17,16 @@ function TextEng:onLoad()
   
   letters.headset = self.parent.engines.pose
   letters.load()
-  --self.virtualKeyboard = letters.HoverKeyboard:new{world=letters.world}
+  letters.displayKeyboard()
+  for i, hand in ipairs(letters.hands) do
+    letters.root:addChild(hand)
+  end
 end
 
 function TextEng:onUpdate()
   if self.client == nil or self.parent.client == nil then return end
 
-  if self.virtualKeyboard then
-    letters.update()
-    self.virtualKeyboard:update()
-  end
+  letters.update()
 end
 
 --- Draws all text components
@@ -94,9 +94,12 @@ function TextEng:onDraw()
     end
   end
 
-  if self.virtualKeyboard then
-    self.virtualKeyboard:draw()
-  end
+  lovr.graphics.push()
+  lovr.graphics.transform(self.parent.inverseCameraTransform)
+  lovr.graphics.transform(self.parent.engines.pose:getPose("head"):invert())
+  letters.draw()
+
+  lovr.graphics.pop()
 end
 
 function TextEng:onFocusChanged(newEnt, focusType)

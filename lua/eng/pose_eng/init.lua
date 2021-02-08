@@ -138,7 +138,8 @@ function PoseEng:vibrate(...)
 end
 
 function PoseEng:getPosition(device)
-  return self:getPose(device) * lovr.math.vec3()
+  local x, y, z, sx, sy, sz, a, ax, ay, az = self:getPose(device):unpack()
+  return lovr.math.vec3(x, y, z)
 end
 
 function PoseEng:getOrientation(device)
