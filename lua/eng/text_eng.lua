@@ -17,10 +17,6 @@ function TextEng:onLoad()
   
   letters.headset = self.parent.engines.pose
   letters.load()
-  letters.displayKeyboard()
-  for i, hand in ipairs(letters.hands) do
-    letters.root:addChild(hand)
-  end
 end
 
 function TextEng:onUpdate()
@@ -105,8 +101,12 @@ end
 function TextEng:onFocusChanged(newEnt, focusType)
   if focusType == "key" then
     self.firstResponder = newEnt
+    if lovr.headset then
+      letters.displayKeyboard()
+    end
   else
     self.firstResponder = nil
+    letters.hideKeyboard()
   end
   self.parent.engines.pose:useKeyboardForControllerEmulation(self.firstResponder == nil)
 end
