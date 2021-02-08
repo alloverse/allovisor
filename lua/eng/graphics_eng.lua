@@ -303,20 +303,20 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
   if textureName == nil then
     apply()
   else
-    if string.len(textureName) > 64 then
-      -- backwards compat.
-      print("b64 tex")
-      local texture = self:loadTexture(eid, component.texture, function(tex)
-        mat:setTexture(tex)
-        apply()
-      end)
-    else
+    if string.match(textureName, "asset:") then
       self:getAsset(textureName, function(asset)
         local texture = asset:texture()
         mat:setTexture(texture)
         self.asset_backref[texture] = asset
         apply()
       end)
+    else
+      -- backwards compat.
+      print("b64 tex")
+      local texture = self:loadTexture(eid, textureName, function(tex)
+        mat:setTexture(tex)
+        apply()
+      end)      
     end
   end
 end
