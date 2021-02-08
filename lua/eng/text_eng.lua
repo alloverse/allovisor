@@ -14,8 +14,21 @@ end
 
 function TextEng:onLoad()
   self.font = lovr.graphics.newFont(32)
-  
-  letters.headset = self.parent.engines.pose
+
+  local poseEng = self.parent.engines.pose
+  local headsetProxy = {}
+  local mt = {
+    -- inject self when used like `letters.headset.foobar(a, b, c)` (so it becomes basically
+    -- `textEng:foobar(a, b, c)`)
+    __index = function(t, key)
+      if poseEng[key] == nil then return nil end
+      return function(...)
+        return poseEng[key](poseEng, ...)
+      end
+    end
+  }
+  setmetatable(headsetProxy, mt)
+  letters.headset = headsetProxy
   letters.load()
 end
 
