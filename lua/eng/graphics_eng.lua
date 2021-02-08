@@ -29,7 +29,6 @@ function GraphicsEng:onLoad()
   }
   self:loadHardcodedModel('forest', function() end, '/assets/models/decorations/forest/PUSHILIN_forest.gltf')
 
-  self.assets = {}
   self.models_for_eids = {}
   self.materials_for_eids = {}
   self.shaders_for_eids = {}
@@ -39,6 +38,10 @@ function GraphicsEng:onLoad()
   self.pbrShader = alloPbrShader
 
   self.assetManager = Asset.Manager(self.parent.client.client)
+
+  self.asset_backref = {}
+
+  setmetatable(self.asset_backref, { __mode = "k"}) -- a tabke with weak keys
 
   lovr.graphics.setBackgroundColor(.05, .05, .05)
   
@@ -156,8 +159,15 @@ function GraphicsEng:_drawEntity(entity, applyShader)
     lovr.graphics.setShader(shader)
   end
 
-  if model.animate and model:getAnimationCount() > 0 then
-    model:animate("autoplay", lovr.timer.getTime())
+  local animationCount = model.animate and model:getAnimationCount()
+  if model.animate and animationCount > 0 then
+    local name = model:getAnimationName(1)
+    for i = 1, animationCount do 
+      if model:getAnimationName(i) == "autoplay" then
+        name = "autoplay"
+      end
+    end
+    model:animate(name, lovr.timer.getTime())
   end
   model:draw()
 end
@@ -200,7 +210,9 @@ function GraphicsEng:loadComponentModel(component, old_component)
     self.models_for_eids[eid] = self:createMesh(component, old_component)
   elseif component.type == "asset" then
     local cached = self:getAsset(component.name, function (asset)
-      self.models_for_eids[eid] = asset:model()
+      local model = asset:model()
+      self.models_for_eids[eid] = model
+      self.asset_backref[model] = asset
     end)
     if cached == nil then 
       self.models_for_eids[eid] = self.hardcoded_models["loading"]
@@ -300,7 +312,9 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
       end)
     else
       self:getAsset(textureName, function(asset)
-        mat:setTexture(asset:texture())
+        local texture = asset:texture()
+        mat:setTexture(texture)
+        self.asset_backref[texture] = asset
         apply()
       end)
     end
