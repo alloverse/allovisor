@@ -57,11 +57,11 @@ function ConnectPane:_init(menu)
 end
 
 function ConnectPane:connect(urlOrName)
-    local isComplete = string.find(urlOrName, "\\.") ~= nil or urlOrName == "localhost"
+    local isComplete = string.find(urlOrName, ".", 1, true) ~= nil or urlOrName == "localhost"
     if not isComplete then
         urlOrName = urlOrName .. ".places.alloverse.com"
     end
-    if string.find("alloplace://", urlOrName) == nil then
+    if string.find(urlOrName, "alloplace://") == nil then
         urlOrName = "alloplace://" .. urlOrName
     end
     self.menu:actuate({"connect", urlOrName})
