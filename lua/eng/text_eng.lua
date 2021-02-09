@@ -13,27 +13,32 @@ function TextEng:_init()
 end
 
 function TextEng:onLoad()
+  self:setActive(true)
   self.font = lovr.graphics.newFont(32)
+end
 
-  local poseEng = self.parent.engines.pose
-  local headsetProxy = {}
-  local mt = {
-    -- inject self when used like `letters.headset.foobar(a, b, c)` (so it becomes basically
-    -- `textEng:foobar(a, b, c)`)
-    __index = function(t, key)
-      if poseEng[key] == nil then return nil end
-      return function(...)
-        return poseEng[key](poseEng, ...)
+function TextEng:setActive(newActive)
+  if newActive then
+    local poseEng = self.parent.engines.pose
+    local headsetProxy = {}
+    local mt = {
+      -- inject self when used like `letters.headset.foobar(a, b, c)` (so it becomes basically
+      -- `textEng:foobar(a, b, c)`)
+      __index = function(t, key)
+        if poseEng[key] == nil then return nil end
+        return function(...)
+          return poseEng[key](poseEng, ...)
+        end
       end
-    end
-  }
-  setmetatable(headsetProxy, mt)
-  letters.headset = headsetProxy
-  letters.load()
+    }
+    setmetatable(headsetProxy, mt)
+    letters.headset = headsetProxy
+    letters.load()
+  end
 end
 
 function TextEng:onUpdate()
-  if self.client == nil or self.parent.client == nil then return end
+  if self.client == nil then return end
 
   letters.update()
 end

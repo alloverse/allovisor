@@ -168,6 +168,10 @@ function NetworkScene:onLoad()
   end
 end
 
+function NetworkScene:setActive(newActive)
+  self.active = newActive
+end
+
 function NetworkScene:onComponentAdded(cname, component)
   if cname == "intent" and component.actuate_pose == "head" then
     self:lookForHead()

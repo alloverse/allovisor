@@ -45,11 +45,13 @@ end
 function SceneManager:setMenuVisible(visible)
     print("Setting menu to", visible)
     self.menu.visible = visible
-    self.menu.net.active = visible
-    self.menu.net:moveToOrigin()
+
     if self.net then
-        self.net.active = not visible
+        self.net:route("setActive", not visible)
     end
+
+    self.menu.net:route("setActive", visible)
+    self.menu.net:moveToOrigin()
 end
 
 function SceneManager:onNetConnected(url, placeName)
