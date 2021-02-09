@@ -53,8 +53,8 @@ function SceneManager:setMenuVisible(visible)
 end
 
 function SceneManager:onNetConnected(url, placeName)
-    self.menu:setMessage("Connected to", placeName)
-    self.menu:saveRecentPlace(url, place_name)
+    self.menu:setMessage("Connected to "..placeName)
+    self.menu:saveRecentPlace(url, placeName)
 end
 
 -- Create a scene of the name wanted, and insert it into the ent graph
