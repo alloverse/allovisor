@@ -124,6 +124,7 @@ function NetworkScene:_init(displayName, url, avatarName)
   self.inverseCameraTransform = lovr.math.newMat4()
 
   local threadedClient = allonet.create(true)
+  self.url = url
   self.client = Client(url, displayName, threadedClient)
   
   self.active = true
@@ -194,7 +195,7 @@ function NetworkScene:onInteraction(interaction, body, receiver, sender)
     local avatar_id = body[2]
     local place_name = body[3]
     print("Welcome to", place_name, ". You are", avatar_id)
-    optchainm(self, "parent.onNetConnected", place_name)
+    optchainm(self, "parent.onNetConnected", self.url, place_name)
     self.avatar_id = avatar_id
     self:lookForHead()
   end

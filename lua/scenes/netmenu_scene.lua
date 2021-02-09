@@ -29,11 +29,11 @@ function NetMenuScene:_init(menuServerPort)
   self.visible = true
   settings.load()
   self.settings = settings
-  if settings.d.recentPlaces == nil then
+  if settings.d.recentPlaces == nil or settings.d.recentPlaces[1].url == nil then
     settings.d.recentPlaces = {
-      {"Nevyn's place", "alloplace://nevyn.places.alloverse.com"},
-      {"R4", "alloplace://r4.nevyn.nu"},
-      {"Localhost", "alloplace://localhost"}
+      {name="Nevyn's place", url="alloplace://nevyn.places.alloverse.com"},
+      {name="R4", url="alloplace://r4.nevyn.nu"},
+      {name="Localhost", url="alloplace://localhost"}
     }
     settings.save()
   end
@@ -157,13 +157,30 @@ function NetMenuScene.dynamicActions:launchApp(appName)
   self.parent:setMenuVisible(false)
 end
 
---- Connect to a place.
-function NetMenuScene.dynamicActions:connect(url)
-  table.insert(settings.d.recentPlaces, 1, {url, url})
+function NetMenuScene:saveRecentPlace(url, name)
+  local entry = {name=name, url=url}
+  for i, place in ipairs(settings.d.recentPlaces) do
+    if place.url == url then
+      if name == nil and place.name ~= nil then
+        entry = place
+      end
+      table.remove(settings.d.recentPlaces, i)
+      break
+    end
+  end
+
+  table.insert(settings.d.recentPlaces, 1, entry)
+
   while #settings.d.recentPlaces > 4 do 
     table.remove(settings.d.recentPlaces) 
   end
+  
   settings.save()
+end
+
+--- Connect to a place.
+function NetMenuScene.dynamicActions:connect(url)
+  self:saveRecentPlace(url, nil)
 
   local displayName = settings.d.username and settings.d.username or "Unnamed"
   local net = lovr.scenes:showPlace(displayName, url, settings.d.avatarName, settings.d.avatarName)

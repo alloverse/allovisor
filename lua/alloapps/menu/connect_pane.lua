@@ -50,14 +50,14 @@ function ConnectPane:_init(menu)
     pen:move(0, -pen.size.height, 0)
     for i, conn in ipairs(settings.d.recentPlaces) do
         local connectButton = self:addSubview(ui.Button(pen:copy()))
-        connectButton.label.text = conn[1]
-        connectButton.onActivated = function() self:connect(conn[2]) end
+        connectButton.label.text = conn.name or conn.url
+        connectButton.onActivated = function() self:connect(conn.url) end
         pen:move(0, -pen.size.height*1.2, 0)
     end
 end
 
 function ConnectPane:connect(urlOrName)
-    local isComplete = string.find(urlOrName, ".", 1, true) ~= nil or urlOrName == "localhost"
+    local isComplete = string.find(urlOrName, ".", 1, true) ~= nil or urlOrName == "localhost" or urlOrName == "alloplace://localhost"
     if not isComplete then
         urlOrName = urlOrName .. ".places.alloverse.com"
     end
