@@ -29,6 +29,14 @@ function NetMenuScene:_init(menuServerPort)
   self.visible = true
   settings.load()
   self.settings = settings
+  if settings.d.recentPlaces == nil then
+    settings.d.recentPlaces = {
+      {"Nevyn's place", "alloplace://nevyn.places.alloverse.com"},
+      {"R4", "alloplace://r4.nevyn.nu"},
+      {"Localhost", "alloplace://localhost"}
+    }
+    settings.save()
+  end
   self:setupAvatars()
   self:updateDebugTitle()
   self:updateDisplayName()
@@ -151,7 +159,10 @@ end
 
 --- Connect to a place.
 function NetMenuScene.dynamicActions:connect(url)
-  settings.d.last_place = url
+  table.insert(settings.d.recentPlaces, 1, {url, url})
+  while #settings.d.recentPlaces > 4 do 
+    table.remove(settings.d.recentPlaces) 
+  end
   settings.save()
 
   local displayName = settings.d.username and settings.d.username or "Unnamed"
