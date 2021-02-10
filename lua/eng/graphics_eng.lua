@@ -146,7 +146,6 @@ function GraphicsEng:_drawEntity(entity, applyShader)
   end
 
   if applyShader then
-    local mod = self.models_for_eids[entity.id]
     local mat = self.materials_for_eids[entity.id]
     if mat and mat:getColor() ~= nil then
       lovr.graphics.setColor(mat:getColor())
@@ -284,7 +283,7 @@ function GraphicsEng:modelHasBumpmap(model)
   return false
 end
 
-function GraphicsEng:shaderForModel(model)
+function GraphicsEng:pbrShaderForModel(model)
   if self:modelHasBumpmap(model) then
     return self.pbrShader.withNormals
   else
@@ -293,10 +292,10 @@ function GraphicsEng:shaderForModel(model)
 end
 
 function GraphicsEng:shaderForEntity(ent)
-  local mat = self.materials_for_eids[ent.id]
-  if mat and mat.shader == "pbr" then
+  local mat = ent.components.material
+  if mat and mat.shader_name == "pbr" then
     local mod = self.models_for_eids[ent.id]
-    self:shaderForModel(mod)
+    return self:pbrShaderForModel(mod)
   else
     return self.basicShader
   end
@@ -513,7 +512,7 @@ function GraphicsEng:drawDecorations()
     if model.animate and model:getAnimationCount() > 0 then
       model:animate(1, lovr.timer.getTime())
     end
-    lovr.graphics.setShader(self:shaderForModel(model))
+    lovr.graphics.setShader(self:pbrShaderForModel(model))
     model:draw()
   end
 
