@@ -31,7 +31,6 @@ function GraphicsEng:onLoad()
 
   self.models_for_eids = {}
   self.materials_for_eids = {}
-  self.shaders_for_eids = {}
   self.textures_from_assets = {}
   
   self.basicShader = alloBasicShader
@@ -147,6 +146,7 @@ function GraphicsEng:_drawEntity(entity, applyShader)
   end
 
   if applyShader then
+    local mod = self.models_for_eids[entity.id]
     local mat = self.materials_for_eids[entity.id]
     if mat and mat:getColor() ~= nil then
       lovr.graphics.setColor(mat:getColor())
@@ -154,9 +154,7 @@ function GraphicsEng:_drawEntity(entity, applyShader)
       lovr.graphics.setColor(1,1,1,1)
     end
 
-    local shader = self.shaders_for_eids[entity.id]
-    if shader == nil then shader = self.basicShader end
-    lovr.graphics.setShader(shader)
+    lovr.graphics.setShader(self:shaderForEntity(entity))
   end
 
   local animationCount = model.animate and model:getAnimationCount()
@@ -275,6 +273,35 @@ function GraphicsEng:loadTexture(eid, base64, callback)
   )
 end
 
+
+function GraphicsEng:modelHasBumpmap(model)
+  local has_bumps = false
+  for i = 1, model:getMaterialCount() do
+    if model:getMaterial(i):getTexture('normal') ~= nil then
+      return true
+    end
+  end
+  return false
+end
+
+function GraphicsEng:shaderForModel(model)
+  if self:modelHasBumpmap(model) then
+    return self.pbrShader.withNormals
+  else
+    return self.pbrShader.withoutNormals
+  end
+end
+
+function GraphicsEng:shaderForEntity(ent)
+  local mat = self.materials_for_eids[ent.id]
+  if mat and mat.shader == "pbr" then
+    local mod = self.models_for_eids[ent.id]
+    self:shaderForModel(mod)
+  else
+    return self.basicShader
+  end
+end
+
 --- Loads a material for supplied component.
 -- @tparam component component The component to load a material for
 -- @tparam component old_component not used
@@ -283,11 +310,6 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
   local mat = lovr.graphics.newMaterial()
   if component.color ~= nil then
     mat:setColor("diffuse", component.color[1], component.color[2], component.color[3], component.color[4])
-  end
-  if component.shader_name == "plain" then
-    self.shaders_for_eids[eid] = self.basicShader
-  elseif component.shader_name == "pbr" then
-    self.shaders_for_eids[eid] = self.pbrShader
   end
 
   local apply = function()
@@ -353,7 +375,6 @@ function GraphicsEng:onComponentRemoved(component_key, component)
     self.models_for_eids[eid] = nil
   elseif component_key == "material" then
     self.materials_for_eids[eid] = nil
-    self.shaders_for_eids[eid] = nil
   end
 end
 
@@ -448,7 +469,7 @@ function GraphicsEng:drawDecorations()
       1, 0, 0 -- rotation axis (x, y, z)
     )
     
-    local forestModel = self.hardcoded_models.forest
+    local forestModel = nil -- self.hardcoded_models.forest
     if forestModel then
       forestModel:draw(0,   .5,   -28,  2,  0,  0,  1,  0,  1)
       forestModel:draw(4,   .5,   -24,  2,  2,  0,  1,  0,  1)
@@ -488,11 +509,11 @@ function GraphicsEng:drawDecorations()
     end
   end
 
-  lovr.graphics.setShader(self.pbrShader)
   for name, model in pairs(self.houseAssets) do
     if model.animate and model:getAnimationCount() > 0 then
       model:animate(1, lovr.timer.getTime())
     end
+    lovr.graphics.setShader(self:shaderForModel(model))
     model:draw()
   end
 

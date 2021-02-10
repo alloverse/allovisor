@@ -1,18 +1,3 @@
-local alloPbrShader = lovr.graphics.newShader(
-  'standard',
-  {
-    flags = {
-      normalMap = true,
-      indirectLighting = true,
-      occlusion = true,
-      emissive = true,
-      skipTonemap = false,
-      animated = true
-    },
-    stereo = lovr.headset == nil or (lovr.headset.getName() ~= "Pico") -- turn off stereo on pico: it's not supported
-  }
-)
-
 -- global, not local! leak this so it lives as long as the shader. 
 -- otherwise, it's deallocated before shader is used.
 skybox = lovr.graphics.newTexture({
@@ -45,10 +30,45 @@ local sphericalHarmonics = {
   {-0.102740171078351, -0.099605437423063, -0.094746265045717}
 }
 
-alloPbrShader:send('lovrLightDirection', { -1, -1, -1 })
-alloPbrShader:send('lovrLightColor', { 1, 1, 1, 1.0 })
-alloPbrShader:send('lovrExposure', 2)
-alloPbrShader:send('lovrSphericalHarmonics', sphericalHarmonics)
-alloPbrShader:send('lovrEnvironmentMap', environmentMap)
 
-return alloPbrShader
+local shaders = {
+  withNormals = lovr.graphics.newShader(
+    'standard',
+    {
+      flags = {
+        normalMap = true,
+        indirectLighting = true,
+        occlusion = true,
+        emissive = true,
+        skipTonemap = false,
+        animated = true
+      },
+      stereo = lovr.headset == nil or (lovr.headset.getName() ~= "Pico") -- turn off stereo on pico: it's not supported
+    }
+  ),
+
+  withoutNormals = lovr.graphics.newShader(
+    'standard',
+    {
+      flags = {
+        normalMap = false,
+        indirectLighting = true,
+        occlusion = true,
+        emissive = true,
+        skipTonemap = false,
+        animated = true
+      },
+      stereo = lovr.headset == nil or (lovr.headset.getName() ~= "Pico") -- turn off stereo on pico: it's not supported
+    }
+  )
+}
+
+for _, shader in pairs(shaders) do
+  shader:send('lovrLightDirection', { -1, -1, -1 })
+  shader:send('lovrLightColor', { 1, 1, 1, 1.0 })
+  shader:send('lovrExposure', 2)
+  shader:send('lovrSphericalHarmonics', sphericalHarmonics)
+  shader:send('lovrEnvironmentMap', environmentMap)    
+end
+
+return shaders
