@@ -25,7 +25,7 @@ end
 function GraphicsEng:onLoad()
   self.hardcoded_models = {
     broken = lovr.graphics.newModel('/assets/models/broken.glb'),
-    loading = lovr.graphics.newModel('/assets/models/broken.glb'),
+    loading = lovr.graphics.newModel('/assets/models/loading.glb'),
   }
   self:loadHardcodedModel('forest', function() end, '/assets/models/decorations/forest/PUSHILIN_forest.gltf')
 
