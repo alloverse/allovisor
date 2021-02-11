@@ -81,19 +81,29 @@ Random things:
 
 This only works from a Mac or Linux machine.
 
-1. Install CMake version 3.15.4 exactly
+1. Install CMake version 3.15.4 exactly. (2.19.2 also works)
 2. Install Android Studio if you haven't already.
-3. In Android Studio's SDK manager, install SDK for API levels 26 (Quest) and 27 (Pico). Also install NDK (side-by-side).
+3. In Android Studio's SDK manager under the SDK Platforms tab, install SDK for API levels 26 (Quest) and 27 (Pico). Also install NDK (side-by-side) from the SDK-Tools tab.
 4. [Enable developer mode on your Quest](https://developer.oculus.com/documentation/quest/latest/concepts/mobile-device-setup-quest/).
-5. Connect it to your computer, and ensure it shows up when you run `adb devices` in your terminal.
-6. Configure to build the Alloverse.apk: `mkdir quest-build; cd quest-build;` and then comes the cmake invocation. It is INVOLVED. Look at `azure-pipelines.yml` under Quest or Pico to find all the `-DCMAKE_TOOLCHAIN_FILE=` and other tomfoolery. Note that you'll also have to set up signing keys and stuff.
-7. Actually build it: `make Alloverse`
-8. Upload to headset: `adb install alloverse-quest.apk`
+5. Add the android tools to your PATH
+```
+ export ANDROID_HOME=/Users/$USER/Library/Android/sdk
+ export PATH=${PATH}:$ANDROID_HOME/tools:$ANDROID_HOME/platform-tools
+```
+6. Quest has old OS and needs an old java version. Java SE 8 is compatible. On mac you can install it with `brew install openjdk@8`. Follow link instructions at end of install.
+7. Set your JAVA_HOME to the SE 8 installation
+```
+export JAVA_HOME=your_path_to_java8
+```
+8. Connect it to your computer, and ensure it shows up when you run `adb devices` in your terminal.
+9. Configure to build the Alloverse.apk: `mkdir quest-build; cd quest-build;` and then comes the cmake invocation. It is INVOLVED. Look at `azure-pipelines.yml` under Quest or Pico to find all the `-DCMAKE_TOOLCHAIN_FILE=` and other tomfoolery. Note that you'll also have to set up signing keys and stuff.
+10. Actually build it: `make Alloverse`
+11. Upload to headset: `adb install alloverse-quest.apk`
 
 Sample CMake invocation for Quest on Linux:
 
 ```
-cmake -DCMAKE_TOOLCHAIN_FILE=/home/nevyn/Android/Sdk/ndk/21.3.6528147/build/cmake/android.toolchain.cmake -DANDROID_ABI="arm64-v8a" -DANDROID_NATIVE_API_LEVEL=26 -DANDROID_BUILD_TOOLS_VERSION="30.0.4" -DANDROID_SDK=/home/nevyn/Android/Sdk -DANDROID_KEYSTORE=/home/nevyn/Android/alloverse.keystore -DANDROID_KEYSTORE_PASS="pass:123456" -DJAVA_HOME="/snap/android-studio/94/android-studio/jre" -DANDROID_VARIANT="quest" ..
+cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_HOME/ndk/21.3.6528147/build/cmake/android.toolchain.cmake -DANDROID_ABI="arm64-v8a" -DANDROID_NATIVE_API_LEVEL=26 -DANDROID_BUILD_TOOLS_VERSION="30.0.4" -DANDROID_SDK=$ANDROID_HOME -DANDROID_KEYSTORE=/path_to/alloverse.keystore -DANDROID_KEYSTORE_PASS="pass:123456" -DJAVA_HOME="$JAVA_HOME" -DANDROID_VARIANT="quest" ..
 ```
 
 * You need to match the ndk version with whatever you have locally
