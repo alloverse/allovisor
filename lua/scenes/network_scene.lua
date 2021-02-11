@@ -268,22 +268,20 @@ function NetworkScene:onDraw(isMirror)
   if head then
     self.inverseCameraTransform:set(head.components.transform:getMatrix())
     self.cameraTransform:set(self.inverseCameraTransform):invert()
-    -- lovr.graphics.transform(self.cameraTransform)
+    
+    -- Lovr puts the headset view pose into the lovr.graphics.viewPose
+    -- We want to move the camera and then look around that point with the headset
 
-    local e1 = lovr.math.mat4()
-    local e2 = lovr.math.mat4()
-    local v1 = lovr.math.mat4()
-    local v2 = lovr.math.mat4()
-    lovr.graphics.getViewPose(1, v1)
-    lovr.graphics.getViewPose(2, v2)
-    e1:set(self.inverseCameraTransform)
-    e2:set(self.inverseCameraTransform)
+    -- Some weirdness this relies on atm: 
+    -- On desktop the camera is the head position, but the viewPose is identity
+    -- On headset the camera is the avatar position, but the viewPose is from floor level
 
-    e1:mul(v1)
-    e2:mul(v2)
-
-    lovr.graphics.setViewPose(1, e1, false)
-    lovr.graphics.setViewPose(2, e2, false)
+    for i = 1,2 do
+      local pose = lovr.math.mat4(lovr.graphics.getViewPose(i))
+      local camera = lovr.math.mat4(self.inverseCameraTransform)
+      camera:mul(pose)
+      lovr.graphics.setViewPose(i, camera, false)
+    end
   end
 
   self.drawTime = lovr.timer.getTime() - atStartOfDraw
