@@ -249,14 +249,6 @@ function lovr.mirror()
   end
 end
 
-local ffi = require 'ffi'
-local C = ffi.os == 'Windows' and ffi.load('glfw3') or ffi.C
-if util.isDesktop() then
-  ffi.cdef [[
-    void glfwSwapInterval(int interval);
-  ]]
-end
-
 local wasActive = false
 function calculateFramerateBasedOnActivity()
   local isActive = lovr.isFocused
@@ -265,14 +257,9 @@ function calculateFramerateBasedOnActivity()
   end
   if wasActive ~= isActive then
     wasActive = isActive
-    if util.isDesktop() and C.glfwSwapInterval then
-      if lovr.getOS() == "macOS" then
-        -- glfwSwapInterval broken on 11.0/m1: https://github.com/glfw/glfw/issues/1834
-        frameSkip = isActive and 0 or 25
-      else
-        C.glfwSwapInterval(isActive and 1 or 25)
-      end
-      
+    if util.isDesktop() then
+      -- glfwSwapInterval broken
+      frameSkip = isActive and 0 or 25
     end
   end
 end
