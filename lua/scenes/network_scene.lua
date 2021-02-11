@@ -268,7 +268,8 @@ function NetworkScene:onDraw(isMirror)
   if head then
     self.inverseCameraTransform:set(head.components.transform:getMatrix())
     self.cameraTransform:set(self.inverseCameraTransform):invert()
-    lovr.graphics.transform(self.cameraTransform)
+    -- lovr.graphics.transform(self.cameraTransform)
+    lovr.graphics.setViewPose(1, self.cameraTransform, true)
   end
 
   self.drawTime = lovr.timer.getTime() - atStartOfDraw
