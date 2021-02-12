@@ -13,8 +13,11 @@ function HandRay:_init()
   self.grabber_from_entity_transform = lovr.math.newMat4()
   self.rayLength = 1
 
-  local cursorTexture = lovr.graphics.newTexture("assets/textures/cursor.png", {})
+  local cursorTexture = lovr.graphics.newTexture("assets/textures/cursor-default.png", {})
   self.cursorMaterial = lovr.graphics.newMaterial(cursorTexture)
+
+  local resizeCursorTexture = lovr.graphics.newTexture("assets/textures/cursor-resize.png", {})
+  self.resizeCursorMaterial = lovr.graphics.newMaterial(resizeCursorTexture)
 
 end
 function HandRay:highlightEntity(entity)
@@ -82,6 +85,10 @@ function HandRay:drawCursor()
     if cursor.name == "brushCursor" then
       local brushSize = self.highlightedEntity.components.cursor.size and self.highlightedEntity.components.cursor.size or 3
       lovr.graphics.circle("line", 0, 0, 0, brushSize/100)
+    end
+
+    if cursor.name == "resizeCursor" then
+      lovr.graphics.plane(self.resizeCursorMaterial, 0, 0, 0.01, 0.2, 0.2, 0, 0, 0, 0, 0, 0)
     end
 
   else
