@@ -72,6 +72,7 @@ end
 function PoseEng:onDebugDraw()
   lovr.graphics.push()
   lovr.graphics.origin()
+  lovr.graphics.transform(self.parent.inverseCameraTransform)
   lovr.graphics.translate(1.5, 0, -3)
   
   lovr.graphics.setColor(1,1,1,0.3)
