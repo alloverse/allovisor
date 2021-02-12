@@ -89,20 +89,6 @@ end
 function GraphicsEng:onDraw() 
   lovr.graphics.setCullingEnabled(true)
   lovr.graphics.setColor(1,1,1,1)
-
-  local head = self.parent:getHead()
-  if head then
-    local hm = head.components.transform:getMatrix()
-    self.basicShader:send('viewPos', hm * lovr.math.vec3() )
-    
-    -- todo: use setViewPose instead so light direction is in world coordinates properly
-    -- https://app.clubhouse.io/alloverse/story/2031/use-setviewpose-instead-of-transform
-    local cameraQuat = lovr.math.quat(self.parent.cameraTransform)
-    local lightDirection = lovr.math.vec3(0.7,-0.8,-0.5)
-    local compensatedLightDirection = cameraQuat * lightDirection
-    self.pbrShader.withNormals:send('lovrLightDirection', compensatedLightDirection)
-    self.pbrShader.withoutNormals:send('lovrLightDirection', compensatedLightDirection)
-  end
   
   if not self.parent.isOverlayScene then
     lovr.graphics.setBackgroundColor(.3, .3, .40)

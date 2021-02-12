@@ -123,6 +123,8 @@ function NetworkScene:_init(displayName, url, avatarName)
   self.cameraTransform = lovr.math.newMat4()
   self.inverseCameraTransform = lovr.math.newMat4()
 
+  self.viewPoseStack = {}
+
   local threadedClient = allonet.create(true)
   self.url = url
   self.client = Client(url, displayName, threadedClient)
@@ -266,9 +268,26 @@ function NetworkScene:onDraw(isMirror)
     head = self:getAvatar()
   end
   if head then
+    self.viewPoseStack = {
+      lovr.graphics.getViewPose(1),
+      lovr.graphics.getViewPose(2),
+    }
     self.inverseCameraTransform:set(head.components.transform:getMatrix())
     self.cameraTransform:set(self.inverseCameraTransform):invert()
-    lovr.graphics.transform(self.cameraTransform)
+    
+    -- Lovr puts the headset view pose into the lovr.graphics.viewPose
+    -- We want to move the camera and then look around that point with the headset
+
+    -- Some weirdness this relies on atm: 
+    -- On desktop the camera is the head position, but the viewPose is identity
+    -- On headset the camera is the avatar position, but the viewPose is from floor level
+
+    for i = 1,2 do
+      local pose = lovr.math.mat4(lovr.graphics.getViewPose(i))
+      local camera = lovr.math.mat4(self.inverseCameraTransform)
+      camera:mul(pose)
+      lovr.graphics.setViewPose(i, camera, false)
+    end
   end
 
   self.drawTime = lovr.timer.getTime() - atStartOfDraw
@@ -304,6 +323,17 @@ end
 function NetworkScene:after_onDraw()
   if self.debug then
     self:route("onDebugDraw")
+  end
+  local head = self:getHead()
+  if not isMirror then
+    -- can't figure out how to remove the headset module's transform from avatar root to head,
+    -- so just offset from body instead.
+    head = self:getAvatar()
+  end
+  if head then
+    lovr.graphics.setViewPose(1, self.viewPoseStack[1])
+    lovr.graphics.setViewPose(2, self.viewPoseStack[2])
+    self.viewPoseStack = {}
   end
   lovr.graphics.pop()
 end

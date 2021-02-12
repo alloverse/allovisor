@@ -54,9 +54,8 @@ function PoseEng:onDraw()
   -- Gotta pick up the MVP at the time of drawing so it matches the transform applied in network scene
   lovr.graphics.getProjection(1, self.mvp)
   local view = lovr.math.mat4()
-  lovr.graphics.getViewPose(1, view, false)
+  lovr.graphics.getViewPose(1, view, true)
   self.mvp:mul(view)
-  self.mvp:mul(self.parent.cameraTransform) -- todo use lovr.graphics.getTransform when it exists
 
   if self.parent.active then
     for _, ray in ipairs(self.handRays) do
@@ -73,6 +72,7 @@ end
 function PoseEng:onDebugDraw()
   lovr.graphics.push()
   lovr.graphics.origin()
+  lovr.graphics.transform(self.parent.inverseCameraTransform)
   lovr.graphics.translate(1.5, 0, -3)
   
   lovr.graphics.setColor(1,1,1,0.3)
