@@ -123,6 +123,8 @@ function NetworkScene:_init(displayName, url, avatarName)
   self.cameraTransform = lovr.math.newMat4()
   self.inverseCameraTransform = lovr.math.newMat4()
 
+  self.viewPoseStack = {}
+
   local threadedClient = allonet.create(true)
   self.url = url
   self.client = Client(url, displayName, threadedClient)
@@ -266,6 +268,10 @@ function NetworkScene:onDraw(isMirror)
     head = self:getAvatar()
   end
   if head then
+    self.viewPoseStack = {
+      lovr.graphics.getViewPose(1),
+      lovr.graphics.getViewPose(2),
+    }
     self.inverseCameraTransform:set(head.components.transform:getMatrix())
     self.cameraTransform:set(self.inverseCameraTransform):invert()
     
@@ -317,6 +323,17 @@ end
 function NetworkScene:after_onDraw()
   if self.debug then
     self:route("onDebugDraw")
+  end
+  local head = self:getHead()
+  if not isMirror then
+    -- can't figure out how to remove the headset module's transform from avatar root to head,
+    -- so just offset from body instead.
+    head = self:getAvatar()
+  end
+  if head then
+    lovr.graphics.setViewPose(1, self.viewPoseStack[1])
+    lovr.graphics.setViewPose(2, self.viewPoseStack[2])
+    self.viewPoseStack = {}
   end
   lovr.graphics.pop()
 end
