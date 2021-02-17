@@ -215,6 +215,9 @@ function NetMenuScene.dynamicActions:toggleDebug(sender)
   settings.d.debug = not settings.d.debug
   settings:save()
   self.net.debug = settings.d.debug
+  if lovr.scenes.net then
+    lovr.scenes.net.debug = self.net.debug
+  end
   self:updateDebugTitle()
 end
 
