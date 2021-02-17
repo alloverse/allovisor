@@ -284,6 +284,7 @@ function calculateFramerateBasedOnActivity()
   end
 end
 
+lovr.isFocused = true
 function lovr.focus(focused)
   lovr.isFocused = focused
   if ent.root then
