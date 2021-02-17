@@ -54,9 +54,11 @@ function SceneManager:setMenuVisible(visible)
     self.menu.net:moveToOrigin()
 end
 
-function SceneManager:onNetConnected(url, placeName)
-    self.menu:setMessage("Connected to "..placeName)
-    self.menu:saveRecentPlace(url, placeName)
+function SceneManager:onNetConnected(net, url, placeName)
+    if placeName ~= "Menu" then
+        self.menu:setMessage("Connected to "..placeName)
+        self.menu:saveRecentPlace(url, placeName)
+    end
 end
 
 -- Create a scene of the name wanted, and insert it into the ent graph

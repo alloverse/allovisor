@@ -201,9 +201,11 @@ function NetworkScene:onInteraction(interaction, body, receiver, sender)
     local avatar_id = body[2]
     local place_name = body[3]
     print("Welcome to", place_name, ". You are", avatar_id)
-    optchainm(self, "parent.onNetConnected", self.url, place_name)
     self.avatar_id = avatar_id
     self:lookForHead()
+
+    ent.root:route("onNetConnected", self, self.url, place_name)
+    lovr.onNetConnected(self, self.url, place_name)
   end
 end   
 

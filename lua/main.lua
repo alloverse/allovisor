@@ -69,8 +69,18 @@ local flat = require "engine.flat"
 local loader = require "lib.async-loader"
 
 local loadCo = nil
+local urlToHandle = nil
 function lovr.load()
   print("lovr.load()")
+  lovr.handlers["handleurl"] = function(url)
+    if ent.root then
+      print("Opening URL:", url)
+      ent.root:route("onHandleUrl", url)
+    else
+      print("Storing URL to open when UI is available:", url)
+      urlToHandle = url
+    end
+  end
   loadCo = coroutine.create(_asyncLoad)
 end
 function _asyncLoad()
@@ -142,6 +152,7 @@ function _asyncLoadResume()
     ent.root:route("onRelease", lovr.math.vec2(inx, iny)) -- ui2 compat
   end
 
+
   local cursors = {}
   local currentCursorName = "arrow"
   if mouse then
@@ -166,7 +177,16 @@ function _asyncLoadResume()
       end
     }
   end
+end
 
+function lovr.onNetConnected(net, url, place_name)
+  if place_name == "Menu" then
+    if urlToHandle then
+      print("Opening stored URL:", urlToHandle)
+      ent.root:route("onHandleUrl", urlToHandle)
+      urlToHandle = nil
+    end
+  end
 end
 
 function lovr.restart()

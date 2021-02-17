@@ -137,6 +137,14 @@ function MenuInteractor:onInteraction(interaction, body, receiver, sender)
   self.netmenu.dynamicActions[verb](self.netmenu, unpack(action), sender)
 end
 
+function NetMenuScene:onHandleUrl(url)
+  if string.find(url, "alloplace://") == nil then
+      return
+  end
+
+  self.dynamicActions.connect(self, url)
+end
+
 --- Holds interaction rpc methods.
 -- Menu apps can call out interaction rpc commands which is routed to onInteraction 
 -- to functions in dynamicActions
