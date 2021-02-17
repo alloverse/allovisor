@@ -495,12 +495,14 @@ function GraphicsEng:drawDecorations()
     end
   end
 
-  for name, model in pairs(self.houseAssets) do
-    if model.animate and model:getAnimationCount() > 0 then
-      model:animate(1, lovr.timer.getTime())
+  if deco ~= "mainmenu" or self.parent.debug then
+    for name, model in pairs(self.houseAssets) do
+      if model.animate and model:getAnimationCount() > 0 then
+        model:animate(1, lovr.timer.getTime())
+      end
+      lovr.graphics.setShader(self:pbrShaderForModel(model))
+      model:draw()
     end
-    lovr.graphics.setShader(self:pbrShaderForModel(model))
-    model:draw()
   end
 
 end
