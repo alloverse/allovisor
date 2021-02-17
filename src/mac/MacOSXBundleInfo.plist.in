@@ -16,7 +16,29 @@
 	<string>0.2.0</string>
 	<key>NSHighResolutionCapable</key>
 	<true/>
-  <key>NSMicrophoneUsageDescription</key>
-  <string>Alloverse records your microphone so you can talk to other users</string>
+    <key>NSMicrophoneUsageDescription</key>
+    <string>Alloverse records your microphone so you can talk to other users</string>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>alloplace</string>
+				<string>alloplacegw</string>
+			</array>
+			<key>CFBundleURLName</key>
+			<string>Alloverse Place</string>
+		</dict>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>Alloverse App</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>alloapp</string>
+			</array>
+		</dict>
+	</array>
+
+
 </dict>
 </plist>

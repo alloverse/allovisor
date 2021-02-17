@@ -10,6 +10,7 @@
 
 extern int luaopen_liballonet(lua_State* L);
 extern bool AskMicrophonePermission(void);
+extern void AlloPlatformInit();
 
 // call from gdb to print lua stack
 void allo_printstacks(lua_State* L)
@@ -31,6 +32,7 @@ int main(int argc, char** argv)
   lovrPlatformOnWindowFocus(onFocus);
   
   #if __APPLE__
+    AlloPlatformInit();
     AskMicrophonePermission();
   #endif
 
