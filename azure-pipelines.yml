@@ -6,16 +6,16 @@
 jobs:
 - job: Mac
   pool:
-    vmImage: 'macOS-10.15'
+    vmImage: 'macOS-latest'
   steps:
-  - script: sudo xcode-select -s /Applications/Xcode_12.2.app
-    displayName: "Select Xcode 12.2"
+  - script: sudo xcode-select -s /Applications/Xcode_12.4.app
+    displayName: "Select Xcode 12.4"
   - script: brew update; brew upgrade cmake
     displayName: "Upgrade CMake"
   - task: CMake@1
     inputs:
       workingDirectory: 'build'
-      cmakeArgs: "-G \"Unix Makefiles\" -DCMAKE_BUILD_TYPE=Release .."
+      cmakeArgs: "-G \"Unix Makefiles\" -DCMAKE_OSX_ARCHITECTURES=arm64;x86_64 -DCMAKE_BUILD_TYPE=Release .."
   # Note: _CPack_Packages has symlink to /Applications which crashes the stupid CopyFiles
   - script: make package; rm -rf _CPack_Packages
     workingDirectory: build
