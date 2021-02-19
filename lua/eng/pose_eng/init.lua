@@ -420,6 +420,7 @@ function PoseEng:updatePointing(hand_pose, ray, handIndex)
   if previouslyHighlighted and previouslyHighlighted ~= ray.highlightedEntity then
     self.client:sendInteraction({
       type = "one-way",
+      sender = ray.handEntity,
       receiver_entity_id = previouslyHighlighted.id,
       body = {"point-exit"}
     })
@@ -428,25 +429,27 @@ function PoseEng:updatePointing(hand_pose, ray, handIndex)
   if ray.highlightedEntity then
     self.client:sendInteraction({
       type = "one-way",
+      sender = ray.handEntity,
       receiver_entity_id = ray.highlightedEntity.id,
       body = {"point", {ray.from.x, ray.from.y, ray.from.z}, {ray.to.x, ray.to.y, ray.to.z}}
     })
 
     if ray.selectedEntity == nil and self:isDown(hand_pose, "trigger") and #letters.hands[handIndex].highlightedNodes == 0 then
       ray:selectEntity(ray.highlightedEntity)
-      self:pokeEntity(ray.selectedEntity)
+      self:pokeEntity(ray.selectedEntity, ray.handEntity)
     end
   end
 
   if ray.selectedEntity and not self:isDown(hand_pose, "trigger") then
-    self:endPokeEntity(ray.selectedEntity)
+    self:endPokeEntity(ray.selectedEntity, ray.handEntity)
     ray:selectEntity(nil)
   end
 end
 
-function PoseEng:pokeEntity(ent)
+function PoseEng:pokeEntity(ent, hand)
   self.client:sendInteraction({
     type = "request",
+    sender = hand,
     receiver = ent,
     body = {"poke", true}
   })
@@ -456,9 +459,10 @@ function PoseEng:pokeEntity(ent)
   end
 end
 
-function PoseEng:endPokeEntity(ent)
+function PoseEng:endPokeEntity(ent, hand)
   self.client:sendInteraction({
     type = "request",
+    sender = hand,
     receiver = ent,
     body = {"poke", false}
   })
@@ -522,6 +526,17 @@ end
 function PoseEng:onEntityRemoved(e)
   if self.focus.entity and e.id == self.focus.entity.id then
     self:defocus()
+  end
+end
+
+function PoseEng:onComponentAdded(cname, component)
+  local entity = component:getEntity()
+  if cname == "intent" and entity.components.relationships and entity.components.relationships.parent == self.parent.avatar_id then
+    if component.actuate_pose == "hand/left" then
+      self.handRays[1].handEntity = entity
+    elseif component.actuate_pose == "hand/right" then
+      self.handRays[2].handEntity = entity
+    end
   end
 end
 

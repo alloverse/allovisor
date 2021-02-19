@@ -6,6 +6,7 @@ function HandRay:_init()
   self.highlightedEntity = nil
   self.selectedEntity = nil
   self.heldEntity = nil
+  self.handEntity = nil
   self.heldPoint = lovr.math.newVec3()
   self.from = lovr.math.newVec3()
   self.to = lovr.math.newVec3()
