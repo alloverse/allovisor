@@ -183,7 +183,7 @@ function AvatarChooser:onComponentAdded(key, comp)
       part:follow(self.actuatingFor)
     end
   end
-  if key == "intent" then
+  if key == "intent" and comp.actuate_pose ~= "root" then
     local entity = comp.getEntity()
 
     table.insert(self.poseEnts[comp.actuate_pose], entity.id)

@@ -119,6 +119,17 @@ function NetworkScene:_init(displayName, url, avatarName)
   if lovr.headset == nil or lovr.headset.getDriver() == "desktop" then
     table.remove(avatar.children, 2) -- remove right hand as it can't be simulated
   end
+
+  -- TODO<nevyn>: Placeserv isn't ready for root pose
+  if displayName == "owner" then
+    self.useClientAuthoritativePositioning = true
+  end
+  if self.useClientAuthoritativePositioning then
+    avatar.intent = {
+      actuate_pose = "root"
+    }
+  end
+
   -- base transform for all other engines
   self.cameraTransform = lovr.math.newMat4()
   self.inverseCameraTransform = lovr.math.newMat4()
@@ -133,6 +144,7 @@ function NetworkScene:_init(displayName, url, avatarName)
   self.isOverlayScene = false
   self.head_id = ""
   self.drawTime = 0.0
+  self.standardDt = 1.0/40.0
   self.client.delegates.onEntityAdded = function(e) self:route("onEntityAdded", e) end
   self.client.delegates.onEntityRemoved = function(e) self:route("onEntityRemoved", e) end
   self.client.delegates.onComponentAdded = function(k, v) self:route("onComponentAdded", k, v) end
@@ -343,7 +355,7 @@ end
 function NetworkScene:onUpdate(dt)
   local atStartOfPoll = lovr.timer.getTime()
   if self.client then
-    self.client:poll(1.0/40.0)
+    self.client:poll(self.standardDt)
     if self.client == nil then
       return route_terminate
     end

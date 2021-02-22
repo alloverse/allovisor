@@ -42,7 +42,7 @@ function PoseEng:onUpdate(dt)
   if lovr.mouse then
     self:updateMouse()
   end
-  self:updateIntent()
+  self:updateIntent(dt)
   for handIndex, hand in ipairs(PoseEng.hands) do
     self:updatePointing(hand, self.handRays[handIndex], handIndex)
   end
@@ -270,7 +270,7 @@ function PoseEng:updateMouse()
 end
 
 
-function PoseEng:updateIntent()
+function PoseEng:updateIntent(dt)
   if self.client.avatar_id == "" then return end
 
   -- root entity movement
@@ -318,6 +318,16 @@ function PoseEng:updateIntent()
       skeleton = self:getSkeletonTable(device),
       grab = self:grabForDevice(i, device)
     }
+  end
+
+  if self.parent.useClientAuthoritativePositioning then
+    local avatar_id = self.parent.avatar_id
+    local rootPose = self.client.client:simulate_root_pose(avatar_id, dt, intent)
+    intent.poses.root = {
+      matrix = rootPose
+    }
+    intent.xmovement = 0
+    intent.zmovement = 0
   end
   
   self.client:setIntent(intent)
