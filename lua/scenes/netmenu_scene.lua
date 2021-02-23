@@ -32,7 +32,7 @@ function NetMenuScene:_init(menuServerPort)
   if settings.d.recentPlaces == nil or settings.d.recentPlaces[1].url == nil then
     settings.d.recentPlaces = {
       {name="Nevyn's place", url="alloplace://nevyn.places.alloverse.com"},
-      {name="R4", url="alloplace://r4.nevyn.nu"},
+      {name="RF4", url="alloplace://rf4.nevyn.nu"},
       {name="Localhost", url="alloplace://localhost"}
     }
     settings.save()
