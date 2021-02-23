@@ -15,7 +15,7 @@ jobs:
   - task: CMake@1
     inputs:
       workingDirectory: 'build'
-      cmakeArgs: "-G \"Unix Makefiles\" -DCMAKE_OSX_ARCHITECTURES=arm64;x86_64 -DCMAKE_BUILD_TYPE=Release .."
+      cmakeArgs: "-G \"Unix Makefiles\" -DCMAKE_OSX_ARCHITECTURES=\"arm64;x86_64\" -DCMAKE_BUILD_TYPE=Release .."
   # Note: _CPack_Packages has symlink to /Applications which crashes the stupid CopyFiles
   - script: make package; rm -rf _CPack_Packages
     workingDirectory: build
