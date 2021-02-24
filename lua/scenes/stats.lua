@@ -38,6 +38,13 @@ function Stats:onMirror()
             s = s .. k .. ":   " .. v .. "\n"
         end
 
+        local renderStats = lovr.graphics.getStats()
+
+
+        for i,v in ipairs({"drawcalls", "renderpasses", "shaderswitches", "buffers", "textures", "buffermemory", "texturememory"}) do
+            s = s .. v .. ":   " .. renderStats[v] .. "\n"
+        end
+
         lovr.graphics.setShader(nil)
         lovr.graphics.setColor(1,1,1,1)
         lovr.graphics.setFont(flat.font)
