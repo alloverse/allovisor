@@ -101,14 +101,98 @@ function GraphicsEng:onDraw()
 
   lovr.graphics.setColor(1,1,1)
 
-  for eid, entity in pairs(self.client.state.entities) do
-    lovr.graphics.push()
-    lovr.graphics.transform(entity.components.transform:getMatrix())
-    self:_drawEntity(entity, true)
-    lovr.graphics.pop()
-  end
+  local objects = tablex.map(function (entity)
+    local material = entity.components.material
+    local hasTransparency = material and material.hasTransparency
+    local shader_name = material and material.shader_name or "basic"
+    local material_alpha = material and material.color and type(material.color[4]) == "number" and material.color[4] or 1
+    return {
+
+      material = {
+        shaderKey = shader_name,
+        hasTransparency = hasTransparency or material_alpha < 1,
+      },
+      getPosition = function(object)
+        if not object.position then 
+          object.position = entity.components.transform:getMatrix():mul(lovr.math.vec3())
+        end
+        return object.position
+      end,
+      draw = function(object)
+        -- local entity = object.entity
+        lovr.graphics.push()
+        lovr.graphics.transform(entity.components.transform:getMatrix())
+        self:_drawEntity(entity, true)
+        lovr.graphics.pop()
+      end
+    }
+  end, tablex.values(self.client.state.entities))
+  
+  self:drawObjects(objects)
 
   lovr.graphics.setColor({1,1,1})
+end
+
+--- Draws objects in the list in a sorted manner
+-- Objects not in view might not be drawn.
+-- Each object must have the following structure
+-- {
+--    material = {
+--       shaderKey = string unique to each shader
+--       hasTransparency = Objects that has transparency in them gets special sorting treatment
+--    }
+--    getPosition(object) = function that returns the vec3 world position of the object. It is good if you can cache the result
+--    draw(object) = function to handle the drawing of the object
+--
+--    ... = add other fields you may need in the functions above
+-- }
+-- @tparam list objects A list of tables with the following structure
+function GraphicsEng:drawObjects(objects)
+  -- TODO: remove objects that are outside the view frustrum
+
+  -- sort into bins based on material properties
+  local materialBins = {}
+  for i, object in ipairs(objects) do
+    local shader = object.material.shaderKey
+    local hasTransparency = object.material.hasTransparency
+    local key = shader .. (hasTransparency and "_transparent" or "_opaque")
+    local bin = materialBins[key]
+    if not bin then
+      bin = {
+        hasTransparency = hasTransparency,
+        shader = shader,
+      }
+      materialBins[key] = bin
+    end
+    table.insert(bin, object)
+  end
+
+  -- sort bins so that those that include transparency are last
+  local bins = tablex.values(materialBins)
+  table.sort(bins, function (a, b)
+    local aScore = a.hasTransparency and 10 or 0
+    local bScore = b.hasTransparency and 10 or 0
+    return aScore < bScore
+  end)
+
+  local headPosition = self.parent:getHead().components.transform:getMatrix():mul(lovr.math.vec3())
+
+  -- Draw the objects one bin at a time
+  for _, bin in ipairs(bins) do
+    
+    -- Sort objects in bins featuring transparency from furthest to closest
+    if bin.hasTransparency then 
+      table.sort(bin, function(a, b)
+        local aScore = a:getPosition():distance(headPosition)
+        local bScore = b:getPosition():distance(headPosition)
+        return aScore > bScore
+      end)
+    end
+
+    for _, object in ipairs(bin) do
+      object:draw()
+    end
+  end
 end
 
 --- Draws an entity.
