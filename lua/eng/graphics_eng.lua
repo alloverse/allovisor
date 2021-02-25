@@ -36,7 +36,8 @@ function GraphicsEng:onLoad()
   self.basicShader = alloBasicShader
   self.pbrShader = alloPbrShader
 
-  self.assetManager = Asset.Manager(self.parent.client.client)
+  self.assetManager = self.parent.assetManager
+  assert(self.assetManager)
 
   self.asset_backref = {}
 
@@ -400,6 +401,7 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
         local texture = asset:texture()
         mat:setTexture(texture)
         self.asset_backref[texture] = asset
+        local texture = Asset.texture(asset)
         apply()
       end)
     else
