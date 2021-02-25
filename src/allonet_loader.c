@@ -78,6 +78,9 @@ int main(int argc, char** argv)
     lua_pushliteral(L, "lovr");
     lua_setfield(L, -2, "exe");
 
+    luax_pushvariant(L, &cookie);
+    lua_setfield(L, -2, "restart");
+
     typedef enum { // What flag is being searched for?
       ARGFLAG_NONE, // Not processing a flag
       ARGFLAG_ROOT
