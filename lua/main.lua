@@ -70,8 +70,11 @@ local loader = require "lib.async-loader"
 
 local loadCo = nil
 local urlToHandle = nil
-function lovr.load()
-  print("lovr.load()")
+function lovr.load(args)
+  print("lovr.load(", pretty.write(args), args.restart, ")")
+  if args.restart then
+    urlToHandle = args.restart
+  end
   lovr.handlers["handleurl"] = function(url)
     if ent.root then
       print("Opening URL:", url)
@@ -190,7 +193,8 @@ function lovr.onNetConnected(net, url, place_name)
 end
 
 function lovr.restart()
-  print("Restarting; disconnecting...")
+  local urlToRestore = lovr.scenes.net and lovr.scenes.net.url
+  print("Restarting; disconnecting (restoring to", urlToRestore, ")...")
   optchainm(lovr.scenes, "net.onDisconnect", 1000, "Disconnected from lovr.restart")
   print("Shutting down threads...")
   lovr.thread.getChannel("menuserv"):push("exit")
@@ -199,7 +203,7 @@ function lovr.restart()
   menuAppsThread:wait()
   loader:shutdown()
   print("Done, restarting.")
-  return true
+  return urlToRestore
 end
 
 function _updateMouse()
