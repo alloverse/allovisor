@@ -279,7 +279,7 @@ function GraphicsEng:loadComponentModel(component, old_component)
     self.models_for_eids[eid] = self:createMesh(component, old_component)
   elseif component.type == "asset" then
     local cached = self:getAsset(component.name, function (asset)
-      local model = asset:model()
+      local model = modelFromAsset(asset)
       self.models_for_eids[eid] = model
       self.asset_backref[model] = asset
     end)
@@ -398,10 +398,9 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
   else
     if string.match(textureName, "asset:") then
       self:getAsset(textureName, function(asset)
-        local texture = asset:texture()
+        local texture = textureFromAsset(asset)
         mat:setTexture(texture)
         self.asset_backref[texture] = asset
-        local texture = Asset.texture(asset)
         apply()
       end)
     else
@@ -635,20 +634,20 @@ function GraphicsEng:generateGeometryWithNormals(geom)
 end
 
 
-function Asset:model()
-  if self._model == nil then
-    local blob = lovr.data.newBlob(self.data, self:id())
-    self._model = lovr.graphics.newModel(blob)
+function modelFromAsset(asset)
+  if asset._model == nil then
+    local blob = lovr.data.newBlob(asset.data, asset:id())
+    asset._model = lovr.graphics.newModel(blob)
   end
-  return self._model
+  return asset._model
 end
 
-function Asset:texture()
-  if self._texture == nil then
-    local blob = lovr.data.newBlob(self.data, self:id())
-    self._texture = lovr.graphics.newTexture(blob)
+function textureFromAsset(asset)
+  if asset._texture == nil then
+    local blob = lovr.data.newBlob(asset.data, asset:id())
+    asset._texture = lovr.graphics.newTexture(blob)
   end
-  return self._texture
+  return asset._texture
 end
 
 
