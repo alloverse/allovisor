@@ -125,10 +125,8 @@ function NetworkScene:_init(displayName, url, avatarName)
     table.remove(avatar.children, 2) -- remove right hand as it can't be simulated
   end
 
-  -- TODO<nevyn>: Placeserv isn't ready for root pose
-  if displayName == "owner" then
-    self.useClientAuthoritativePositioning = true
-  end
+  -- turn this off to fall back to make server decide where visors can move
+  self.useClientAuthoritativePositioning = true
   if self.useClientAuthoritativePositioning then
     avatar.intent = {
       actuate_pose = "root"
