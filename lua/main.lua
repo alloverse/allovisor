@@ -67,13 +67,16 @@ end)
 namespace "standard"
 local flat = require "engine.flat"
 local loader = require "lib.async-loader"
+local json = require "cjson"
 
 local loadCo = nil
 local urlToHandle = nil
+local restoreData = nil
 function lovr.load(args)
-  print("lovr.load(", pretty.write(args), args.restart, ")")
+  print("lovr.load(", pretty.write(args), ")")
   if args.restart then
-    urlToHandle = args.restart
+    restoreData = json.decode(args.restart)
+    urlToHandle = restoreData.url
   end
   lovr.handlers["handleurl"] = function(url)
     if ent.root then
@@ -189,10 +192,22 @@ function lovr.onNetConnected(net, url, place_name)
       ent.root:route("onHandleUrl", urlToHandle)
       urlToHandle = nil
     end
+  else
+    if restoreData then
+      lovr.scenes.net.engines.pose.poseToRestore = restoreData.rootPose
+      lovr.scenes.net.engines.pose.yaw = restoreData.yaw
+      restoreData = nil
+    end
   end
 end
 
 function lovr.restart()
+  local restoreData = {}
+  if lovr.scenes.net then
+    restoreData.url = lovr.scenes.net.url
+    restoreData.rootPose = {lovr.scenes.net:getAvatar().components.transform:getMatrix():unpack(true)}
+    restoreData.yaw = lovr.scenes.net.engines.pose.yaw
+  end
   local urlToRestore = lovr.scenes.net and lovr.scenes.net.url
   print("Restarting; disconnecting (restoring to", urlToRestore, ")...")
   optchainm(lovr.scenes, "net.onDisconnect", 1000, "Disconnected from lovr.restart")
@@ -203,7 +218,11 @@ function lovr.restart()
   menuAppsThread:wait()
   loader:shutdown()
   print("Done, restarting.")
-  return urlToRestore
+  if restoreData.url then
+    return json.encode(restoreData)
+  else
+    return nil
+  end
 end
 
 function _updateMouse()

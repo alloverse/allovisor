@@ -327,6 +327,10 @@ function PoseEng:updateIntent(dt)
   if self.parent.useClientAuthoritativePositioning then
     local avatar_id = self.parent.avatar_id
     local rootPose = self.client.client:simulate_root_pose(avatar_id, dt, intent)
+    if self.poseToRestore then
+      rootPose = self.poseToRestore
+      self.poseToRestore = nil
+    end
     intent.poses.root = {
       matrix = rootPose
     }
