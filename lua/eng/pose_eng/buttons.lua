@@ -14,7 +14,7 @@ function PoseEng:useKeyboardForControllerEmulation(emulateControllers)
   end
 end
 
-function PoseEng:updateButtons()
+function PoseEng:updateButtons(dt)
   self.previousButtonStates = self.currentButtonStates
   self.currentButtonStates = {["hand/left"]={}, ["hand/right"]={}}
   for handIndex, hand in ipairs(PoseEng.hands) do
@@ -22,6 +22,7 @@ function PoseEng:updateButtons()
       self:updateButton(hand, button)
     end
   end
+  self:updateSimulatedSticks(dt)
 end
 
 function PoseEng:routeButtonEvents()
@@ -82,6 +83,15 @@ function PoseEng:wasReleased(device, button)
   return was and not self:isDown(device, button)
 end
 
+function PoseEng:updateSimulatedSticks(dt)
+  if not self.keyboard then return end
+  if not self.keyboardLeftStick then self.keyboardLeftStick = lovr.math.newVec2() end
+  
+  local xDest = self.keyboard.isDown("d") and 1 or (self.keyboard.isDown("a") and -1 or 0)
+  local yDest = self.keyboard.isDown("w") and 1 or (self.keyboard.isDown("s") and -1 or 0)
+  local dest = lovr.math.vec2(xDest, yDest)
+  self.keyboardLeftStick:lerp(dest, dt*8)
+end
 
 function PoseEng:getAxis(device, axis)
   if self.parent.active == false then return 0.0, 0.0 end
@@ -92,15 +102,8 @@ function PoseEng:getAxis(device, axis)
   end
   if self.keyboard then
     if device == "hand/left" and axis == "thumbstick" then
-      if self.keyboard.isDown("a") then
-        x = -1
-      elseif self.keyboard.isDown("d") then
-        x = 1
-      end
-      if self.keyboard.isDown("w") then
-        y = 1
-      elseif self.keyboard.isDown("s") then
-        y = -1
+      if x == 0 and y == 0 then
+        x, y = self.keyboardLeftStick:unpack()
       end
     elseif device == "hand/right" and axis == "thumbstick" then
       if self.keyboard.isDown("q") then

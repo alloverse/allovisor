@@ -34,7 +34,7 @@ function PoseEng:onLoad()
 end
 
 function PoseEng:onUpdate(dt)
-  self:updateButtons()
+  self:updateButtons(dt)
 
   if self.parent.active == false then return end
   if self.client == nil then return end
