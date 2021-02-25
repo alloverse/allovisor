@@ -17,6 +17,10 @@ function TextEng:onLoad()
   self.font = lovr.graphics.newFont(32)
 end
 
+function TextEng:onDie()
+  letters.hideKeyboard()
+end
+
 function TextEng:setActive(newActive)
   if newActive then
     local poseEng = self.parent.engines.pose
