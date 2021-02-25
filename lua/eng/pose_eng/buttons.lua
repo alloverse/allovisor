@@ -50,6 +50,8 @@ function PoseEng:updateButton(device, button)
     down = down or self:getAxis(device, button) > 0.5
   elseif button == "menu" and self.keyboard then
     down = down or self.keyboard.isDown("r")
+  elseif button == "b" and self.keyboard then
+    down = down or self.keyboard.isDown("lshift")
   end
   self.currentButtonStates[device][button] = down
 end

@@ -275,6 +275,10 @@ function PoseEng:updateIntent(dt)
 
   -- root entity movement
   local mx, my = self:getAxis("hand/left", "thumbstick")
+  if self:isDown("hand/right", "b") then
+    mx = mx * 2
+    my = my * 2
+  end
   local tx, ty = self:getAxis("hand/right", "thumbstick")
 
   -- XXX<nevyn> It'd be nice if we could have some ownership model, where grabbing "took ownership" of the
