@@ -84,6 +84,8 @@ end
 function AvatarChooser:_createUI()
   local root = ui.View(ui.Bounds(0, 0, -1,  0.3, 2, 0.3):rotate(3.14/4, 0,1,0):move(-0.70, 0, -1.3))
 
+  self.app.assetManager:add(AvatarChooser.assets)
+
   local displayNameFieldLabel = ui.Label{
     bounds= ui.Bounds(0, 0, 0,   1.0, 0.07, 0.001):move(0, 2.34, -0.25),
     color= {0.4,0.4,0.4,1},
