@@ -141,7 +141,7 @@ function AvatarChooser:_createUI()
   self.leftHand = BodyPart( ui.Bounds(-0.2, 1.20, 0.2,   0.2, 0.2, 0.2), self.avatarName, "left-hand", "hand/left")
   puppet:addSubview(self.leftHand)
 
-  self.rightHand = BodyPart(ui.Bounds( 0.2, 1.40, -0.2,   0.2, 0.2, 0.2), self.avatarName, "right-hand", "hand/right")
+  self.rightHand = BodyPart(ui.Bounds( 0.2, 1.30, -0.2,   0.2, 0.2, 0.2), self.avatarName, "right-hand", "hand/right")
   puppet:addSubview(self.rightHand)
 
   self.parts = {self.head, self.torso, self.leftHand, self.rightHand}

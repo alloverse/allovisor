@@ -152,10 +152,10 @@ function PoseEng:getPose(device)
     pose = lovr.math.mat4(lovr.headset.getPose(device))
   else
     if device == "head" then
-      pose:translate(0, 1.7, 0)
+      pose:translate(0, 1.65, 0)
       pose:rotate(self.mousePitch, 1,0,0)
     elseif device == "torso" then
-      pose:translate(self:getPose("head"):mul(lovr.math.vec3())):translate(0, -0.4, 0)
+      pose:translate(self:getPose("head"):mul(lovr.math.vec3())):translate(0, -0.485, 0.04)
     elseif device == "hand/left" then
       pose:translate(-0.18, 1.45, -0.0)
       local ava = self.parent:getAvatar()
