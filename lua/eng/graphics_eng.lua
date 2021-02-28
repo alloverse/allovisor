@@ -182,18 +182,23 @@ function GraphicsEng:drawObjects(objects)
   for _, bin in ipairs(bins) do
     
     -- Sort objects in bins featuring transparency from furthest to closest
-    if bin.hasTransparency then 
+    if bin.hasTransparency then
       table.sort(bin, function(a, b)
         local aScore = a:getPosition():distance(headPosition)
         local bScore = b:getPosition():distance(headPosition)
         return aScore > bScore
       end)
+
+      -- don't write depth info
+      lovr.graphics.setDepthTest('lequal', false)
     end
 
     for _, object in ipairs(bin) do
       object:draw()
     end
   end
+
+  lovr.graphics.setDepthTest('lequal', true)
 end
 
 --- Draws an entity.
