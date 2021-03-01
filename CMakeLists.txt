@@ -139,6 +139,9 @@ elseif(APPLE)
         ${ALLO_ICON}
     )
 
+    set_target_properties(${APP_NAME} PROPERTIES XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym")
+    set_target_properties(${APP_NAME} PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
+
     find_library(AVFOUNDATION_LIBRARY NAMES AVFoundation)
 
     # Link the libs
