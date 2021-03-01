@@ -52,6 +52,11 @@ set(CPACK_PACKAGE_VERSION_MAJOR ${PROJECT_VERSION_MAJOR})
 set(CPACK_PACKAGE_VERSION_MINOR ${PROJECT_VERSION_MINOR})
 set(CPACK_PACKAGE_VERSION_PATCH ${PROJECT_VERSION_PATCH})
 
+# Build settings for ALL targets (to be added before any add_subdirectory)
+set(CMAKE_XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym")
+set(CMAKE_XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
+
+
 # Add dependencies' cmakes
 add_subdirectory (deps/lovr)
 add_subdirectory (deps/allonet)
@@ -138,9 +143,6 @@ elseif(APPLE)
         src/allomac.m
         ${ALLO_ICON}
     )
-
-    set_target_properties(${APP_NAME} PROPERTIES XCODE_ATTRIBUTE_DEBUG_INFORMATION_FORMAT "dwarf-with-dsym")
-    set_target_properties(${APP_NAME} PROPERTIES XCODE_ATTRIBUTE_GCC_GENERATE_DEBUGGING_SYMBOLS "YES")
 
     find_library(AVFOUNDATION_LIBRARY NAMES AVFoundation)
 
