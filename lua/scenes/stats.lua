@@ -45,6 +45,13 @@ function Stats:onMirror()
             s = s .. v .. ":   " .. renderStats[v] .. "\n"
         end
 
+        local net = self.parent.net or self.parent.menu.net
+        local assetManager = net and net.assetManager
+        if assetManager then 
+            local stat = assetManager:getStats()
+            s = s .. "AssetManager: " .. stat["published"] .. ", " .. stat["loading"] .. ", " .. stat["cached"] .. "\n"
+        end
+
         lovr.graphics.setShader(nil)
         lovr.graphics.setColor(1,1,1,1)
         lovr.graphics.setFont(flat.font)
