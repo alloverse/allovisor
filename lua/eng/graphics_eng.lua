@@ -176,6 +176,9 @@ function GraphicsEng:drawObjects(objects)
     return aScore < bScore
   end)
 
+  if not (self.parent and self.parent:getHead() and self.parent:getHead().components and self.parent:getHead().components.transform) then 
+    return
+  end
   local headPosition = self.parent:getHead().components.transform:getMatrix():mul(lovr.math.vec3())
 
   -- Draw the objects one bin at a time
