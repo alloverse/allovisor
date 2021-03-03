@@ -39,10 +39,6 @@ function GraphicsEng:onLoad()
   self.assetManager = self.parent.assetManager
   assert(self.assetManager)
 
-  self.asset_backref = {}
-
-  setmetatable(self.asset_backref, { __mode = "k"}) -- a tabke with weak keys
-
   lovr.graphics.setBackgroundColor(.05, .05, .05)
   
   self.cloudSkybox = lovr.graphics.newTexture({
@@ -289,7 +285,6 @@ function GraphicsEng:loadComponentModel(component, old_component)
     local cached = self:getAsset(component.name, function (asset)
       local model = modelFromAsset(asset)
       self.models_for_eids[eid] = model
-      self.asset_backref[model] = asset
     end)
     if cached == nil then 
       self.models_for_eids[eid] = self.hardcoded_models["loading"]
@@ -408,7 +403,6 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
       self:getAsset(textureName, function(asset)
         local texture = textureFromAsset(asset)
         mat:setTexture(texture)
-        self.asset_backref[texture] = asset
         apply()
       end)
     else
