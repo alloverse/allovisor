@@ -538,6 +538,12 @@ end
 function PoseEng:onInteraction(interaction, body, receiver, sender)
   if self.focus.entity and body[1] == "defocus" and self.focus.entity.id == sender.id then
     self:defocus()
+  elseif body[1] == "changeFocusTo" then
+    local entityId = body[2]
+    local entity = self.parent.client.state.entities[entityId]
+    if entity then
+      self:setFocus(entity)
+    end
   end
 end
 
