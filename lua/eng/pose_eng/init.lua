@@ -195,12 +195,12 @@ function PoseEng:_recalculateMouseInWorld(x, y, w, h)
   local nearestDistance = 10000
   self.parent.engines.physics.world:raycast(near.x, near.y, near.z, mouseInWorld.x, mouseInWorld.y, mouseInWorld.z, function(shape, hx, hy, hz)
     local newHit = shape:getCollider():getUserData()
-    local newLocation = newHit.components.transform:getMatrix():mul(lovr.math.vec3(0,0,0))
+    local newLocation = lovr.math.vec3(hx, hy, hz)
     local newDistance = (newLocation - near):length()
     if newDistance < nearestDistance then
       nearestHit = newHit
       nearestDistance = newDistance
-      mouseInWorld = lovr.math.vec3(hx, hy, hz)
+      mouseInWorld = newLocation
     end
   end)
   
@@ -422,12 +422,12 @@ function PoseEng:updatePointing(hand_pose, ray, handIndex)
   local nearestHitLocation = lovr.math.vec3()
   self.parent.engines.physics.world:raycast(handPos.x, handPos.y, handPos.z, ray.to.x, ray.to.y, ray.to.z, function(shape, hx, hy, hz)
     local newHit = shape:getCollider():getUserData()
-    local newLocation = newHit.components.transform:getMatrix():mul(lovr.math.vec3(0,0,0))
+    local newLocation = lovr.math.vec3(hx, hy, hz)
     local newDistance = (newLocation - ray.from):length()
     if newDistance < nearestDistance then
       nearestHit = newHit
       nearestDistance = newDistance
-      nearestHitLocation = lovr.math.vec3(hx, hy, hz)
+      nearestHitLocation = newLocation
     end
   end)
   if ray.highlightedEntity ~= nearestHit then
