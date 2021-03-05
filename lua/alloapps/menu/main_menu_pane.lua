@@ -47,6 +47,7 @@ function MainMenuPane:_init(menu)
   
     local logo = ui.Surface(ui.Bounds(-0.65, 0.8, 0.01, 0.2, 0.2, 0.2))
     logo:setTexture(MainMenuPane.assets.logo)
+    logo.hasTransparency = true
     self:addSubview(logo)
 end
 
