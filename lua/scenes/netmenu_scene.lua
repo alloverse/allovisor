@@ -73,7 +73,9 @@ end
 function NetMenuScene:setupAvatars()
   self.avatarNames = {}
   for _, avatarName in ipairs(lovr.filesystem.getDirectoryItems("assets/models/avatars")) do
-    table.insert(self.avatarNames, avatarName)
+    if string.sub(avatarName, 1, 1) ~= "." then
+      table.insert(self.avatarNames, avatarName)
+    end
   end
   local i = tablex.find(self.avatarNames, settings.d.avatarName)
   if settings.d.avatarName == nil or i == -1 then
@@ -223,7 +225,7 @@ end
 
 --- Cycle through the list of avatars.
 function NetMenuScene.dynamicActions:changeAvatar(direction, sender)
-  local i = tablex.find(self.avatarNames, settings.d.avatarName)
+  local i = tablex.find(self.avatarNames, settings.d.avatarName) or 1
   local newI = ((i + direction - 1) % #self.avatarNames) + 1
   settings.d.avatarName = self.avatarNames[newI]
   settings.save()
