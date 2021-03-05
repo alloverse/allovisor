@@ -96,15 +96,49 @@ function GraphicsEng:onDraw()
     self:drawOutlines()
   end
 
-  lovr.graphics.setColor(1,1,1)
+  lovr.graphics.setColor(1, 1, 1, 1)
 
-  local objects = tablex.map(function (entity)
+  -- Collect all the objects to sort and draw
+  local objects = {}
+
+  -- House parts
+  local place = self.client.state.entities["place"]
+  local deco = optchain(place, "components.decorations.type")
+  print(deco)
+  if deco ~= "mainmenu" or self.parent.debug then
+    for name, model in pairs(self.houseAssets) do
+      if model.animate and model:getAnimationCount() > 0 then
+        model:animate(1, lovr.timer.getTime())
+      end
+
+      table.insert(objects, {
+        model = model,
+        material = {
+          shaderKey = "house",
+          hasTransparency = string.sub(name, 1, string.len("window")) == "window",
+        },
+        getPosition = function (object)
+          -- model origins are at 0,0,0, get the midpoint of aabb instead
+          -- (This works as long as position is only used for distance sorting)
+          local minx, maxx, miny, maxy, minz, maxz = model:getAABB()
+          return lovr.math.vec3((minx+maxx) / 2, (miny+maxy)/2, (minz+maxz)/2)
+        end,
+        draw = function (object)
+          lovr.graphics.setColor(1,1,1,1)
+          lovr.graphics.setShader(self:pbrShaderForModel(model))
+          object.model:draw()
+        end
+      })
+    end
+  end
+
+  -- enteties
+  for _, entity in pairs(self.client.state.entities) do
     local material = entity.components.material
     local hasTransparency = material and material.hasTransparency
     local shader_name = material and material.shader_name or "basic"
     local material_alpha = material and material.color and type(material.color[4]) == "number" and material.color[4] or 1
-    return {
-
+    table.insert(objects, {
       material = {
         shaderKey = shader_name,
         hasTransparency = hasTransparency or material_alpha < 1,
@@ -122,9 +156,10 @@ function GraphicsEng:onDraw()
         self:_drawEntity(entity, true)
         lovr.graphics.pop()
       end
-    }
-  end, tablex.values(self.client.state.entities))
-  
+    })
+  end
+
+  -- Draw all of them
   self:drawObjects(objects)
 
   lovr.graphics.setColor({1,1,1})
@@ -190,10 +225,12 @@ function GraphicsEng:drawObjects(objects)
 
       -- don't write depth info
       lovr.graphics.setDepthTest('lequal', false)
+    else 
+      lovr.graphics.setDepthTest('lequal', true)
     end
 
     for _, object in ipairs(bin) do
-      object:draw()
+      object:draw(object)
     end
   end
 
@@ -579,16 +616,6 @@ function GraphicsEng:drawDecorations()
       forestModel:draw(-8,   .5,   20,   2,  2,  0,  1,  0,  1)
       forestModel:draw(-4,   .5,   24,   2,  0,  0,  1,  0,  1)
       forestModel:draw(-0,   .5,   28,   2,  3,  0,  1,  0,  1)
-    end
-  end
-
-  if deco ~= "mainmenu" or self.parent.debug then
-    for name, model in pairs(self.houseAssets) do
-      if model.animate and model:getAnimationCount() > 0 then
-        model:animate(1, lovr.timer.getTime())
-      end
-      lovr.graphics.setShader(self:pbrShaderForModel(model))
-      model:draw()
     end
   end
 
