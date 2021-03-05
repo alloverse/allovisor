@@ -54,6 +54,15 @@ function Stats:onMirror()
             s = s .. "Game AssetManager: " .. stat["published"] .. ", " .. stat["loading"] .. ", " .. stat["cached"] .. "\n"
         end
 
+
+        self.second = (self.second or 1) + lovr.timer.getDelta()
+        if self.second >= 1 then
+            self.second = 0
+            self.lua_memory = collectgarbage("count")
+        end
+
+        s = "Lua KBytes: " .. self.lua_memory .. "\n" .. s            
+
         lovr.graphics.setShader(nil)
         lovr.graphics.setColor(1,1,1,1)
         lovr.graphics.setFont(flat.font)
