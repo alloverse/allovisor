@@ -104,7 +104,6 @@ function GraphicsEng:onDraw()
   -- House parts
   local place = self.client.state.entities["place"]
   local deco = optchain(place, "components.decorations.type")
-  print(deco)
   if deco ~= "mainmenu" or self.parent.debug then
     for name, model in pairs(self.houseAssets) do
       if model.animate and model:getAnimationCount() > 0 then
