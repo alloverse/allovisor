@@ -23,6 +23,8 @@ function GraphicsEng:_init()
   self.colorfulDebug = false
   -- Draw model boinding boxes?
   self.drawAABBs = false
+  -- Draw spheres at the center of AABB's?
+  self.drawAABBCenters = false
 end
 
 --- Called when the application loads.
@@ -110,10 +112,14 @@ function GraphicsEng:onDraw()
         hasTransparency = hasTransparency or material_alpha < 1,
       },
       getPosition = function(object)
-        if not object.position then 
-          object.position = entity.components.transform:getMatrix():mul(lovr.math.vec3())
-        end
-        return object.position
+          local model = self.models_for_eids[entity.id]
+          if model and model.getAABB then 
+            local minx, maxx, miny, maxy, minz, maxz = model:getAABB()
+            local x, y, z = (maxx+minx)*0.5, (maxy+miny)*0.5, (maxz+minz)*0.5
+            return lovr.math.vec3(x, y, z)
+          else
+            return entity.components.transform:getMatrix():mul(lovr.math.vec3())
+          end
       end,
       draw = function(object)
         -- local entity = object.entity
@@ -174,6 +180,7 @@ function GraphicsEng:drawObjects(objects)
   end)
 
   if not (self.parent and self.parent:getHead() and self.parent:getHead().components and self.parent:getHead().components.transform) then 
+    print("head not found yet. Skipping drawing objects")
     return
   end
   local headPosition = self.parent:getHead().components.transform:getMatrix():mul(lovr.math.vec3())
@@ -253,12 +260,17 @@ function GraphicsEng:_drawEntity(entity, applyShader)
   model:draw()
 
   -- local drawAABBs = true
-  if self.drawAABBs and model.getAABB then
+  if (self.drawAABBs or self.drawAABBCenters) and model.getAABB then
     local minx, maxx, miny, maxy, minz, maxz = model:getAABB()
     local x, y, z = (maxx+minx)*0.5, (maxy+miny)*0.5, (maxz+minz)*0.5
     local w, h, d = maxx-minx, maxy-miny, maxz-minz
 
-    lovr.graphics.box("line", x, y, z, w, h, d)
+    if self.drawAABBCenters then 
+      lovr.graphics.sphere(x, y, z, 0.2)
+    end
+    if self.drawAABBs then 
+      lovr.graphics.box("line", x, y, z, w, h, d)
+    end
   end
 
 end
