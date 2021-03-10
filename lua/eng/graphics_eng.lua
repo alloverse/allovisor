@@ -18,6 +18,11 @@ local GraphicsEng = classNamed("GraphicsEng", Ent)
 --- Initialize the graphics engine.
 function GraphicsEng:_init()
   self:super()
+
+  -- Paint every entity in a differnet shade? Nice to figure out what be longs what
+  self.colorfulDebug = false
+  -- Draw model boinding boxes?
+  self.drawAABBs = false
 end
 
 --- Called when the application loads.
@@ -55,14 +60,6 @@ function GraphicsEng:onLoad()
 
   local menuplateTex = lovr.graphics.newTexture("assets/textures/menuplate.png", {})
   self.menuplateMat = lovr.graphics.newMaterial(menuplateTex, 1, 1, 1, 1)
-
-  self.houseAssets = {}
-  local houseAssetNames = lovr.filesystem.getDirectoryItems("assets/models/house")
-  for i, name in ipairs(houseAssetNames) do
-    self:loadHardcodedModel('house/'..name, function(m) 
-      self.houseAssets[name] = m
-    end)
-  end
 end
 
 
@@ -100,36 +97,6 @@ function GraphicsEng:onDraw()
 
   -- Collect all the objects to sort and draw
   local objects = {}
-
-  -- House parts
-  local place = self.client.state.entities["place"]
-  local deco = optchain(place, "components.decorations.type")
-  if deco ~= "mainmenu" or self.parent.debug then
-    for name, model in pairs(self.houseAssets) do
-      if model.animate and model:getAnimationCount() > 0 then
-        model:animate(1, lovr.timer.getTime())
-      end
-
-      table.insert(objects, {
-        model = model,
-        material = {
-          shaderKey = "house",
-          hasTransparency = string.sub(name, 1, string.len("window")) == "window",
-        },
-        getPosition = function (object)
-          -- model origins are at 0,0,0, get the midpoint of aabb instead
-          -- (This works as long as position is only used for distance sorting)
-          local minx, maxx, miny, maxy, minz, maxz = model:getAABB()
-          return lovr.math.vec3((minx+maxx) / 2, (miny+maxy)/2, (minz+maxz)/2)
-        end,
-        draw = function (object)
-          lovr.graphics.setColor(1,1,1,1)
-          lovr.graphics.setShader(self:pbrShaderForModel(model))
-          object.model:draw()
-        end
-      })
-    end
-  end
 
   -- enteties
   for _, entity in pairs(self.client.state.entities) do
@@ -180,7 +147,7 @@ end
 -- @tparam list objects A list of tables with the following structure
 function GraphicsEng:drawObjects(objects)
   -- TODO: remove objects that are outside the view frustrum
-
+  math.randomseed(0)
   -- sort into bins based on material properties
   local materialBins = {}
   for i, object in ipairs(objects) do
@@ -278,7 +245,22 @@ function GraphicsEng:_drawEntity(entity, applyShader)
     end
     model:animate(name, lovr.timer.getTime())
   end
+
+  if self.colorfulDebug then 
+    lovr.graphics.setColor(math.random(), math.random(), math.random(), 1)
+  end
+
   model:draw()
+
+  -- local drawAABBs = true
+  if self.drawAABBs and model.getAABB then
+    local minx, maxx, miny, maxy, minz, maxz = model:getAABB()
+    local x, y, z = (maxx+minx)*0.5, (maxy+miny)*0.5, (maxz+minz)*0.5
+    local w, h, d = maxx-minx, maxy-miny, maxz-minz
+
+    lovr.graphics.box("line", x, y, z, w, h, d)
+  end
+
 end
 
 --- Draws outlines.
