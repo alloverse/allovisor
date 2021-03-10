@@ -18,6 +18,11 @@ local GraphicsEng = classNamed("GraphicsEng", Ent)
 --- Initialize the graphics engine.
 function GraphicsEng:_init()
   self:super()
+
+  -- Paint every entity in a differnet shade? Nice to figure out what be longs what
+  self.colorfulDebug = false
+  -- Draw model boinding boxes?
+  self.drawAABBs = false
 end
 
 --- Called when the application loads.
@@ -93,7 +98,6 @@ function GraphicsEng:onDraw()
   -- Collect all the objects to sort and draw
   local objects = {}
 
-
   -- enteties
   for _, entity in pairs(self.client.state.entities) do
     local material = entity.components.material
@@ -143,7 +147,7 @@ end
 -- @tparam list objects A list of tables with the following structure
 function GraphicsEng:drawObjects(objects)
   -- TODO: remove objects that are outside the view frustrum
-
+  math.randomseed(0)
   -- sort into bins based on material properties
   local materialBins = {}
   for i, object in ipairs(objects) do
@@ -241,7 +245,22 @@ function GraphicsEng:_drawEntity(entity, applyShader)
     end
     model:animate(name, lovr.timer.getTime())
   end
+
+  if self.colorfulDebug then 
+    lovr.graphics.setColor(math.random(), math.random(), math.random(), 1)
+  end
+
   model:draw()
+
+  -- local drawAABBs = true
+  if self.drawAABBs and model.getAABB then
+    local minx, maxx, miny, maxy, minz, maxz = model:getAABB()
+    local x, y, z = (maxx+minx)*0.5, (maxy+miny)*0.5, (maxz+minz)*0.5
+    local w, h, d = maxx-minx, maxy-miny, maxz-minz
+
+    lovr.graphics.box("line", x, y, z, w, h, d)
+  end
+
 end
 
 --- Draws outlines.
