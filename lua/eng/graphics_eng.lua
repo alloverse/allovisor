@@ -55,14 +55,6 @@ function GraphicsEng:onLoad()
 
   local menuplateTex = lovr.graphics.newTexture("assets/textures/menuplate.png", {})
   self.menuplateMat = lovr.graphics.newMaterial(menuplateTex, 1, 1, 1, 1)
-
-  self.houseAssets = {}
-  local houseAssetNames = lovr.filesystem.getDirectoryItems("assets/models/house")
-  for i, name in ipairs(houseAssetNames) do
-    self:loadHardcodedModel('house/'..name, function(m) 
-      self.houseAssets[name] = m
-    end)
-  end
 end
 
 
@@ -101,36 +93,6 @@ function GraphicsEng:onDraw()
   -- Collect all the objects to sort and draw
   local objects = {}
 
-  -- House parts
-  local place = self.client.state.entities["place"]
-  local deco = optchain(place, "components.decorations.type")
-
-  if deco ~= "mainmenu" or self.parent.debug then
-    for name, model in pairs(self.houseAssets) do
-      if model.animate and model:getAnimationCount() > 0 then
-        model:animate(1, lovr.timer.getTime())
-      end
-
-      table.insert(objects, {
-        model = model,
-        material = {
-          shaderKey = "house",
-          hasTransparency = string.sub(name, 1, string.len("window")) == "window",
-        },
-        getPosition = function (object)
-          -- model origins are at 0,0,0, get the midpoint of aabb instead
-          -- (This works as long as position is only used for distance sorting)
-          local minx, maxx, miny, maxy, minz, maxz = model:getAABB()
-          return lovr.math.vec3((minx+maxx) / 2, (miny+maxy)/2, (minz+maxz)/2)
-        end,
-        draw = function (object)
-          lovr.graphics.setColor(1,1,1,1)
-          lovr.graphics.setShader(self:pbrShaderForModel(model))
-          object.model:draw()
-        end
-      })
-    end
-  end
 
   -- enteties
   for _, entity in pairs(self.client.state.entities) do
