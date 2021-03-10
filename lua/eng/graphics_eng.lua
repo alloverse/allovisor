@@ -301,8 +301,9 @@ function GraphicsEng:loadComponentModel(component, old_component)
     self.models_for_eids[eid] = self:createMesh(component, old_component)
   elseif component.type == "asset" then
     local cached = self:getAsset(component.name, function (asset)
-      local model = modelFromAsset(asset)
-      self.models_for_eids[eid] = model
+      local model = self:modelFromAsset(asset, function (model)
+        self.models_for_eids[eid] = model
+      end)
     end)
     if cached == nil then 
       self.models_for_eids[eid] = self.hardcoded_models["loading"]
@@ -419,9 +420,10 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
   else
     if string.match(textureName, "asset:") then
       self:getAsset(textureName, function(asset)
-        local texture = textureFromAsset(asset)
-        mat:setTexture(texture)
-        apply()
+        local texture = self:textureFromAsset(asset, function (texture)
+          mat:setTexture(texture)
+          apply()
+        end)
       end)
     else
       -- backwards compat.
@@ -644,22 +646,56 @@ function GraphicsEng:generateGeometryWithNormals(geom)
 end
 
 
-function modelFromAsset(asset)
-  if asset._model == nil then
-    local blob = lovr.data.newBlob(asset.data, asset:id())
-    asset._model = lovr.graphics.newModel(blob)
+
+--- Loads asset data asynchronously. 
+-- type should be "model-asset" or "texture-asset"
+-- returns true if asynchronous loading started, or false if 
+-- object was already loaded and callback called immediately
+function GraphicsEng:_loadFromAsset(asset, type, callback)
+  if asset._lovrObject then 
+    callback(asset._lovrObject)
+    return
   end
-  return asset._model
+  if asset._lovrObjectLoadingCallbacks then
+    table.insert(asset._lovrObjectLoadingCallbacks, callback)
+    return
+  end
+  asset._lovrObjectLoadingCallbacks = {callback}
+
+  local blob = lovr.data.newBlob(asset.data, asset:id())
+
+  loader:load(
+    type,
+    asset:id(),
+    function(object, status)
+      local model
+      if object == nil or status == false then
+        print("Failed to load " .. type, asset:id(), object)
+      else
+        asset._lovrObject = object
+      end
+      for _, cb in ipairs(asset._lovrObjectLoadingCallbacks) do
+        cb(asset._lovrObject)
+      end
+      asset._lovrObjectLoadingCallbacks = nil
+    end,
+    blob
+  )
 end
 
-function textureFromAsset(asset)
-  if asset._texture == nil then
-    local blob = lovr.data.newBlob(asset.data, asset:id())
-    asset._texture = lovr.graphics.newTexture(blob)
+function GraphicsEng:modelFromAsset(asset, callback)
+  if self:_loadFromAsset(asset, "model-asset", function (modelData)
+    callback(lovr.graphics.newModel(modelData))
+  end) then
+    callback(self.hardcoded_models["loading"])
   end
-  return asset._texture
 end
 
+function GraphicsEng:textureFromAsset(asset, callback)
+  self:_loadFromAsset(asset, "texture-asset", function (textureData)
+    callback(lovr.graphics.newTexture(textureData))
+  end)
+end
 
 return GraphicsEng
 

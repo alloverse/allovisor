@@ -10,7 +10,14 @@ local outChan = lovr.thread.getChannel("AlloLoaderResponses")
 local inChan = lovr.thread.getChannel("AlloLoaderRequests")
 
 function load(type, path, extra)
-  if type == "model" then
+  if type == "model-asset" then
+    -- expects a lovr blob in extra
+    return pcall(lovr.data.newModelData, extra)
+  elseif type == "texture-asset" then
+    -- expects a lovr blob in extra
+    return pcall(lovr.data.newTextureData, extra)
+  elseif type == "model" then
+    -- expects a file path in path
     return pcall(lovr.data.newModelData, path)
   elseif type == "base64png" then
     local data = util.base64decode(extra)
