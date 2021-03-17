@@ -16,33 +16,26 @@ function ControlsOverlay:onLoad()
 
   ui2.routeMouse()
 
+  local cbMaker = function(key)
+    return function(button, at, pressed)
+      self:fakeKeyEvent(key, pressed)
+    end
+  end
+
   local ents = {
 
     -- WASD buttons
-    ui2.AlloKeyEnt{id="w", label="W", onButton = function()
-      self:onKeyPress("w")
-    end},
-    ui2.AlloKeyEnt{id="a",label="A", onButton = function()
-      self:onKeyPress("a")
-    end},
-    ui2.AlloKeyEnt{id="s",label="S", onButton = function()
-      self:onKeyPress("s")
-    end},
-    ui2.AlloKeyEnt{id="d",label="D", onButton = function()
-      self:onKeyPress("d")
-    end},
-    ui2.AlloKeyEnt{id="r",label="R", onButton = function()
-      self:onKeyPress("r")
-    end},
+    ui2.AlloKeyEnt{id="w", label="W", onButton = cbMaker("w")},
+    ui2.AlloKeyEnt{id="a",label="A", onButton = cbMaker("a")},
+    ui2.AlloKeyEnt{id="s",label="S", onButton = cbMaker("s")},
+    ui2.AlloKeyEnt{id="d",label="D", onButton = cbMaker("d")},
+    ui2.AlloKeyEnt{id="r",label="R", onButton = cbMaker("r")},
     ui2.AlloLabelUiEnt{id="movelabel", label="Move"},
     ui2.AlloLabelUiEnt{id="menulabel", label="Menu"},
 
     
     -- Close button
-    ui2.AlloKeyEnt{id="escape", label="esc", onButton = function()
-      print("Closing control overlay")
-      self:onKeyPress("escape")
-    end},
+    ui2.AlloKeyEnt{id="escape", label="esc", onButton = cbMaker("esc")},
     ui2.AlloLabelUiEnt{id="closelabel", label="Close"},
 
 
@@ -56,12 +49,8 @@ function ControlsOverlay:onLoad()
     -- Mouse
     ui2.AlloDummyMouseEnt{id="dummyMouse"},
 
-    ui2.AlloMouseButtonEnt{id="lmb", label="", onButton = function()
-      self:onClickDown()
-    end},
-    ui2.AlloMouseButtonEnt{id="rmb", label="", onButton = function()
-      self:onClickDown()
-    end},
+    ui2.AlloMouseButtonEnt{id="lmb", label=""},
+    ui2.AlloMouseButtonEnt{id="rmb", label=""},
 
     ui2.AlloLabelUiEnt{id="interactLabel", label="Interact"},
     ui2.AlloLabelUiEnt{id="grabLabel", label="Grab"},
@@ -73,8 +62,8 @@ function ControlsOverlay:onLoad()
     
 end
 
-function ControlsOverlay:onKeyPress(code, scancode)
-  --print("ControlsOverlay:onKeyPress", code)
+function ControlsOverlay:fakeKeyEvent(key, pressed)
+  self.parent:route("onFakeKeyboardEvent", key, pressed)
 end
 
 function ControlsOverlay:onMousePress(x, y)
@@ -287,15 +276,16 @@ end
 
 function ui2.AlloKeyEnt:onPress(at)
 	if self.bound:contains(at) then
-		self.down = true
+    self.down = true
+    self:onButton(at, self.down)
 	end
 end
 
 function ui2.AlloKeyEnt:onRelease(at)
+  self.down = false
 	if self.bound:contains(at) then
-		self:onButton(at) -- FIXME: Is it weird this is an "on" but it does not route?
+    self:onButton(at, self.down)
 	end
-	self.down = false
 end
 
 function ui2.AlloKeyEnt:onButton()

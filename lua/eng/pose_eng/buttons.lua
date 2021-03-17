@@ -14,6 +14,20 @@ function PoseEng:useKeyboardForControllerEmulation(emulateControllers)
   end
 end
 
+function PoseEng:isKeyboardButtonPressed(key)
+  if self.fakeKeyboardEvents[key] then
+    return self.fakeKeyboardEvents[key]
+  end
+  if self.keyboard then
+    return self.keyboard.isDown(key)
+  end
+  return false
+end
+
+function PoseEng:onFakeKeyboardEvent(key, down)
+  self.fakeKeyboardEvents[key] = down and down or nil
+end
+
 
 -------------
 -- goes through all the buttons on the controllers and stores
@@ -59,9 +73,9 @@ function PoseEng:updateButton(device, button)
   elseif device == "hand/left" and button == "grip" then
     down = down or self:getAxis(device, button) > 0.5
   elseif button == "menu" and self.keyboard then
-    down = down or self.keyboard.isDown("r")
+    down = down or self:isKeyboardButtonPressed("r")
   elseif button == "b" and self.keyboard then
-    down = down or self.keyboard.isDown("lshift")
+    down = down or self:isKeyboardButtonPressed("lshift")
   end
   self.currentButtonStates[device][button] = down
 end
@@ -99,8 +113,8 @@ function PoseEng:updateSimulatedSticks(dt)
   if not self.keyboard then return end
   if not self.keyboardLeftStick then self.keyboardLeftStick = lovr.math.newVec2() end
   
-  local xDest = self.keyboard.isDown("d") and 1 or (self.keyboard.isDown("a") and -1 or 0)
-  local yDest = self.keyboard.isDown("w") and 1 or (self.keyboard.isDown("s") and -1 or 0)
+  local xDest = self:isKeyboardButtonPressed("d") and 1 or (self:isKeyboardButtonPressed("a") and -1 or 0)
+  local yDest = self:isKeyboardButtonPressed("w") and 1 or (self:isKeyboardButtonPressed("s") and -1 or 0)
   local dest = lovr.math.vec2(xDest, yDest)
   self.keyboardLeftStick:lerp(dest, dt*8)
 end
@@ -122,9 +136,9 @@ function PoseEng:getAxis(device, axis)
         x, y = self.keyboardLeftStick:unpack()
       end
     elseif device == "hand/right" and axis == "thumbstick" then
-      if self.keyboard.isDown("q") then
+      if self:isKeyboardButtonPressed("q") then
         x = -1
-      elseif self.keyboard.isDown("e") then
+      elseif self:isKeyboardButtonPressed("e") then
         x = 1
       end
     elseif device == "hand/left" and axis == "grip" and x == 0 then

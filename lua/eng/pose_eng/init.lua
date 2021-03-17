@@ -51,6 +51,7 @@ function PoseEng:_init()
   self.mvp = lovr.math.newMat4()
   self.oldMousePos = lovr.math.newVec2()
   self.fakeMousePos = lovr.math.newVec2()
+  self.fakeKeyboardEvents = {}
   self.mousePitch = 0
   self.focus = {
     entity= nil,
