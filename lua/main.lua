@@ -21,6 +21,8 @@ local util = require "lib.util"
 allonet = nil
 allonet = util.load_allonet()
 
+local dragndrop = require("lib.lovr-dragndrop")
+
 namespace = require "engine.namespace"
 
 local ok, mouse = pcall(require, "lib.lovr-mouse")
@@ -156,6 +158,10 @@ function _asyncLoadResume()
     local inx =     x * flat.width  / flat.pixwidth  - flat.width/2    -- Convert pixel x,y to our coordinate system
 		local iny = - ( y * flat.height / flat.pixheight - flat.height/2 ) -- GLFW has flipped y-coord
     ent.root:route("onRelease", lovr.math.vec2(inx, iny)) -- ui2 compat
+  end
+
+  lovr.handlers["filedrop"] = function(path)
+    ent.root:route("onFileDrop", path)
   end
 
 
