@@ -392,7 +392,7 @@ end
 function NetworkScene:onButtonPressed(device, button)
   if self.isMenu then return end -- can't toggle menu from menu
 
-  if button == "b" or button == "menu" then
+  if button == "menu" then
     lovr.scenes:setMenuVisible(not self.isOverlayScene)
   end
 end
