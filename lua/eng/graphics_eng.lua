@@ -25,6 +25,9 @@ function GraphicsEng:_init()
   self.drawAABBs = false
   -- Draw spheres at the center of AABB's?
   self.drawAABBCenters = false
+
+  -- A list of models loaded from a directory for previewing
+  self.testModels = {}
 end
 
 --- Called when the application loads.
@@ -62,6 +65,15 @@ function GraphicsEng:onLoad()
 
   local menuplateTex = lovr.graphics.newTexture("assets/textures/menuplate.png", {})
   self.menuplateMat = lovr.graphics.newMaterial(menuplateTex, 1, 1, 1, 1)
+
+
+  self.testModels = {}
+  local houseAssetNames = lovr.filesystem.getDirectoryItems("assets/models/testing")
+  for i, name in ipairs(houseAssetNames) do
+    self:loadHardcodedModel('testing/'..name, function(m) 
+      table.insert(self.testModels, m)
+    end)
+  end
 end
 
 
@@ -127,6 +139,23 @@ function GraphicsEng:onDraw()
         lovr.graphics.transform(entity.components.transform:getMatrix())
         self:_drawEntity(entity, true)
         lovr.graphics.pop()
+      end
+    })
+  end
+
+  for _, model in ipairs(self.testModels) do
+    table.insert(objects, {
+      model = model,
+      material = {
+        shaderKey = "testing",
+        hasTransparency = false,
+      },
+      getPosition = function (object)
+        return lovr.math.vec3(0,0,0)
+      end,
+      draw = function(object)
+        lovr.graphics.setShader(self:pbrShaderForModel(object.model))
+        object.model:draw()
       end
     })
   end
