@@ -36,6 +36,7 @@ local shaders = {
     'standard',
     {
       flags = {
+        highp = true,
         normalMap = true,
         indirectLighting = true,
         occlusion = true,
@@ -51,6 +52,7 @@ local shaders = {
     'standard',
     {
       flags = {
+        highp = true,
         normalMap = false,
         indirectLighting = true,
         occlusion = true,
