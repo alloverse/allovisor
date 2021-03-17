@@ -14,6 +14,10 @@ function PoseEng:useKeyboardForControllerEmulation(emulateControllers)
   end
 end
 
+
+-------------
+-- goes through all the buttons on the controllers and stores
+-- state for them, so we can diff button states between frames
 function PoseEng:updateButtons(dt)
   self.previousButtonStates = self.currentButtonStates
   self.currentButtonStates = {["hand/left"]={}, ["hand/right"]={}}
@@ -39,6 +43,12 @@ function PoseEng:routeButtonEvents()
   end
 end
 
+------
+-- See PoseEng:updateButtons. This updates the stored state
+-- for a single button on a single controller.
+--  * If lovr.headset is available, the controller hardware button is checked.
+--  * If keyboard is available, also check for a key on the keyboard
+--    that maps to this controller key.
 function PoseEng:updateButton(device, button)
   local down = false
   if lovr.headset then
@@ -95,6 +105,10 @@ function PoseEng:updateSimulatedSticks(dt)
   self.keyboardLeftStick:lerp(dest, dt*8)
 end
 
+-------
+-- If a controller is available, use the input from it.
+-- If a keyboard is available, also use that input to emulate
+-- the left hand's stick.
 function PoseEng:getAxis(device, axis)
   if self.parent.active == false then return 0.0, 0.0 end
 

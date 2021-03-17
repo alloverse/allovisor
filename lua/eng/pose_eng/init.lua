@@ -8,6 +8,37 @@ alloPointerRayShader = require "shader/alloPointerRayShader"
 local HandRay = require "eng.pose_eng.hand_ray"
 local letters = require("lib.letters.letters")
 
+--------------------------
+-- PoseEng abstracts headset and hand input; and translates them into intents and interactions.
+--
+-- First, it is a layer on top of lovr.headset, either proxying
+-- headset's functionality (when in VR) or emulating it (when
+-- in desktop mode). On desktop, it translates keyboard and
+-- mouse input into equivalent hand/controller and headset
+-- movement and actions. If you ever feel the urge to use the
+-- lovr.headset module, please use your network scene's pose engine
+-- instead, because lovr.headset is null when in desktop mode.
+--
+-- Second, it reads all input states and translates it into
+-- an Allonet Intent, sending it onto the network each frame.
+--
+-- It's a really large class so it's split into multiple files:
+--  * init.lua contains:
+--    * high level callbacks (update, debug draw, etc)
+--    * parsing the mouse
+--    * interpreting its internal state as poses for various 
+--      headset devices (including one made-up pose called "torso"),
+--    * Translate state into intent
+--    * figure out grabs, points and pokes, and translates them
+--      into interactions
+--  * hand_ray.lua is a class that handles state for the hand, which helps
+--    with pointing, poking, picking and grabbing
+--  * buttons.lua keeps track of buttons and sticks on the controllers,
+--    sending callbacks when things are pressed, etc
+--  * skeleton.lua manages the hand skeleton for hand tracking
+--
+-- @classmod PoseEng
+
 PoseEng = classNamed("PoseEng", Ent)
 
 PoseEng.hands = {"hand/left", "hand/right"}
