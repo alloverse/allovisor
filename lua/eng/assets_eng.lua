@@ -5,6 +5,7 @@ namespace("networkscene", "alloverse")
 
 local AssetsEng = classNamed("AssetsEng", Ent)
 local Asset = require('lib.alloui.lua.alloui.asset')
+local tablex = require "pl.tablex"
 
 function AssetsEng:_init()
     self:super()
@@ -12,11 +13,28 @@ function AssetsEng:_init()
 end
 
 function AssetsEng:onFileDrop(path)
-    print("Got a file drop:", path)
+    print(self, "got a file drop:", path)
+
+    local function acceptsFile(entity)
+        if entity.components.acceptsfile then
+            if entity.components.acceptsfile.extensions then
+                local _, _, ext = path:find("([^.]+)$")
+                if tablex.find(entity.components.acceptsfile.extensions, ext) == nil then 
+                    print("Targeted entity did not accept file type " .. ext)
+                    return false;
+                end
+                return true
+            end
+            return true
+        end
+        print("Targeted entity did not accept files")
+        return false
+    end
 
     if lovr.scenes.net then
         local entity, ray = self.parent.engines.pose:highlightedEntity()
-        if entity and ray then
+        if entity and ray and acceptsFile(entity) then
+
             local asset = Asset.File(path, true)
             local _, _, filename = string.find(path, "([^/\\]+)$")
 
@@ -33,7 +51,7 @@ function AssetsEng:onFileDrop(path)
             print("Did not hit anything that accepts files")
         end
     else
-        -- Tool to preview models. 
+        -- Tool to preview models when not connected to a place.
         -- If multiple files are dropped this method is called for each path
         -- in one frame, so we collect them all here
         self.droppedPaths = self.droppedPaths or {}
@@ -42,7 +60,7 @@ function AssetsEng:onFileDrop(path)
 end
 
 function AssetsEng:onUpdate(dt)
-    if self.droppedPaths then 
+    if self.droppedPaths and not lovr.scenes.net then
         -- If any files were dropped in 'not connected yet' mode then load them in as test files
         self.parent.engines.graphics.testModels = {}
         for _, path in ipairs(self.droppedPaths) do
