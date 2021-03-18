@@ -61,6 +61,20 @@ function PoseEng:_init()
   self:useKeyboardForControllerEmulation(true)
 end
 
+--- Returns the primary highlighted entity
+-- @treturn Entity nil, or an entity highlighted by either left or right hand, depending on last active controller or user setting, and the hand ray that has the entity
+function PoseEng:highlightedEntity()
+  if self.handRays[2].highlightedEntity then 
+    return self.handRays[2].highlightedEntity, self.handRays[2]
+  end
+
+  if self.handRays[1].highlightedEntity then 
+    return self.handRays[1].highlightedEntity, self.handRays[1]
+  end
+  
+  return nil, nil
+end
+
 function PoseEng:onLoad()
   
 end

@@ -22,6 +22,7 @@ local engines = {
   PoseEng = require "eng.pose_eng",
   PhysicsEng = require "eng.physics_eng",
   TextEng = require "eng.text_eng",
+  AssetsEng = require "eng.assets_eng",
 }
 
 require "lib.allostring"
@@ -172,12 +173,13 @@ function NetworkScene:onLoad()
       pose = engines.PoseEng(),
       physics = engines.PhysicsEng(),
       text = engines.TextEng(),
+      assets = engines.AssetsEng(),
     }
     if engines.SoundEng.supported() and not self.isMenu then
       self.engines.sound = engines.SoundEng()
     end
     
-    for _, ename in ipairs({"graphics", "text", "pose", "physics", "sound"}) do
+    for _, ename in ipairs({"graphics", "text", "pose", "physics", "sound", "assets"}) do
       local engine = self.engines[ename]
       if engine then
         engine.client = self.client
