@@ -154,6 +154,7 @@ function GraphicsEng:onDraw()
         return lovr.math.vec3(0,0,0)
       end,
       draw = function(object)
+        lovr.graphics.setColor(1,1,1,1)
         lovr.graphics.setShader(self:pbrShaderForModel(object.model))
         object.model:draw()
       end
