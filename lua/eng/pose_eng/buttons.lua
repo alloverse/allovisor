@@ -117,6 +117,9 @@ function PoseEng:updateSimulatedSticks(dt)
   local yDest = self:isKeyboardButtonPressed("w") and 1 or (self:isKeyboardButtonPressed("s") and -1 or 0)
   local dest = lovr.math.vec2(xDest, yDest)
   self.keyboardLeftStick:lerp(dest, dt*8)
+  if math.abs(self.keyboardLeftStick.x) + math.abs(self.keyboardLeftStick.y) < 0.01 then
+    self.keyboardLeftStick:set(0,0)
+  end
 end
 
 -------
