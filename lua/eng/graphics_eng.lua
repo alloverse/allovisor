@@ -343,12 +343,16 @@ function GraphicsEng:loadComponentModel(component, old_component)
     self.models_for_eids[eid] = self:createMesh(component, old_component)
   elseif component.type == "asset" then
     local cached = self:getAsset(component.name, function (asset)
-      local model = self:modelFromAsset(asset, function (model)
-        self.models_for_eids[eid] = model
-      end)
+      if asset then 
+        local model = self:modelFromAsset(asset, function (model)
+          self.models_for_eids[eid] = model
+        end)
+      else
+        self.models_for_eids[eid] = self.hardcoded_models.broken
+      end
     end)
     if cached == nil then 
-      self.models_for_eids[eid] = self.hardcoded_models["loading"]
+      self.models_for_eids[eid] = self.hardcoded_models.loading
     end
   end
 
@@ -375,14 +379,14 @@ function GraphicsEng:loadHardcodedModel(name, callback, path)
   if not path:has_suffix(".glb") and not path:has_suffix(".gltf") then
     path = path .. ".glb"
   end
-  callback(self.hardcoded_models["loading"])
+  callback(self.hardcoded_models.loading)
   loader:load(
     "model",
     path,
     function(modelData, status)
        if modelData == nil or status == false then
          print("Failed to load model", name, ":", model)
-         self.hardcoded_models[name] = self.hardcoded_models["broken"]
+         self.hardcoded_models[name] = self.hardcoded_models.broken
        else
          local model = lovr.graphics.newModel(modelData)
          self.hardcoded_models[name] = model
@@ -462,10 +466,14 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
   else
     if string.match(textureName, "asset:") then
       self:getAsset(textureName, function(asset)
-        local texture = self:textureFromAsset(asset, function (texture)
-          mat:setTexture(texture)
-          apply()
-        end)
+        if asset then 
+          local texture = self:textureFromAsset(asset, function (texture)
+            mat:setTexture(texture)
+            apply()
+          end)
+        else
+          print("Texture asset " .. textureName .. " was not found")
+        end  
       end)
     else
       -- backwards compat.
@@ -729,7 +737,7 @@ function GraphicsEng:modelFromAsset(asset, callback)
   if self:_loadFromAsset(asset, "model-asset", function (modelData)
     callback(lovr.graphics.newModel(modelData))
   end) then
-    callback(self.hardcoded_models["loading"])
+    callback(self.hardcoded_models.loading)
   end
 end
 
