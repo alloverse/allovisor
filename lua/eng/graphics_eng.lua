@@ -80,6 +80,7 @@ end
 -- callback(asset)
 -- returns the asset if it was found in cache
 function GraphicsEng:getAsset(name, callback)
+  assert(name, "name must not be nil")
   local cached = nil
   self.assetManager:load(name, function (name, asset)
     if asset == nil then 

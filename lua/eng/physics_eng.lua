@@ -22,8 +22,15 @@ function PhysicsEng:onUpdate(dt)
   for eid, collider in pairs(self.colliders) do
     local entity = collider:getUserData()
     local matrix = entity.components.transform:getMatrix()
-
+    
+    matrix:translate(
+      entity.components.collider.x or 0, 
+      entity.components.collider.y or 0, 
+      entity.components.collider.z or 0
+    )
+    
     local x, y, z, sx, sy, sz, a, ax, ay, az = matrix:unpack()
+
     if x ~= x or a ~= a or ax ~= ax then
       print("HOOPS broken matrix", pretty.write({matrix:unpack(true)}))
     else
@@ -68,7 +75,7 @@ function PhysicsEng:onComponentAdded(component_key, component)
     return
   end
 
-  local collider = self.world:newBoxCollider(0, 0, 0, component.width, component.height, component.depth)
+  local collider = self.world:newBoxCollider(component.x or 0, component.y or 0, component.z or 0, component.width, component.height, component.depth)
   local entity = component:getEntity()
 
   entity.collider = collider
