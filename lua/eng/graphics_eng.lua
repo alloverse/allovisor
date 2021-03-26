@@ -736,7 +736,11 @@ end
 
 function GraphicsEng:modelFromAsset(asset, callback)
   if self:_loadFromAsset(asset, "model-asset", function (modelData)
-    callback(lovr.graphics.newModel(modelData))
+    if modelData then 
+      callback(lovr.graphics.newModel(modelData))
+    else
+      callback(self.hardcoded_models.broken)
+    end
   end) then
     callback(self.hardcoded_models.loading)
   end
