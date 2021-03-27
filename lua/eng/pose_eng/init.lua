@@ -393,6 +393,8 @@ function PoseEng:grabForDevice(handIndex, device)
   local ray = self.handRays[handIndex]
   if ray.hand == nil then return nil end
 
+  local previouslyHeld = ray.heldEntity
+
   local gripStrength = self:getAxis(device, "grip")
 
   -- released grip button?
@@ -410,6 +412,26 @@ function PoseEng:grabForDevice(handIndex, device)
 
     ray.grabber_from_entity_transform:set(handFromHeld)
   end
+
+  if previouslyHeld ~= ray.heldEntity then
+    if previouslyHeld then
+      self.client:sendInteraction({
+        type = "one-way",
+        sender = ray.handEntity,
+        receiver_entity_id = previouslyHeld.id,
+        body = {"grabbing", false}
+      })
+    end
+    if ray.heldEntity then
+      self.client:sendInteraction({
+        type = "one-way",
+        sender = ray.handEntity,
+        receiver_entity_id = ray.heldEntity.id,
+        body = {"grabbing", true}
+      })
+    end
+  end
+
 
   if ray.heldEntity == nil then
     return nil
