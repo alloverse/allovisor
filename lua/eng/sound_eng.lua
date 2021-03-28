@@ -14,6 +14,7 @@ end
 
 function SoundEng:_init()
   self.audio = {}
+  self.effects = {}
   self.track_id = 0
   self.currentMicName = "invalid---"
   self:super()
@@ -100,20 +101,22 @@ end
 
 -- set position of audio for each entity that has a track_id assigned
 function SoundEng:setAudioPositionForEntitiy(entity)
-  local media = entity.components.live_media 
 
-  if media == nil then return end
-
-  local track_id = media.track_id
-  local track = self.audio[track_id]
-
-  if track == nil then return end 
+  local voice = nil
+  local media = entity.components.live_media
+  local effect = entity.components.sound_effect
+  if media then
+    local track_id = media.track_id
+    voice = self.audio[track_id]  
+    if voice == nil then return end 
+  elseif effect then
+    voice = self.effects[entity.id].source
+  end
 
   local matrix = entity.components.transform:getMatrix()
-
   local x, y, z, sx, sy, sz, a, ax, ay, az = matrix:unpack()
-  track.position = {x, y, z}
-  track.source:setPose(x, y, z, a, ax, ay, az)
+  voice.position = {x, y, z}
+  voice.source:setPose(x, y, z, a, ax, ay, az)
 end
 
 function SoundEng:onHeadAdded(head)
@@ -187,10 +190,13 @@ function SoundEng:onUpdate(dt)
 end
 
 function SoundEng:onComponentRemoved(component_key, component)
-  if component_key ~= "live_media" then
-    return
+  if component_key == "live_media" then
+    self:onliveMediaRemoved(component)
+  elseif component_key == "sound_effect" then
+    self:onSoundEffectRemoved(component)
   end
-  
+end
+function SoundEng:onLiveMediaRemoved(component)
   local audio = self.audio[component.track_id]
   print("Removing incoming audio channel ", component.track_id)
 
@@ -198,6 +204,16 @@ function SoundEng:onComponentRemoved(component_key, component)
 
   audio.source:stop()
   self.audio[component.track_id] = nil
+end
+function SoundEng:onLiveMediaRemoved(component)
+  local eid = component:getEntity().id
+  local voice = self.effects[eid]
+  print("Removing sound effect for ", eid)
+
+  if voice == nil then return end
+
+  voice.source:stop()
+  self.effects[omponent:getEntity().id] = nil
 end
 
 function SoundEng:onDisconnect()
