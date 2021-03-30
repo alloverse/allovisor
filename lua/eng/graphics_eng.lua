@@ -713,7 +713,7 @@ function GraphicsEng:_loadFromAsset(asset, type, callback)
   end
   asset._lovrObjectLoadingCallbacks = {callback}
 
-  local blob = lovr.data.newBlob(asset.data, asset:id())
+  local blob = lovr.data.newBlob(asset:read(), asset:id())
 
   loader:load(
     type,
