@@ -15,7 +15,6 @@ local pretty = require "pl.pretty"
 local Client = require "alloui.client"
 local Stats = require("scenes.stats")
 local Asset = require("lib.alloui.lua.alloui.asset")
-local LovrAsset = require("lib.lovrasset")
 
 local engines = {
   SoundEng = require "eng.sound_eng",
@@ -40,7 +39,12 @@ function NetworkScene:_init(displayName, url, avatarName, isSpectatorCamera)
   local avatarsRoot = "/assets/models/avatars"
   for _, avatarName in ipairs(lovr.filesystem.getDirectoryItems(avatarsRoot)) do
     for _, partName in ipairs({"head", "left-hand", "right-hand", "torso"}) do
-      assets["avatars/"..avatarName.."/"..partName] = LovrAsset(avatarsRoot.."/"..avatarName.."/"..partName..".glb", true)
+      local path = avatarsRoot.."/"..avatarName.."/"..partName..".glb"
+      if lovr.filesystem.isFile(path) then 
+        assets["avatars/"..avatarName.."/"..partName] = Asset.LovrFile(avatarsRoot.."/"..avatarName.."/"..partName..".glb", true)
+      else
+        print(path .. " is not an avatar file")
+      end
     end
   end
   
