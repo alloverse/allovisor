@@ -25,18 +25,68 @@ local engines = {
   AssetsEng = require "eng.assets_eng",
 }
 
+local assets = {
+  nameTag = Asset.Base64("iVBORw0KGgoAAAANSUhEUgAAAMAAAABACAMAAAB7sojtAAABKVBMVEUAAAA4OFA1Mko3NUo3Nkw3NUw3NUs3NUw2NEw2M0k4MFA4NEw3NU03NUs0NExAMFA2Nkw2NEw3NU02Nks2NEw3NUw3NUxcW22OjZq0s7za2d3m5uj////NzNKop7E3NUw3N0s3NU1paHjy8vTm5uk3NUyCgY83NUvl5ehQTmI3NUxEQlenp7CnprA4NEw1NUtcWm7x8fP+/v41NUpAMECmpbA2Nkw2NUxpZ3nMy9GCgI/a2t42NUtdW243NUo2M0xcWm01Mk2PjZo3NEyzsrw3Nks2NUzY2Nw2NUvMzNG0s7s3M0w3NEo4OEg3NUs3NU04NEw4NkswMFCnp7GnprFDQlc5NEs3NEw3NEs2NUvNzdI3NEza2t04NUpAQEA2NUw3NUw2NE02NExc4EV1AAAAY3RSTlMAIGCQr8/f/4BQIEDfn0AQf+/eX+5vv///////////7nCP/////v+e//++////f47///9gEP+A7/////+g/49Q/2D/r/+vz//O//+QTyDenoBfEP///3C/cJ//vv9gEKCQr89JTxAdAAACbklEQVR4AezZA7YlQQwG4Dx17lybebZt27b3v4uZ6s7pa4yTc963gcJfSaOgmqbmltY2CwWw2lo937zwU3wtFgrjDwShQaFwBEWKxrxqp8/i4bpLSMidPqcAtXiTKF7U2+D2p9KZbI4EyLV3pFOY19kFVXSjq6ejl0Tpy+TX0B+GigL56beTQNkBZDgIFbQJnj4bGkY2Un3/R8dIsPHRahlMoGOY61Z8CJMl/QcdU70k3PQUV3IXFPBy/xwgBbiWO72Q5+f9Jw1mpsoKeZbPfy+pMD1ccoi8TgCjOVJiaBSNzrniJ/AYqTGPtgUOYBGNFOkxs8QRFFZAjhRZ5ggKWtAKkcII4Acf2laJ9EXQHwSANTTWiTRGsOGeoAwpM45GFMCrrYTZNBr9TbCp7QSxmS17AdvgQSNN6uxwEezyU1idPTT24QCNdlLnEI0jsNTVMBviNoQ20mcGjf6vBfyurwWoL+IDde+i7Jjb6C4aJ6TOOD/ITnW/SnigWffL3Bmco61XZw33nwO3oTGd73IXAFwESypPEF7mP+rb9b2L8kc9LGqMYIBPkHGlMAIu4WswbvRFMDOMRuc5FEZwS2rc5f8sFkRwr+33+sU5sAedFxzX4HrUeMV0AXnni2hbUXTJFz+HAg/6rlmfoMiptovuBSixho570d20YxQdz1DmANm62BBelpC9AivJgK28SZ1+lf1nV+iaygiLobdjCV0bUMXDIuZNpTteRKwi95ZJT2Fe/AmqOrdQvNdzqOVd+BJqbD87P42gWJGrD6jvnFNQOX3m+xS3Buv7ErgZSAK+9hyJSYNj+X1SYgITIy53AgCT+DcB0RKo5AAAAABJRU5ErkJggg=="),
+}
+
 require "lib.allostring"
 local util = require "lib.util"
 
 local NetworkScene = classNamed("NetworkScene", OrderedEnt)
-function NetworkScene:_init(displayName, url, avatarName)
-  local assets = {
-    nameTag = Asset.Base64("iVBORw0KGgoAAAANSUhEUgAAAMAAAABACAMAAAB7sojtAAABKVBMVEUAAAA4OFA1Mko3NUo3Nkw3NUw3NUs3NUw2NEw2M0k4MFA4NEw3NU03NUs0NExAMFA2Nkw2NEw3NU02Nks2NEw3NUw3NUxcW22OjZq0s7za2d3m5uj////NzNKop7E3NUw3N0s3NU1paHjy8vTm5uk3NUyCgY83NUvl5ehQTmI3NUxEQlenp7CnprA4NEw1NUtcWm7x8fP+/v41NUpAMECmpbA2Nkw2NUxpZ3nMy9GCgI/a2t42NUtdW243NUo2M0xcWm01Mk2PjZo3NEyzsrw3Nks2NUzY2Nw2NUvMzNG0s7s3M0w3NEo4OEg3NUs3NU04NEw4NkswMFCnp7GnprFDQlc5NEs3NEw3NEs2NUvNzdI3NEza2t04NUpAQEA2NUw3NUw2NE02NExc4EV1AAAAY3RSTlMAIGCQr8/f/4BQIEDfn0AQf+/eX+5vv///////////7nCP/////v+e//++////f47///9gEP+A7/////+g/49Q/2D/r/+vz//O//+QTyDenoBfEP///3C/cJ//vv9gEKCQr89JTxAdAAACbklEQVR4AezZA7YlQQwG4Dx17lybebZt27b3v4uZ6s7pa4yTc963gcJfSaOgmqbmltY2CwWw2lo937zwU3wtFgrjDwShQaFwBEWKxrxqp8/i4bpLSMidPqcAtXiTKF7U2+D2p9KZbI4EyLV3pFOY19kFVXSjq6ejl0Tpy+TX0B+GigL56beTQNkBZDgIFbQJnj4bGkY2Un3/R8dIsPHRahlMoGOY61Z8CJMl/QcdU70k3PQUV3IXFPBy/xwgBbiWO72Q5+f9Jw1mpsoKeZbPfy+pMD1ccoi8TgCjOVJiaBSNzrniJ/AYqTGPtgUOYBGNFOkxs8QRFFZAjhRZ5ggKWtAKkcII4Acf2laJ9EXQHwSANTTWiTRGsOGeoAwpM45GFMCrrYTZNBr9TbCp7QSxmS17AdvgQSNN6uxwEezyU1idPTT24QCNdlLnEI0jsNTVMBviNoQ20mcGjf6vBfyurwWoL+IDde+i7Jjb6C4aJ6TOOD/ITnW/SnigWffL3Bmco61XZw33nwO3oTGd73IXAFwESypPEF7mP+rb9b2L8kc9LGqMYIBPkHGlMAIu4WswbvRFMDOMRuc5FEZwS2rc5f8sFkRwr+33+sU5sAedFxzX4HrUeMV0AXnni2hbUXTJFz+HAg/6rlmfoMiptovuBSixho570d20YxQdz1DmANm62BBelpC9AivJgK28SZ1+lf1nV+iaygiLobdjCV0bUMXDIuZNpTteRKwi95ZJT2Fe/AmqOrdQvNdzqOVd+BJqbD87P42gWJGrD6jvnFNQOX3m+xS3Buv7ErgZSAK+9hyJSYNj+X1SYgITIy53AgCT+DcB0RKo5AAAAABJRU5ErkJggg=="),
-  }
-  print("Starting network scene as", displayName, "connecting to", url, "on a", (lovr.headset and lovr.headset.getName() or "desktop"))
+function NetworkScene:_init(displayName, url, avatarName, isSpectatorCamera)
+
+  print("Starting network scene as", displayName, isSpectatorCamera and "(cam)" or "(user)", "connecting to", url, "on a", (lovr.headset and lovr.headset.getName() or "desktop"))
+  self.displayName = displayName
+  self.isSpectatorCamera = isSpectatorCamera
+  local avatar = self:avatarSpec(avatarName)
+
+  -- turn this off to fall back to make server decide where visors can move
+  self.useClientAuthoritativePositioning = true
+  if self.useClientAuthoritativePositioning then
+    avatar.intent = {
+      actuate_pose = "root"
+    }
+  end
+
+  -- base transform for all other engines
+  self.cameraTransform = lovr.math.newMat4()
+  self.inverseCameraTransform = lovr.math.newMat4()
+
+  self.viewPoseStack = {}
+
+  local threadedClient = allonet.create(true)
+  self.url = url
+  self.client = Client(url, displayName, threadedClient)
+  
+  self.active = true
+  self.isOverlayScene = false
+  self.head_id = ""
+  self.drawTime = 0.0
+  self.standardDt = 1.0/40.0
+  self.client.delegates.onEntityAdded = function(e) self:route("onEntityAdded", e) end
+  self.client.delegates.onEntityRemoved = function(e) self:route("onEntityRemoved", e) end
+  self.client.delegates.onComponentAdded = function(k, v) self:route("onComponentAdded", k, v) end
+  self.client.delegates.onComponentChanged = function(k, v, old) self:route("onComponentChanged", k, v, old) end
+  self.client.delegates.onComponentRemoved = function(k, v) self:route("onComponentRemoved", k, v) end
+  self.client.delegates.onInteraction = function(inter, body, receiver, sender) self:route("onInteraction", inter, body, receiver, sender) end
+  self.client.delegates.onDisconnected =  function(code, message) self:route("onDisconnect", code, message) end
+
+  self.assetManager = Asset.Manager(self.client.client)
+  self.assetManager:add(assets, true)
+  if self.client:connect(avatar) == false then
+    self:onDisconnect(1003, "Failed to connect")
+  end
+  self:super()
+end
+
+function NetworkScene:avatarSpec(avatarName)
+  if self.isSpectatorCamera then
+    return self:cameraSpec()
+  end
+
   local avatar = {
     visor = {
-      display_name = displayName,
+      display_name = self.displayName,
     },
     children = {
       {
@@ -106,7 +156,7 @@ function NetworkScene:_init(displayName, url, avatarName)
             children = {
               {
                 text = {
-                  string = displayName,
+                  string = self.displayName,
                   height = 0.66,
                   wrap = 0,
                   halign = "center",
@@ -126,43 +176,36 @@ function NetworkScene:_init(displayName, url, avatarName)
     table.remove(avatar.children, 2) -- remove right hand as it can't be simulated
   end
 
-  -- turn this off to fall back to make server decide where visors can move
-  self.useClientAuthoritativePositioning = true
-  if self.useClientAuthoritativePositioning then
-    avatar.intent = {
-      actuate_pose = "root"
+  return avatar
+end
+
+function NetworkScene:cameraSpec()
+  local avatarName = "animal"
+  return {
+    visor = {
+      display_name = self.displayName,
+    },
+    children = {
+      {
+        intent = {
+          actuate_pose = "hand/left"
+        }
+      },
+      {
+        geometry = {
+          type = "hardcoded-model",
+          name = "avatars/"..avatarName.."/head"
+        },
+        material= {
+          shader_name= "pbr"
+        },
+        intent = {
+          actuate_pose = "head"
+        }
+      },
     }
-  end
-
-  -- base transform for all other engines
-  self.cameraTransform = lovr.math.newMat4()
-  self.inverseCameraTransform = lovr.math.newMat4()
-
-  self.viewPoseStack = {}
-
-  local threadedClient = allonet.create(true)
-  self.url = url
-  self.client = Client(url, displayName, threadedClient)
+  }
   
-  self.active = true
-  self.isOverlayScene = false
-  self.head_id = ""
-  self.drawTime = 0.0
-  self.standardDt = 1.0/40.0
-  self.client.delegates.onEntityAdded = function(e) self:route("onEntityAdded", e) end
-  self.client.delegates.onEntityRemoved = function(e) self:route("onEntityRemoved", e) end
-  self.client.delegates.onComponentAdded = function(k, v) self:route("onComponentAdded", k, v) end
-  self.client.delegates.onComponentChanged = function(k, v, old) self:route("onComponentChanged", k, v, old) end
-  self.client.delegates.onComponentRemoved = function(k, v) self:route("onComponentRemoved", k, v) end
-  self.client.delegates.onInteraction = function(inter, body, receiver, sender) self:route("onInteraction", inter, body, receiver, sender) end
-  self.client.delegates.onDisconnected =  function(code, message) self:route("onDisconnect", code, message) end
-
-  self.assetManager = Asset.Manager(self.client.client)
-  self.assetManager:add(assets, true)
-  if self.client:connect(avatar) == false then
-    self:onDisconnect(1003, "Failed to connect")
-  end
-  self:super()
 end
 
 function NetworkScene:onLoad()
@@ -186,6 +229,10 @@ function NetworkScene:onLoad()
         engine:insert(self)
       end
     end
+  end
+
+  if self.isSpectatorCamera and self.parent.hideOverlay then
+    self.parent:hideOverlay()
   end
 end
 

@@ -49,7 +49,7 @@ end
 --- Setup.
 -- Connects to the menuserlv and starts the interactor
 function NetMenuScene:onLoad()
-  self.net = NetworkScene("owner", "alloplace://localhost:"..tostring(self.menuServerPort), settings.d.avatarName)
+  self.net = NetworkScene("owner", "alloplace://localhost:"..tostring(self.menuServerPort), settings.d.avatarName, false)
   self.net.debug = settings.d.debug
   self.net.isMenu = true
   self.net:insert(self)
@@ -193,7 +193,8 @@ function NetMenuScene.dynamicActions:connect(url)
   self:saveRecentPlace(url, nil)
 
   local displayName = settings.d.username and settings.d.username or "Unnamed"
-  local net = lovr.scenes:showPlace(displayName, url, settings.d.avatarName, settings.d.avatarName)
+  local isSpectatorCamera = displayName == "Camera"
+  local net = lovr.scenes:showPlace(displayName, url, settings.d.avatarName, isSpectatorCamera)
   net.debug = settings.d.debug
 end
 

@@ -112,11 +112,18 @@ end
 function PoseEng:updateSimulatedSticks(dt)
   if not self.keyboard then return end
   if not self.keyboardLeftStick then self.keyboardLeftStick = lovr.math.newVec2() end
+
+  local stickSpeed = 1.0
+  local lerpAmount = 8
+  if self.parent.isSpectatorCamera then
+    stickSpeed = 0.4
+    lerpAmount = 4
+  end
   
-  local xDest = self:isKeyboardButtonPressed("d") and 1 or (self:isKeyboardButtonPressed("a") and -1 or 0)
-  local yDest = self:isKeyboardButtonPressed("w") and 1 or (self:isKeyboardButtonPressed("s") and -1 or 0)
+  local xDest = self:isKeyboardButtonPressed("d") and stickSpeed or (self:isKeyboardButtonPressed("a") and -stickSpeed or 0)
+  local yDest = self:isKeyboardButtonPressed("w") and stickSpeed or (self:isKeyboardButtonPressed("s") and -stickSpeed or 0)
   local dest = lovr.math.vec2(xDest, yDest)
-  self.keyboardLeftStick:lerp(dest, dt*8)
+  self.keyboardLeftStick:lerp(dest, dt*lerpAmount)
   if math.abs(self.keyboardLeftStick.x) + math.abs(self.keyboardLeftStick.y) < 0.01 then
     self.keyboardLeftStick:set(0,0)
   end

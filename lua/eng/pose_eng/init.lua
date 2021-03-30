@@ -102,8 +102,7 @@ function PoseEng:onDraw()
   local view = lovr.math.mat4()
   lovr.graphics.getViewPose(1, view, true)
   self.mvp:mul(view)
-
-  if self.parent.active then
+  if self.parent.active and not self.parent.isSpectatorCamera then
     for _, ray in ipairs(self.handRays) do
       ray:draw()
     end
