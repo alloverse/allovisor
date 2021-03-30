@@ -47,11 +47,11 @@ function Stats:onMirror()
 
         if self.parent.menu and self.parent.menu.net.assetManager then 
             local stat = self.parent.menu.net.assetManager:getStats()
-            s = s .. "Menu AssetManager: " .. stat["published"] .. ", " .. stat["loading"] .. ", " .. stat["cached"] .. "\n"
+            s = s .. "Menu AssetManager: " .. stat["published"] .. ", " .. stat["loading"] .. ", " .. stat["cached"] .. ", " .. stat["disk"] .. "\n"
         end
         if self.parent.net and self.parent.net.assetManager then 
             local stat = self.parent.net.assetManager:getStats()
-            s = s .. "Game AssetManager: " .. stat["published"] .. ", " .. stat["loading"] .. ", " .. stat["cached"] .. "\n"
+            s = s .. "Game AssetManager: " .. stat["published"] .. ", " .. stat["loading"] .. ", " .. stat["cached"] .. ", " .. stat["disk"] .. "\n"
         end
 
 
