@@ -15,6 +15,7 @@ local pretty = require "pl.pretty"
 local Client = require "alloui.client"
 local Stats = require("scenes.stats")
 local Asset = require("lib.alloui.lua.alloui.asset")
+local LovrAsset = require("lib.lovrasset")
 
 local engines = {
   SoundEng = require "eng.sound_eng",
@@ -34,8 +35,15 @@ local util = require "lib.util"
 
 local NetworkScene = classNamed("NetworkScene", OrderedEnt)
 function NetworkScene:_init(displayName, url, avatarName, isSpectatorCamera)
-
   print("Starting network scene as", displayName, isSpectatorCamera and "(cam)" or "(user)", "connecting to", url, "on a", (lovr.headset and lovr.headset.getName() or "desktop"))
+  
+  local avatarsRoot = "/assets/models/avatars"
+  for _, avatarName in ipairs(lovr.filesystem.getDirectoryItems(avatarsRoot)) do
+    for _, partName in ipairs({"head", "left-hand", "right-hand", "torso"}) do
+      assets["avatars/"..avatarName.."/"..partName] = LovrAsset(avatarsRoot.."/"..avatarName.."/"..partName..".glb", true)
+    end
+  end
+  
   self.displayName = displayName
   self.isSpectatorCamera = isSpectatorCamera
   local avatar = self:avatarSpec(avatarName)
@@ -91,8 +99,8 @@ function NetworkScene:avatarSpec(avatarName)
     children = {
       {
         geometry = {
-          type = "hardcoded-model",
-          name = "avatars/"..avatarName.."/left-hand"
+          type = "asset",
+          name = assets["avatars/"..avatarName.."/left-hand"]:id()
         },
         intent = {
           actuate_pose = "hand/left"
@@ -103,8 +111,8 @@ function NetworkScene:avatarSpec(avatarName)
       },
       {
         geometry = {
-          type = "hardcoded-model",
-          name = "avatars/"..avatarName.."/right-hand"
+          type = "asset",
+          name = assets["avatars/"..avatarName.."/right-hand"]:id()
         },
         intent = {
           actuate_pose = "hand/right"
@@ -115,8 +123,8 @@ function NetworkScene:avatarSpec(avatarName)
       },
       {
         geometry = {
-          type = "hardcoded-model",
-          name = "avatars/"..avatarName.."/head"
+          type = "asset",
+          name = assets["avatars/"..avatarName.."/head"]:id()
         },
         material= {
           shader_name= "pbr"
@@ -127,8 +135,8 @@ function NetworkScene:avatarSpec(avatarName)
       },
       {
         geometry = {
-          type = "hardcoded-model",
-          name = "avatars/"..avatarName.."/torso"
+          type = "asset",
+          name = assets["avatars/"..avatarName.."/torso"]:id()
         },
         material= {
           shader_name= "pbr"
@@ -193,8 +201,8 @@ function NetworkScene:cameraSpec()
       },
       {
         geometry = {
-          type = "hardcoded-model",
-          name = "avatars/"..avatarName.."/head"
+          type = "asset",
+          name = assets["avatars/"..avatarName.."/head"]:id()
         },
         material= {
           shader_name= "pbr"
