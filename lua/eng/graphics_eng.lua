@@ -46,9 +46,6 @@ function GraphicsEng:onLoad()
   self.basicShader = alloBasicShader
   self.pbrShader = alloPbrShader
 
-  self.assetManager = self.parent.assetManager
-  assert(self.assetManager)
-
   lovr.graphics.setBackgroundColor(.05, .05, .05)
   
   self.cloudSkybox = lovr.graphics.newTexture({
@@ -76,21 +73,6 @@ function GraphicsEng:onLoad()
   end
 end
 
-
--- callback(asset)
--- returns the asset if it was found in cache
-function GraphicsEng:getAsset(name, callback)
-  assert(name, "name must not be nil")
-  local cached = nil
-  self.assetManager:load(name, function (name, asset)
-    if asset == nil then 
-      print("Asset " .. name .. " was not found on network")
-    end
-    cached = asset
-    callback(asset)
-  end)
-  return cached
-end
 
 --- Called each frame to draw the world
 -- Called by Ent
@@ -343,7 +325,7 @@ function GraphicsEng:loadComponentModel(component, old_component)
   elseif component.type == "inline" then 
     self.models_for_eids[eid] = self:createMesh(component, old_component)
   elseif component.type == "asset" then
-    local cached = self:getAsset(component.name, function (asset)
+    local cached = self.parent.engines.assets:getAsset(component.name, function (asset)
       if asset then 
         local model = self:modelFromAsset(asset, function (model)
           self.models_for_eids[eid] = model
@@ -466,7 +448,7 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
     apply()
   else
     if string.match(textureName, "asset:") then
-      self:getAsset(textureName, function(asset)
+      self.parent.engines.assets:getAsset(textureName, function(asset)
         if asset then 
           local texture = self:textureFromAsset(asset, function (texture)
             mat:setTexture(texture)
@@ -697,46 +679,9 @@ function GraphicsEng:generateGeometryWithNormals(geom)
 end
 
 
-
---- Loads asset data asynchronously. 
--- type should be "model-asset" or "texture-asset"
--- returns true if asynchronous loading started, or false if 
--- object was already loaded and callback called immediately
-function GraphicsEng:_loadFromAsset(asset, type, callback)
-  if asset._lovrObject then 
-    callback(asset._lovrObject)
-    return
-  end
-  if asset._lovrObjectLoadingCallbacks then
-    table.insert(asset._lovrObjectLoadingCallbacks, callback)
-    return
-  end
-  asset._lovrObjectLoadingCallbacks = {callback}
-
-  local blob = lovr.data.newBlob(asset:read(), asset:id())
-
-  loader:load(
-    type,
-    asset:id(),
-    function(object, status)
-      local model
-      if object == nil or status == false then
-        print("Failed to load " .. type, asset:id(), object)
-      else
-        asset._lovrObject = object
-      end
-      for _, cb in ipairs(asset._lovrObjectLoadingCallbacks) do
-        cb(asset._lovrObject)
-      end
-      asset._lovrObjectLoadingCallbacks = nil
-    end,
-    blob
-  )
-end
-
 function GraphicsEng:modelFromAsset(asset, callback)
-  if self:_loadFromAsset(asset, "model-asset", function (modelData)
-    if modelData then
+  if self.parent.engines.assets:loadFromAsset(asset, "model-asset", function (modelData)
+    if modelData then 
       callback(lovr.graphics.newModel(modelData))
     else
       print("Failed to parse model data for " .. asset:id())
@@ -748,7 +693,7 @@ function GraphicsEng:modelFromAsset(asset, callback)
 end
 
 function GraphicsEng:textureFromAsset(asset, callback)
-  self:_loadFromAsset(asset, "texture-asset", function (textureData)
+  self.parent.engines.assets:loadFromAsset(asset, "texture-asset", function (textureData)
     if textureData then 
       callback(lovr.graphics.newTexture(textureData))
     else
