@@ -713,7 +713,7 @@ function GraphicsEng:_loadFromAsset(asset, type, callback)
   end
   asset._lovrObjectLoadingCallbacks = {callback}
 
-  local blob = lovr.data.newBlob(asset.data, asset:id())
+  local blob = lovr.data.newBlob(asset:read(), asset:id())
 
   loader:load(
     type,
@@ -736,9 +736,10 @@ end
 
 function GraphicsEng:modelFromAsset(asset, callback)
   if self:_loadFromAsset(asset, "model-asset", function (modelData)
-    if modelData then 
+    if modelData then
       callback(lovr.graphics.newModel(modelData))
     else
+      print("Failed to parse model data for " .. asset:id())
       callback(self.hardcoded_models.broken)
     end
   end) then
@@ -748,7 +749,11 @@ end
 
 function GraphicsEng:textureFromAsset(asset, callback)
   self:_loadFromAsset(asset, "texture-asset", function (textureData)
-    callback(lovr.graphics.newTexture(textureData))
+    if textureData then 
+      callback(lovr.graphics.newTexture(textureData))
+    else
+      print("Failed to load texture data")
+    end
   end)
 end
 

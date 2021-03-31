@@ -25,106 +25,32 @@ local engines = {
   AssetsEng = require "eng.assets_eng",
 }
 
+local assets = {
+  nameTag = Asset.Base64("iVBORw0KGgoAAAANSUhEUgAAAMAAAABACAMAAAB7sojtAAABKVBMVEUAAAA4OFA1Mko3NUo3Nkw3NUw3NUs3NUw2NEw2M0k4MFA4NEw3NU03NUs0NExAMFA2Nkw2NEw3NU02Nks2NEw3NUw3NUxcW22OjZq0s7za2d3m5uj////NzNKop7E3NUw3N0s3NU1paHjy8vTm5uk3NUyCgY83NUvl5ehQTmI3NUxEQlenp7CnprA4NEw1NUtcWm7x8fP+/v41NUpAMECmpbA2Nkw2NUxpZ3nMy9GCgI/a2t42NUtdW243NUo2M0xcWm01Mk2PjZo3NEyzsrw3Nks2NUzY2Nw2NUvMzNG0s7s3M0w3NEo4OEg3NUs3NU04NEw4NkswMFCnp7GnprFDQlc5NEs3NEw3NEs2NUvNzdI3NEza2t04NUpAQEA2NUw3NUw2NE02NExc4EV1AAAAY3RSTlMAIGCQr8/f/4BQIEDfn0AQf+/eX+5vv///////////7nCP/////v+e//++////f47///9gEP+A7/////+g/49Q/2D/r/+vz//O//+QTyDenoBfEP///3C/cJ//vv9gEKCQr89JTxAdAAACbklEQVR4AezZA7YlQQwG4Dx17lybebZt27b3v4uZ6s7pa4yTc963gcJfSaOgmqbmltY2CwWw2lo937zwU3wtFgrjDwShQaFwBEWKxrxqp8/i4bpLSMidPqcAtXiTKF7U2+D2p9KZbI4EyLV3pFOY19kFVXSjq6ejl0Tpy+TX0B+GigL56beTQNkBZDgIFbQJnj4bGkY2Un3/R8dIsPHRahlMoGOY61Z8CJMl/QcdU70k3PQUV3IXFPBy/xwgBbiWO72Q5+f9Jw1mpsoKeZbPfy+pMD1ccoi8TgCjOVJiaBSNzrniJ/AYqTGPtgUOYBGNFOkxs8QRFFZAjhRZ5ggKWtAKkcII4Acf2laJ9EXQHwSANTTWiTRGsOGeoAwpM45GFMCrrYTZNBr9TbCp7QSxmS17AdvgQSNN6uxwEezyU1idPTT24QCNdlLnEI0jsNTVMBviNoQ20mcGjf6vBfyurwWoL+IDde+i7Jjb6C4aJ6TOOD/ITnW/SnigWffL3Bmco61XZw33nwO3oTGd73IXAFwESypPEF7mP+rb9b2L8kc9LGqMYIBPkHGlMAIu4WswbvRFMDOMRuc5FEZwS2rc5f8sFkRwr+33+sU5sAedFxzX4HrUeMV0AXnni2hbUXTJFz+HAg/6rlmfoMiptovuBSixho570d20YxQdz1DmANm62BBelpC9AivJgK28SZ1+lf1nV+iaygiLobdjCV0bUMXDIuZNpTteRKwi95ZJT2Fe/AmqOrdQvNdzqOVd+BJqbD87P42gWJGrD6jvnFNQOX3m+xS3Buv7ErgZSAK+9hyJSYNj+X1SYgITIy53AgCT+DcB0RKo5AAAAABJRU5ErkJggg=="),
+}
+
 require "lib.allostring"
 local util = require "lib.util"
 
 local NetworkScene = classNamed("NetworkScene", OrderedEnt)
-function NetworkScene:_init(displayName, url, avatarName)
-  local assets = {
-    nameTag = Asset.Base64("iVBORw0KGgoAAAANSUhEUgAAAMAAAABACAMAAAB7sojtAAABKVBMVEUAAAA4OFA1Mko3NUo3Nkw3NUw3NUs3NUw2NEw2M0k4MFA4NEw3NU03NUs0NExAMFA2Nkw2NEw3NU02Nks2NEw3NUw3NUxcW22OjZq0s7za2d3m5uj////NzNKop7E3NUw3N0s3NU1paHjy8vTm5uk3NUyCgY83NUvl5ehQTmI3NUxEQlenp7CnprA4NEw1NUtcWm7x8fP+/v41NUpAMECmpbA2Nkw2NUxpZ3nMy9GCgI/a2t42NUtdW243NUo2M0xcWm01Mk2PjZo3NEyzsrw3Nks2NUzY2Nw2NUvMzNG0s7s3M0w3NEo4OEg3NUs3NU04NEw4NkswMFCnp7GnprFDQlc5NEs3NEw3NEs2NUvNzdI3NEza2t04NUpAQEA2NUw3NUw2NE02NExc4EV1AAAAY3RSTlMAIGCQr8/f/4BQIEDfn0AQf+/eX+5vv///////////7nCP/////v+e//++////f47///9gEP+A7/////+g/49Q/2D/r/+vz//O//+QTyDenoBfEP///3C/cJ//vv9gEKCQr89JTxAdAAACbklEQVR4AezZA7YlQQwG4Dx17lybebZt27b3v4uZ6s7pa4yTc963gcJfSaOgmqbmltY2CwWw2lo937zwU3wtFgrjDwShQaFwBEWKxrxqp8/i4bpLSMidPqcAtXiTKF7U2+D2p9KZbI4EyLV3pFOY19kFVXSjq6ejl0Tpy+TX0B+GigL56beTQNkBZDgIFbQJnj4bGkY2Un3/R8dIsPHRahlMoGOY61Z8CJMl/QcdU70k3PQUV3IXFPBy/xwgBbiWO72Q5+f9Jw1mpsoKeZbPfy+pMD1ccoi8TgCjOVJiaBSNzrniJ/AYqTGPtgUOYBGNFOkxs8QRFFZAjhRZ5ggKWtAKkcII4Acf2laJ9EXQHwSANTTWiTRGsOGeoAwpM45GFMCrrYTZNBr9TbCp7QSxmS17AdvgQSNN6uxwEezyU1idPTT24QCNdlLnEI0jsNTVMBviNoQ20mcGjf6vBfyurwWoL+IDde+i7Jjb6C4aJ6TOOD/ITnW/SnigWffL3Bmco61XZw33nwO3oTGd73IXAFwESypPEF7mP+rb9b2L8kc9LGqMYIBPkHGlMAIu4WswbvRFMDOMRuc5FEZwS2rc5f8sFkRwr+33+sU5sAedFxzX4HrUeMV0AXnni2hbUXTJFz+HAg/6rlmfoMiptovuBSixho570d20YxQdz1DmANm62BBelpC9AivJgK28SZ1+lf1nV+iaygiLobdjCV0bUMXDIuZNpTteRKwi95ZJT2Fe/AmqOrdQvNdzqOVd+BJqbD87P42gWJGrD6jvnFNQOX3m+xS3Buv7ErgZSAK+9hyJSYNj+X1SYgITIy53AgCT+DcB0RKo5AAAAABJRU5ErkJggg=="),
-  }
-  print("Starting network scene as", displayName, "connecting to", url, "on a", (lovr.headset and lovr.headset.getName() or "desktop"))
-  local avatar = {
-    visor = {
-      display_name = displayName,
-    },
-    children = {
-      {
-        geometry = {
-          type = "hardcoded-model",
-          name = "avatars/"..avatarName.."/left-hand"
-        },
-        intent = {
-          actuate_pose = "hand/left"
-        },
-        material= {
-          shader_name= "pbr"
-        }
-      },
-      {
-        geometry = {
-          type = "hardcoded-model",
-          name = "avatars/"..avatarName.."/right-hand"
-        },
-        intent = {
-          actuate_pose = "hand/right"
-        },
-        material= {
-          shader_name= "pbr"
-        }
-      },
-      {
-        geometry = {
-          type = "hardcoded-model",
-          name = "avatars/"..avatarName.."/head"
-        },
-        material= {
-          shader_name= "pbr"
-        },
-        intent = {
-          actuate_pose = "head"
-        }
-      },
-      {
-        geometry = {
-          type = "hardcoded-model",
-          name = "avatars/"..avatarName.."/torso"
-        },
-        material= {
-          shader_name= "pbr"
-        },
-        intent = {
-          actuate_pose = "torso"
-        },
-        children = {
-          {
-            geometry = {
-              type = "inline",
-              vertices=   {{-0.1, -0.033, 0.0},  {0.1, -0.033, 0.0},  {-0.1, 0.033, 0.0}, {0.1, 0.033, 0.0}},
-              uvs=        {{0.0, 0.0},          {1.0, 0.0},         {0.0, 1.0},        {1.0, 1.0}},
-              triangles=  {{0, 1, 3},           {0, 3, 2},          {1, 0, 2},         {1, 2, 3}},
-            },
-            material = {
-              texture = assets.nameTag:id(),
-              hasTransparency = true
-            },
-            transform = {
-              matrix={
-                lovr.math.mat4():rotate(3.14, 0, 1, 0):translate(0, 0.3, 0.05):rotate(-3.14/8, 1, 0, 0):unpack(true)
-              }
-            },
-            children = {
-              {
-                text = {
-                  string = displayName,
-                  height = 0.66,
-                  wrap = 0,
-                  halign = "center",
-                  fitToWidth = 0.16
-                },
-                material = {
-                  color = {0.21484375,0.20703125,0.30078125,1}
-                }
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-  if lovr.headset == nil or lovr.headset.getDriver() == "desktop" then
-    table.remove(avatar.children, 2) -- remove right hand as it can't be simulated
+function NetworkScene:_init(displayName, url, avatarName, isSpectatorCamera)
+  print("Starting network scene as", displayName, isSpectatorCamera and "(cam)" or "(user)", "connecting to", url, "on a", (lovr.headset and lovr.headset.getName() or "desktop"))
+  
+  local avatarsRoot = "/assets/models/avatars"
+  for _, avatarName in ipairs(lovr.filesystem.getDirectoryItems(avatarsRoot)) do
+    for _, partName in ipairs({"head", "left-hand", "right-hand", "torso"}) do
+      local path = avatarsRoot.."/"..avatarName.."/"..partName..".glb"
+      if lovr.filesystem.isFile(path) then 
+        assets["avatars/"..avatarName.."/"..partName] = Asset.LovrFile(avatarsRoot.."/"..avatarName.."/"..partName..".glb", true)
+      else
+        print(path .. " is not an avatar file")
+      end
+    end
   end
+  
+  self.displayName = displayName
+  self.isSpectatorCamera = isSpectatorCamera
+  local avatar = self:avatarSpec(avatarName)
 
   -- turn this off to fall back to make server decide where visors can move
   self.useClientAuthoritativePositioning = true
@@ -165,6 +91,135 @@ function NetworkScene:_init(displayName, url, avatarName)
   self:super()
 end
 
+function NetworkScene:avatarSpec(avatarName)
+  if self.isSpectatorCamera then
+    return self:cameraSpec()
+  end
+
+  local avatar = {
+    visor = {
+      display_name = self.displayName,
+    },
+    children = {
+      {
+        geometry = {
+          type = "asset",
+          name = assets["avatars/"..avatarName.."/left-hand"]:id()
+        },
+        intent = {
+          actuate_pose = "hand/left"
+        },
+        material= {
+          shader_name= "pbr"
+        }
+      },
+      {
+        geometry = {
+          type = "asset",
+          name = assets["avatars/"..avatarName.."/right-hand"]:id()
+        },
+        intent = {
+          actuate_pose = "hand/right"
+        },
+        material= {
+          shader_name= "pbr"
+        }
+      },
+      {
+        geometry = {
+          type = "asset",
+          name = assets["avatars/"..avatarName.."/head"]:id()
+        },
+        material= {
+          shader_name= "pbr"
+        },
+        intent = {
+          actuate_pose = "head"
+        }
+      },
+      {
+        geometry = {
+          type = "asset",
+          name = assets["avatars/"..avatarName.."/torso"]:id()
+        },
+        material= {
+          shader_name= "pbr"
+        },
+        intent = {
+          actuate_pose = "torso"
+        },
+        children = {
+          {
+            geometry = {
+              type = "inline",
+              vertices=   {{-0.1, -0.033, 0.0},  {0.1, -0.033, 0.0},  {-0.1, 0.033, 0.0}, {0.1, 0.033, 0.0}},
+              uvs=        {{0.0, 0.0},          {1.0, 0.0},         {0.0, 1.0},        {1.0, 1.0}},
+              triangles=  {{0, 1, 3},           {0, 3, 2},          {1, 0, 2},         {1, 2, 3}},
+            },
+            material = {
+              texture = assets.nameTag:id(),
+              hasTransparency = true
+            },
+            transform = {
+              matrix={
+                lovr.math.mat4():rotate(3.14, 0, 1, 0):translate(0, 0.3, 0.05):rotate(-3.14/8, 1, 0, 0):unpack(true)
+              }
+            },
+            children = {
+              {
+                text = {
+                  string = self.displayName,
+                  height = 0.66,
+                  wrap = 0,
+                  halign = "center",
+                  fitToWidth = 0.16
+                },
+                material = {
+                  color = {0.21484375,0.20703125,0.30078125,1}
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  if lovr.headset == nil or lovr.headset.getDriver() == "desktop" then
+    table.remove(avatar.children, 2) -- remove right hand as it can't be simulated
+  end
+
+  return avatar
+end
+
+function NetworkScene:cameraSpec()
+  local avatarName = "animal"
+  return {
+    visor = {
+      display_name = self.displayName,
+    },
+    children = {
+      {
+        intent = {
+          actuate_pose = "hand/left"
+        }
+      },
+      {
+        geometry = {
+          type = "asset",
+          name = assets["avatars/"..avatarName.."/head"]:id()
+        },
+        material= {
+          shader_name= "pbr"
+        },
+        intent = {
+          actuate_pose = "head"
+        }
+      },
+    }
+  }
+  
+end
+
 function NetworkScene:onLoad()
   if self.client ~= nil then
     -- Engines. These do the heavy lifting.
@@ -186,6 +241,10 @@ function NetworkScene:onLoad()
         engine:insert(self)
       end
     end
+  end
+
+  if self.isSpectatorCamera and self.parent.hideOverlay then
+    self.parent:hideOverlay()
   end
 end
 

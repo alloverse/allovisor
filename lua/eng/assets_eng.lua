@@ -35,7 +35,7 @@ function AssetsEng:onFileDrop(path)
         local entity, ray = self.parent.engines.pose:highlightedEntity()
         if entity and ray and acceptsFile(entity) then
 
-            local asset = Asset.File(path, true)
+            local asset = Asset.File(path)
             local _, _, filename = string.find(path, "([^/\\]+)$")
 
             self.parent.engines.graphics.assetManager:add(asset, true)
@@ -64,7 +64,7 @@ function AssetsEng:onUpdate(dt)
         -- If any files were dropped in 'not connected yet' mode then load them in as test files
         self.parent.engines.graphics.testModels = {}
         for _, path in ipairs(self.droppedPaths) do
-            self.parent.engines.graphics:modelFromAsset(Asset.File(path, true), function (model)
+            self.parent.engines.graphics:modelFromAsset(Asset.File(path), function (model)
                 table.insert(self.parent.engines.graphics.testModels, model)
             end)
         end
