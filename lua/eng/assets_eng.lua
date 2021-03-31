@@ -38,7 +38,7 @@ end
 -- Supported types:
 -- * "model-asset"
 -- * "texture-asset"
--- * "soundeffect-asset"
+-- * "sound-asset"
 -- returns true if asynchronous loading started, or false if 
 -- object was already loaded and callback called immediately
 function AssetsEng:loadFromAsset(asset, type, callback)

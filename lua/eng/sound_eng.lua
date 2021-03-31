@@ -108,10 +108,10 @@ function SoundEng:setAudioPositionForEntitiy(entity)
   if media then
     local track_id = media.track_id
     voice = self.audio[track_id]  
-    if voice == nil then return end 
   elseif effect then
-    voice = self.effects[entity.id].source
+    voice = self.effects[entity.id]
   end
+  if voice == nil or voice.source == nil then return end 
 
   local matrix = entity.components.transform:getMatrix()
   local x, y, z, sx, sy, sz, a, ax, ay, az = matrix:unpack()
@@ -181,6 +181,9 @@ function SoundEng:onUpdate(dt)
 
   for _, entity in pairs(self.client.state.entities) do
     self:setAudioPositionForEntitiy(entity)
+    if entity.components.sound_effect then
+      self:updateSoundEffect(self.effects[entity.id], entity.components.sound_effect)
+    end
   end
   if self.head then
     local matrix = self.head.components.transform:getMatrix()
@@ -189,13 +192,26 @@ function SoundEng:onUpdate(dt)
   end
 end
 
+function SoundEng:onComponentAdded(component_key, component)
+  if component_key == "sound_effect" then
+    self:onSoundEffectAdded(component)
+  end
+end
+
+function SoundEng:onComponentChanged(component_key, component)
+  if component_key == "sound_effect" then
+    self:onSoundEffectChanged(component)
+  end
+end
+
 function SoundEng:onComponentRemoved(component_key, component)
   if component_key == "live_media" then
-    self:onliveMediaRemoved(component)
+    self:onLiveMediaRemoved(component)
   elseif component_key == "sound_effect" then
     self:onSoundEffectRemoved(component)
   end
 end
+
 function SoundEng:onLiveMediaRemoved(component)
   local audio = self.audio[component.track_id]
   print("Removing incoming audio channel ", component.track_id)
@@ -205,15 +221,82 @@ function SoundEng:onLiveMediaRemoved(component)
   audio.source:stop()
   self.audio[component.track_id] = nil
 end
-function SoundEng:onLiveMediaRemoved(component)
+
+function SoundEng:onSoundEffectAdded(component)
+  local eid = component:getEntity().id
+  local voice = {
+    assetId = component.asset
+  }
+  self.effects[eid] = voice
+
+  self.parent.engines.assets:getAsset(component.asset, function (asset)
+    local model = self:sourceFromAsset(asset, function (source)
+      voice.source = source
+    end)
+  end)
+end
+
+function SoundEng:onSoundEffectChanged(component)
   local eid = component:getEntity().id
   local voice = self.effects[eid]
-  print("Removing sound effect for ", eid)
+  if voice and component.asset ~= voice.assetId then
+    self:onSoundEffectRemoved(component)
+    self:onSoundEffectAdded(component)
+  end
+end
+
+function SoundEng:onSoundEffectRemoved(component)
+  local eid = component:getEntity().id
+  local voice = self.effects[eid]
+  if component.finish_if_orphaned and voice.source and voice.source:isPlaying() then
+    voice.removeWhenStopped = true
+  end
 
   if voice == nil then return end
 
   voice.source:stop()
-  self.effects[omponent:getEntity().id] = nil
+  self.effects[component:getEntity().id] = nil
+end
+
+function SoundEng:updateSoundEffect(voice, comp)
+  if voice.source == nil then return end
+  local eid = comp:getEntity().id
+
+  local now = self.client.client:get_time()
+  local startsAt = comp.starts_at
+  local oneLength = comp.length or voice.source:getDuration('seconds')
+  local loopCount = comp.loop_count or 0
+  local playCount = loopCount + 1
+  local endsAt = comp.starts_at + oneLength * playCount
+
+  local shouldBePlaying = now > startsAt and now < endsAt
+
+  if shouldBePlaying then
+    local globalPosition = now - startsAt
+    local localPosition = math.fmod(globalPosition, oneLength)
+    local offset = comp.offset or 0.0
+    local localTrimmedPosition = offset + localPosition
+    local currentPosition = voice.source:getTime()
+    if math.abs(currentPosition - localTrimmedPosition) > 0.1 then
+      -- try to play sounds from exact start even if we slightly missed the start time.
+      if localTrimmedPosition < 0.1 then
+        localTrimmedPosition = 0
+      end
+      voice.source:setTime(localTrimmedPosition)
+    end
+  end
+
+  if shouldBePlaying and not voice.source:isPlaying() then
+    local volume = comp.volume or 1.0
+    voice.source:setVolume(volume)
+    voice.source:setLooping(loopCount > 0)
+    voice.source:play()
+  elseif not shouldBePlaying and voice.source:isPlaying() then
+    voice.source:stop()
+    if voice.removeWhenStopped then
+      self:onComponentRemoved("sound_effect", comp)
+    end
+  end
 end
 
 function SoundEng:onDisconnect()
@@ -222,6 +305,16 @@ function SoundEng:onDisconnect()
   end
 
   lovr.audio.stop()
+end
+
+function SoundEng:sourceFromAsset(asset, callback)
+  self.parent.engines.assets:loadFromAsset(asset, "sound-asset", function (soundData)
+    if soundData then 
+      callback(lovr.audio.newSource(soundData))
+    else
+      print("Failed to parse sound data for " .. asset:id())
+    end
+  end)
 end
 
 return SoundEng
