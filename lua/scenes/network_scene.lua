@@ -230,7 +230,7 @@ function NetworkScene:onLoad()
       text = engines.TextEng(),
       assets = engines.AssetsEng(),
     }
-    if engines.SoundEng.supported() and not self.isMenu then
+    if engines.SoundEng.supported() then
       self.engines.sound = engines.SoundEng()
     end
     

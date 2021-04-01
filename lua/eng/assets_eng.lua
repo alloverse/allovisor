@@ -6,12 +6,72 @@ namespace("networkscene", "alloverse")
 local AssetsEng = classNamed("AssetsEng", Ent)
 local Asset = require('lib.alloui.lua.alloui.asset')
 local tablex = require "pl.tablex"
+local loader = require "lib.async-loader"
 
 function AssetsEng:_init()
     self:super()
     self.droppedPaths = nil
 end
 
+function AssetsEng:onLoad()
+    self.assetManager = self.parent.assetManager
+    assert(self.assetManager)
+end
+
+-- callback(asset)
+-- returns the asset if it was found in cache
+function AssetsEng:getAsset(name, callback)
+    assert(name, "name must not be nil")
+    local cached = nil
+    self.assetManager:load(name, function (name, asset)
+        if asset == nil then 
+            print("Asset " .. name .. " was not found on network")
+        end
+        cached = asset
+        callback(asset)
+    end)
+    return cached
+end
+
+
+--- Loads asset data asynchronously. 
+-- Supported types:
+-- * "model-asset"
+-- * "texture-asset"
+-- * "sound-asset"
+-- returns true if asynchronous loading started, or false if 
+-- object was already loaded and callback called immediately
+function AssetsEng:loadFromAsset(asset, type, callback)
+    if asset._lovrObject then 
+      callback(asset._lovrObject)
+      return
+    end
+    if asset._lovrObjectLoadingCallbacks then
+      table.insert(asset._lovrObjectLoadingCallbacks, callback)
+      return
+    end
+    asset._lovrObjectLoadingCallbacks = {callback}
+  
+    local blob = lovr.data.newBlob(asset:read(), asset:id())
+  
+    loader:load(
+      type,
+      asset:id(),
+      function(object, status)
+        local model
+        if object == nil or status == false then
+          print("Failed to load " .. type, asset:id(), object)
+        else
+          asset._lovrObject = object
+        end
+        for _, cb in ipairs(asset._lovrObjectLoadingCallbacks) do
+          cb(asset._lovrObject)
+        end
+        asset._lovrObjectLoadingCallbacks = nil
+      end,
+      blob
+    )
+  end
 function AssetsEng:onFileDrop(path)
     print(self, "got a file drop:", path)
 
