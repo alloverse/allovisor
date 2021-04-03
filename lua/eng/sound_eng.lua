@@ -254,7 +254,9 @@ function SoundEng:onSoundEffectRemoved(component)
 
   if voice == nil then return end
 
-  voice.source:stop()
+  if voice.source then
+    voice.source:stop()
+  end
   self.effects[component:getEntity().id] = nil
 end
 
