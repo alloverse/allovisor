@@ -12,6 +12,7 @@ SET(ALLO_LUA_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lua)
 
 # Build settings that need to go before add_subdirectory
 SET(LOVR_BUILD_SHARED ON CACHE BOOL "Always build lovr as library")
+SET(LOVR_BUILD_WITH_EXPORTED_INTERNALS ON CACHE BOOL "Declare bravery")
 SET(LOVR_BUILD_BUNDLE ON CACHE BOOL "Always build lovr bundle on mac")
 SET(LOVR_ENABLE_ENET OFF CACHE BOOL "Disable Lovr enet since allonet embeds its own")
 set(ALLONET_USE_LUA ON CACHE BOOL "Request Lua bridge")
@@ -68,7 +69,7 @@ add_subdirectory (deps/allonet)
 
 # Build settings that go after add_subdirectory (i e only applies
 # to these targets, not dependencies' targets)
-include_directories(deps/lovr/src)
+include_directories(deps/lovr/src deps/lovr/src/modules)
 include_directories(deps/lovr/deps/luajit/src ${CMAKE_BINARY_DIR}/deps/lovr/luajit)
 
 
