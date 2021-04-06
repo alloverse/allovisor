@@ -1,8 +1,9 @@
 local stringx = require("pl.stringx")
+lovr.system = require("lovr.system")
 
 function load_allonet()
   -- load allonet from dll
-  local os = lovr.getOS()    
+  local os = lovr.system.getOS()    
   local err = nil
   local pkg = nil
   if os == "Windows" then
@@ -53,7 +54,7 @@ function load_allonet()
 end
 
 function isDesktop()
-  local os = lovr.getOS()
+  local os = lovr.system.getOS()
   return os == "macOS" or os == "Windows" or os == "Linux"
 end
 

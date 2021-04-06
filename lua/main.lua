@@ -373,7 +373,7 @@ function lovr.run()
     local deltaFramLastFrame = beforeWork-lastFrameTime
     local maxFramerate = 60.0
     local sleepAmount = 1.0/maxFramerate - deltaFramLastFrame
-    if lovr.getOS() == "macOS" and sleepAmount > 0 then
+    if lovr.system.getOS() == "macOS" and sleepAmount > 0 then
       lovr.timer.sleep(sleepAmount)
     end
     lastFrameTime = beforeWork

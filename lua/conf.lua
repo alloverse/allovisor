@@ -1,4 +1,5 @@
 lovr.data = require("lovr.data")
+lovr.system = require("lovr.system")
 
 function tablefind(tab,el)
     for index, value in pairs(tab) do
@@ -34,7 +35,6 @@ function lovr.conf(t)
 
   t.identity = "alloverse"
   t.window.title = "Alloverse"
-  if lovr.getOS() ~= "macOS" then -- osx windows don't have icons
-    t.window.icon = lovr.data.newTextureData("assets/alloverse-logo.png", false)    
+  if lovr.system.getOS() ~= "macOS" then -- osx windows don't have icons
   end
 end
