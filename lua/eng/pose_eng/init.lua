@@ -210,7 +210,7 @@ function PoseEng:getPose(device)
         local worldFromHand = worldFromAvatar:mul(pose)
         local from = worldFromHand:mul(lovr.math.vec3())
         local to = self.mouseInWorld
-        worldFromHand:identity():lookAt(from, to):translate(0,0,-0.35)
+        worldFromHand:identity():target(from, to):translate(0,0,-0.35)
         local avatarFromHand = avatarFromWorld * worldFromHand
         pose:set(avatarFromHand)
       else
