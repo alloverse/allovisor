@@ -1,4 +1,4 @@
-local json = require("cjson")
+local json = require("alloui.json")
 
 local settings = {}
 

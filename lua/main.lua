@@ -71,7 +71,7 @@ end)
 namespace "standard"
 local flat = require "engine.flat"
 local loader = require "lib.async-loader"
-local json = require "cjson"
+local json = require "alloui.json"
 
 local loadCo = nil
 local urlToHandle = nil
