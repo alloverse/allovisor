@@ -109,7 +109,7 @@ function SoundEng:onAudio(track_id, samples)
   audio.ping = true
 
   local blob = lovr.data.newBlob(samples, "audio for track #"..track_id)
-  audio.soundData:append(blob)
+  audio.soundData:setFrames(blob)
   if audio.source:isPlaying() == false and audio.source:getDuration() >= 0.2 then
     print("Starting playback audio in track "..track_id)
     audio.source:play()
@@ -188,6 +188,7 @@ end
 
 function SoundEng:onUpdate(dt)
   if self.client == nil then return end
+  if not self.parent.active then return end
 
   while self.captureStream and self.captureStream:getDuration("samples") >= 960 do
     local sd = self.captureStream:read(self.captureBuffer, 960)
