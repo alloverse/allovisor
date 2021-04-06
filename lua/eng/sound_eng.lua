@@ -39,7 +39,7 @@ function SoundEng:useMic(micName)
   
   self.hasMic = self:_selectMic(micName) and (lovr.audio.isRunning("capture") or lovr.audio.start("capture"))
   if self.hasMic then
-    self.captureBuffer = lovr.data.newSoundData(960, 1, 48000, "i16")
+    self.captureBuffer = lovr.data.newSound(960, "i16", 1, 48000, "stream")
     self.captureStream = lovr.audio.getCaptureStream()
   end
   lovr.event.push("micchanged", self.currentMicName, self.hasMic)
@@ -278,13 +278,13 @@ function SoundEng:updateSoundEffect(voice, comp)
     local localPosition = math.fmod(globalPosition, oneLength)
     local offset = comp.offset or 0.0
     local localTrimmedPosition = offset + localPosition
-    local currentPosition = voice.source:getTime()
+    local currentPosition = voice.source:tell()
     if math.abs(currentPosition - localTrimmedPosition) > 0.1 then
       -- try to play sounds from exact start even if we slightly missed the start time.
       if localTrimmedPosition < 0.1 then
         localTrimmedPosition = 0
       end
-      voice.source:setTime(localTrimmedPosition)
+      voice.source:tell(localTrimmedPosition)
     end
   end
 

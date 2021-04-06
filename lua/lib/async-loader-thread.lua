@@ -18,7 +18,7 @@ function load(type, path, extra)
     return pcall(lovr.data.newImage, extra)
   elseif type == "sound-asset" then
     -- expects a lovr blob in extra
-    return pcall(lovr.data.newSoundData, extra)
+    return pcall(lovr.data.newSound, extra)
   elseif type == "model" then
     -- expects a file path in path
     return pcall(lovr.data.newModelData, path)
