@@ -47,6 +47,9 @@ if(ANDROID)
     endif()
 endif()
 
+file(GLOB ALLO_LOVR_PLUGINS lovr-plugins/*)
+set(LOVR_BUILD_EXTRA_PLUGINS ${ALLO_LOVR_PLUGINS})
+
 
 # Installer settings (again, before any add_subdirectory)
 set(CPACK_PACKAGE_NAME Alloverse)
