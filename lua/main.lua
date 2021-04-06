@@ -1,6 +1,7 @@
 local path, cpath = lovr.filesystem.getRequirePath()
 cpath = cpath .. 
 	";?.so;?.dll;" ..
+  lovr.filesystem.getSource() .. "/../deps/allonet/?.so;" ..
 	lovr.filesystem.getSource() .. "/../build/deps/allonet/?.dylib;" ..
 	lovr.filesystem.getSource() .. "/../../build/deps/allonet/?.dylib;"
 if lovr.filesystem.getExecutablePath() and lovr.getOS() == "Windows" then
