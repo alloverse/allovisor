@@ -36,5 +36,6 @@ function lovr.conf(t)
   t.identity = "alloverse"
   t.window.title = "Alloverse"
   if lovr.system.getOS() ~= "macOS" then -- osx windows don't have icons
+    t.window.icon = lovr.data.newImage("assets/alloverse-logo.png", false)    
   end
 end
