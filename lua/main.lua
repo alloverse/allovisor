@@ -1,10 +1,11 @@
-local path, cpath = lovr.filesystem.getRequirePath()
+local path = lovr.filesystem.getRequirePath()
+local cpath = package.cpath
 cpath = cpath .. 
 	";?.so;?.dll;" ..
   lovr.filesystem.getSource() .. "/../deps/allonet/?.so;" ..
 	lovr.filesystem.getSource() .. "/../build/deps/allonet/?.dylib;" ..
 	lovr.filesystem.getSource() .. "/../../build/deps/allonet/?.dylib;"
-if lovr.filesystem.getExecutablePath() and lovr.getOS() == "Windows" then
+if lovr.filesystem.getExecutablePath() and lovr.system.getOS() == "Windows" then
 	cpath = cpath .. lovr.filesystem.getExecutablePath():gsub("lovr.exe", "?.dll")
 end
 path = path ..
@@ -14,7 +15,7 @@ path = path ..
   ";lib/ent/lua/?/init.lua" 
 	
 
-lovr.filesystem.setRequirePath(path, cpath)
+lovr.filesystem.setRequirePath(path)
 package.cpath = cpath
 
 -- load util and allonet into globals in all namespaces on the main thread
