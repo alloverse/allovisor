@@ -244,7 +244,9 @@ function NetMenuScene.dynamicActions:chooseMic(newMicName)
   settings.save()
   local ok = true
   self:sendToApp("mainmenu", {"updateMenu", "setCurrentMicrophone", default(settings.d.currentMicrophone, ""), "working"})
-  optchainm(lovr.scenes, "net.engines.sound.useMic", settings.d.currentMicrophone)
+  if lovr.scenes.net and lovr.scenes.net.engines.sound then
+    lovr.scenes.net.engines.sound:useMic(settings.d.currentMicrophone)
+  end
 end
 
 function NetMenuScene:applySettingsToCurrentNet()

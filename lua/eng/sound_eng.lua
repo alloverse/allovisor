@@ -16,45 +16,62 @@ function SoundEng:_init()
   self.audio = {}
   self.effects = {}
   self.track_id = 0
-  self.currentMicName = "invalid---"
+  self.mic = nil
   self:super()
 end
 
 function SoundEng:useMic(micName)
-  if self.currentMicName == micName and self.hasMic then return true end
-  self.currentMicName = micName
+  if self.mic and self.mic.name == micName then return true end
 
-  if self.hasMic then
+  if self.mic then
     lovr.audio.stop("capture")
-    self.hasMic = false
-    self.captureStream = nil
-    self.captureBuffer = nil
+    self.mic = nil
   end
   if micName == "Off" or micName == "Mute" then
-    self.hasMic = false
     print("SoundEng: Muted microphone")
-    lovr.event.push("micchanged", self.currentMicName, true)
+    lovr.event.push("micchanged", micName, true)
     return true
   end
   
-  self.hasMic = self:_selectMic(micName) and (lovr.audio.isRunning("capture") or lovr.audio.start("capture"))
-  if self.hasMic then
-    self.captureBuffer = lovr.data.newSound(960, "i16", 1, 48000, "stream")
-    self.captureStream = lovr.audio.getCaptureStream()
+  self.mic = self:_openMic(micName)
+  if self.mic then
+    lovr.event.push("micchanged", self.currentMicName, self.hasMic)
+    return true
   end
-  lovr.event.push("micchanged", self.currentMicName, self.hasMic)
-  return self.hasMic
+  return false
 end
 
 function SoundEng:retryMic()
-  self:useMic(self.currentMicName)
+  self:useMic(self._lastAttemptedMic)
 end
 
-function SoundEng:_selectMic(micName)
+function SoundEng:_openMic(micName)
+  print("Attempting to open microphone", micName)
+  self._lastAttemptedMic = micName
 
-  print("Using microphone", micName)
-  lovr.audio.setCaptureFormat("i16", 48000)
-  lovr.audio.useDevice("capture", micName)
+  self.mic = {
+    name= micName,
+    captureBuffer = lovr.data.newSound(960, "i16", "mono", 48000, "stream"),
+    captureStream = lovr.data.newSound(0.5*48000, "i16", "mono", 48000, "stream"),
+  }
+
+  local chosenDeviceId = nil
+  for _, dev in ipairs(lovr.audio.getDevices("capture")) do
+    if dev.name == micName then
+      chosenDeviceId = dev.id
+    end
+  end
+
+  if lovr.audio.setDevice("capture", chosenDeviceId, self.mic.captureStream, "shared") then
+    print("Opened mic", micName)
+    lovr.audio.start("capture")
+    return true
+  else
+    print("Failed to open mic", micName)
+    self.mic = nil
+    return false
+  end
+
   return true
 end
 
@@ -70,7 +87,7 @@ function SoundEng:onAudio(track_id, samples)
   end
   local audio = self.audio[track_id]
   if audio == nil then
-    local soundData = lovr.data.newSoundData(48000*1.0, 1, 48000, "i16", "stream")
+    local soundData = lovr.data.newSound(48000*1.0, "i16", "mono", 48000, "stream")
     audio = {
       soundData = soundData,
       source = lovr.audio.newSource(soundData),
