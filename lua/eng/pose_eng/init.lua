@@ -353,6 +353,7 @@ function PoseEng:updateIntent(dt)
   
   local intent = {
     entity_id = self.client.avatar_id,
+    wants_stick_movement = false,
     xmovement = mx,
     zmovement = -my,
     yaw = self.yaw,
@@ -365,7 +366,7 @@ function PoseEng:updateIntent(dt)
     intent.poses[device] = {
       matrix = {self:getPose(device):unpack(true)},
       skeleton = self:getSkeletonTable(device),
-      grab = self:grabForDevice(i, device)
+      grab = self:grabForDevice(i, device),
     }
   end
 
