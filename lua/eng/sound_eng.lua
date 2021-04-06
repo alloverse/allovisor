@@ -188,7 +188,7 @@ function SoundEng:onUpdate(dt)
   if self.head then
     local matrix = self.head.components.transform:getMatrix()
     local x, y, z, sx, sy, sz, a, ax, ay, az = matrix:unpack()
-    lovr.audio.setListenerPose(x, y, z, a, ax, ay, az)
+    lovr.audio.setPose(x, y, z, a, ax, ay, az)
   end
 end
 
