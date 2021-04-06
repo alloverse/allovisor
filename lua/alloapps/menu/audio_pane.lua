@@ -2,7 +2,7 @@ local ui = require("alloui.ui")
 local pretty = require("pl.pretty")
 local class = require("pl.class")
 local tablex = require("pl.tablex")
-lovr.audio = require("lovr.audio")
+--lovr.audio = require("lovr.audio")
 
 class.AudioPane(ui.Surface)
 function AudioPane:_init(menu)
