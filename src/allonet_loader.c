@@ -38,6 +38,7 @@ static Variant cookie;
 int main(int argc, char** argv)
 {
   lovrAssert(os_init(), "Failed to initialize platform");
+  lovrEventInit();
   os_on_focus(onFocus);
   
   #if __APPLE__
