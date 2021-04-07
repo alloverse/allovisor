@@ -24,6 +24,7 @@ allonet = nil
 allonet = util.load_allonet()
 
 local dragndrop = require("lib.lovr-dragndrop")
+Store = require("lib.lovr-store")
 
 namespace = require "engine.namespace"
 
@@ -107,6 +108,9 @@ function _asyncLoad()
     end
     error(threadname.." didn't start in time")
   end
+  storeThread = lovr.thread.newThread("lib/lovr-store-thread.lua")
+  storeThread:start()
+  
 	menuServerThread = lovr.thread.newThread("threads/menuserv_main.lua")
   menuServerThread:start()
   menuServerPort = check("menuserv"):pop(true)
@@ -191,6 +195,12 @@ function _asyncLoadResume()
       end
     }
   end
+
+  if lovr.audio then
+    local capDevs = lovr.audio.getDevices("capture")
+    for k, v in ipairs(capDevs) do v.id = nil end
+    Store.singleton():save("availableCaptureDevices", capDevs)
+  end
 end
 
 function lovr.onNetConnected(net, url, place_name)
@@ -224,6 +234,8 @@ function lovr.restart()
   lovr.thread.getChannel("appserv"):push("exit")
   menuServerThread:wait()
   menuAppsThread:wait()
+  Store.singleton():shutdown()
+
   loader:shutdown()
   print("Done, restarting.")
   if restoreData.url then

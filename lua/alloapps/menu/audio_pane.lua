@@ -2,7 +2,7 @@ local ui = require("alloui.ui")
 local pretty = require("pl.pretty")
 local class = require("pl.class")
 local tablex = require("pl.tablex")
---lovr.audio = require("lovr.audio")
+local Store = require("lib.lovr-store")
 
 class.AudioPane(ui.Surface)
 function AudioPane:_init(menu)
@@ -19,6 +19,7 @@ function AudioPane:_init(menu)
     self.micList = ui.View(ui.Bounds{})
     self:addSubview(self.micList)
 
+    --Store.singleton():listen()
     local microphones = lovr.audio and lovr.audio.getDevices("capture")
     if microphones == nil or #microphones == 0 then
         microphones = {{
