@@ -29,13 +29,13 @@ function SoundEng:useMic(micName)
   end
   if micName == "Off" or micName == "Mute" then
     print("SoundEng: Muted microphone")
-    lovr.event.push("micchanged", micName, true)
+    Store.singleton():save("currentMic", {name= "Off", status="ok"}, true)
     return true
   end
   
   self.mic = self:_openMic(micName)
   local success = self.mic ~= nil
-  lovr.event.push("micchanged", self.currentMicName, success)
+  Store.singleton():save("currentMic", {name= micName, status= (success and "ok" or "failed")}, true)
   return success
 end
 
@@ -74,6 +74,18 @@ function SoundEng:onLoad()
   self.client.delegates.onAudio = function(track_id, audio)
     self:onAudio(track_id, audio) 
   end
+
+  if not self.parent.isMenu then
+    self.unsub = Store.singleton():listen("currentMic", function(micSettings)
+      if micSettings.status == "pending" then
+        self:useMic(micSettings.name)
+      end
+    end)
+  end
+end
+
+function SoundEng:onDie()
+  if self.unsub then self.unsub() end
 end
 
 function SoundEng:onAudio(track_id, samples)

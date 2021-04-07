@@ -40,9 +40,6 @@ function NetMenuScene:_init(menuServerPort)
   self:setupAvatars()
   self:updateDebugTitle()
   self:updateDisplayName()
-  lovr.handlers["micchanged"] = function(micName, status)
-    self:sendToApp("mainmenu", {"updateMenu", "setCurrentMicrophone", default(micName, ""), status and "ok" or "error"})
-  end
   self:super()
 end
 
@@ -53,9 +50,6 @@ function NetMenuScene:onLoad()
   self.net.debug = settings.d.debug
   self.net.isMenu = true
   self.net:insert(self)
-
-  
-  NetMenuScene.dynamicActions.chooseMic(self, settings.d.currentMicrophone)
 
   local interactor = MenuInteractor()
   interactor.netmenu = self
@@ -236,22 +230,6 @@ end
 function NetMenuScene.dynamicActions:setDisplayName(newName)
   settings.d.username = newName
   settings.save()
-end
-
---- Pick a new microphone to record from
-function NetMenuScene.dynamicActions:chooseMic(newMicName)
-  print("Switching mics to", newMicName)
-  settings.d.currentMicrophone = newMicName
-  settings.save()
-  local ok = true
-  self:sendToApp("mainmenu", {"updateMenu", "setCurrentMicrophone", default(settings.d.currentMicrophone, ""), "working"})
-  if lovr.scenes.net and lovr.scenes.net.engines.sound then
-    lovr.scenes.net.engines.sound:useMic(settings.d.currentMicrophone)
-  end
-end
-
-function NetMenuScene:applySettingsToCurrentNet()
-  self.dynamicActions.chooseMic(self, settings.d.currentMicrophone)
 end
 
 return NetMenuScene

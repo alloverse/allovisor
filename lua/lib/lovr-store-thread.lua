@@ -31,7 +31,7 @@ while running do
         end
         outChans[cmd.from]:push("ok", true)
         for _, chan in ipairs(storage[cmd.save.key].subs) do
-            chan:push(json.encode({key=cmd.listen, value=storage[cmd.listen].value}))
+            chan:push(json.encode({key=cmd.save.key, value=storage[cmd.save.key].value}))
         end
     elseif cmd.request then
         local found = storage[cmd.request]

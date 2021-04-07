@@ -19,10 +19,10 @@ function AudioPane:_init(menu)
     self.micList = ui.View(ui.Bounds{})
     self:addSubview(self.micList)
 
-    self.unsub = Store.singleton():listen("availableCaptureDevices", function(microphones)
+    self.unsub1 = Store.singleton():listen("availableCaptureDevices", function(microphones)
         if microphones == nil or #microphones == 0 then
             microphones = {{
-                isDefault = true,
+                default = true,
                 name = "Default",
                 type = "capture"
             }}
@@ -30,11 +30,16 @@ function AudioPane:_init(menu)
         print("Available capture devices: ", pretty.write(microphones))
         self:setAvailableMicrophones(microphones)
     end)
+    
+    self.unsub2 = Store.singleton():listen("currentMic", function(micSettings)
+        self:setCurrentMicrophone(micSettings.name, micSettings.status)
+    end)
 end
 
 function AudioPane:sleep()
     Surface.sleep(self)
-    self.unsub()
+    self.unsub1()
+    self.unsub2()
 end
 
 function AudioPane:setAvailableMicrophones(mics)
@@ -50,16 +55,16 @@ function AudioPane:setAvailableMicrophones(mics)
     table.insert(mics, 1, {name= "Off"})
     for i, mic in ipairs(mics) do
         local micButton = ui.Button(ui.Bounds(0, self.bounds.size.height/2 - i*0.25 - 0.1, 0,   1.40, 0.2, 0.15))
-        micButton.label.lineheight = 0.07
+        micButton.label.lineheight = mic.default and 0.09 or 0.07
         micButton.label.text = mic.name
         micButton.onActivated = function()
-            self.menu:actuate({"chooseMic", mic.name})
+            Store.singleton():save("currentMic", {name= mic.name, status="pending"}, true)
         end
         micButton.isDefault = mic.default
         self.micList:addSubview(micButton)
     end
 
-    self:setCurrentMicrophone(AudioPane.currentMicrophone[1], AudioPane.currentMicrophone[2])
+    self:setCurrentMicrophone(nil, nil)
 end
 
 function AudioPane:setCurrentMicrophone(mic, status)
@@ -68,7 +73,7 @@ function AudioPane:setCurrentMicrophone(mic, status)
         if micButton.label.text == mic or (mic == "" and micButton.isDefault) then
             if status == "ok" then
                 color = {0.3, 0.7, 0.5, 1.0}
-            elseif status == "working" then
+            elseif status == "pending" then
                 color = {0.6, 0.6, 0.3, 1.0}
             else
                 color = {0.99, 0.0, 0.0, 1.0}
