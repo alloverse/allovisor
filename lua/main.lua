@@ -271,6 +271,7 @@ function lovr.update(dt)
   if loadCo then
     _asyncLoadResume()
   end
+  Store.singleton():poll()
   if lovr.mouse then
     _updateMouse()
   end

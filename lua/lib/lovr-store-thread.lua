@@ -14,9 +14,7 @@ local storage = {}
 
 local running = true
 while running do
-    print("awaiting")
     local cmd = json.decode(inChan:pop(true))
-    print(pretty.write(cmd))
     if cmd.register then
         outChans[cmd.register.requests] = lovr.thread.getChannel(cmd.register.requests)
         pubChans[cmd.register.pubs] = lovr.thread.getChannel(cmd.register.pubs)
@@ -26,12 +24,15 @@ while running do
     elseif cmd.save then
         if not storage[cmd.save.key] then
             storage[cmd.save.key] = cmd.save
+            storage[cmd.save.key].subs = {}
         else
             storage[cmd.save.key].value = cmd.save.value
             storage[cmd.save.key].persistent = cmd.save.persistent
         end
         outChans[cmd.from]:push("ok", true)
-        -- todo: send to listeners
+        for _, chan in ipairs(storage[cmd.save.key].subs) do
+            chan:push(json.encode({key=cmd.listen, value=storage[cmd.listen].value}))
+        end
     elseif cmd.request then
         local found = storage[cmd.request]
         if not found then
@@ -41,20 +42,36 @@ while running do
         end
     elseif cmd.listen then
         if not storage[cmd.listen] then
-            storage[cmd.listen] = {}
+            storage[cmd.listen] = {subs={}}
         end
-        if not storage[cmd.listen].subs then
-            storage[cmd.listen].subs = {}
-        end
-        local chan = pubChans[cmd.from]
+        local chan = pubChans[cmd.pubFrom]
         local found = false
         for _, v in ipairs(storage[cmd.listen].subs) do
-            if v == chan then found = true end
+            if v == chan then 
+                found = true
+                break
+            end
         end
         if not found then
             table.insert(storage[cmd.listen].subs, chan)
         end
-        -- todo: send initial value
+
+        outChans[cmd.reqFrom]:push("ok", true)
+
+        if storage[cmd.listen].value then
+            chan:push(json.encode({key=cmd.listen, value=storage[cmd.listen].value}))
+        end
+    elseif cmd.unlisten then
+        local chan = pubChans[cmd.pubFrom]
+        local subIndex = nil
+        for i, v in ipairs(storage[cmd.unlisten].subs) do
+            if v == chan then 
+                subIndex = i
+                break
+             end
+        end
+        assert(subIndex)
+        table.remove(storage[cmd.unlisten].subs, subIndex)
     end
 end
 print("Exiting store thread.")

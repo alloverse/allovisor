@@ -13,14 +13,12 @@ function Store.singleton()
 end
 
 function Store:_init()
-    print("main store init")
     self.id = string.random(16)
     self.outChan = lovr.thread.getChannel("AlloStoreRequests")
     self.chanId = "AlloStoreResponses-"..self.id
     self.pubId =  "AlloStorePublications-"..self.id
     self.inChan = lovr.thread.getChannel(self.chanId)
     self.pubChan = lovr.thread.getChannel(self.pubId)
-    print("pushing register on", self.outChan)
     self.outChan:push(json.encode({
         register= {
             requests= self.chanId,
@@ -28,7 +26,6 @@ function Store:_init()
         }
     }))
     self.subs = {}
-    print("main store", self.chanId)
     local ok = self.inChan:pop(true)
     assert(ok == "ok")
 end
@@ -66,18 +63,34 @@ end
 function Store:listen(key, callback)
     self.outChan:push(json.encode({
         listen= key,
-        from= self.pubId
+        pubFrom= self.pubId,
+        reqFrom= self.chanId,
     }))
     table.insert(self.subs, {
         key= key,
         callback= callback,
     })
     local ok = self.inChan:pop(true)
-    assert(ok == true)
+    assert(ok == "ok")
+    return function()
+        self.outChan:push(json.encode({
+            unlisten= key,
+            pubFrom= self.pubId
+        }))
+        local subIndex = nil
+        for i, sub in ipairs(self.subs) do
+            if sub.callback == callback then 
+                subIndex = i
+                break
+             end
+        end
+        assert(subIndex)
+        table.remove(self.subs, subIndex)
+    end
 end
 
 function Store:poll()
-    local subEventS = self.pubChan:poll()
+    local subEventS = self.pubChan:pop()
     while subEventS do
         local subEvent = json.decode(subEventS)
         for _, v in ipairs(self.subs) do
@@ -85,7 +98,7 @@ function Store:poll()
                 v.callback(subEvent.value)
             end
         end
-        subEventS = self.pubChan:poll()
+        subEventS = self.pubChan:pop()
     end
 end
 

@@ -19,17 +19,22 @@ function AudioPane:_init(menu)
     self.micList = ui.View(ui.Bounds{})
     self:addSubview(self.micList)
 
-    --Store.singleton():listen()
-    local microphones = lovr.audio and lovr.audio.getDevices("capture")
-    if microphones == nil or #microphones == 0 then
-        microphones = {{
-            isDefault = true,
-            name = "Default",
-            type = "capture"
-        }}
-    end
-    print("Available capture devices: ", pretty.write(microphones))
-    self:setAvailableMicrophones(microphones)
+    self.unsub = Store.singleton():listen("availableCaptureDevices", function(microphones)
+        if microphones == nil or #microphones == 0 then
+            microphones = {{
+                isDefault = true,
+                name = "Default",
+                type = "capture"
+            }}
+        end
+        print("Available capture devices: ", pretty.write(microphones))
+        self:setAvailableMicrophones(microphones)
+    end)
+end
+
+function AudioPane:sleep()
+    Surface.sleep(self)
+    self.unsub()
 end
 
 function AudioPane:setAvailableMicrophones(mics)
@@ -50,7 +55,7 @@ function AudioPane:setAvailableMicrophones(mics)
         micButton.onActivated = function()
             self.menu:actuate({"chooseMic", mic.name})
         end
-        micButton.isDefault = mic.isDefault
+        micButton.isDefault = mic.default
         self.micList:addSubview(micButton)
     end
 
