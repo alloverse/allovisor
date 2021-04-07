@@ -46,7 +46,9 @@ function AudioPane:setAvailableMicrophones(mics)
         local micButton = ui.Button(ui.Bounds(0, self.bounds.size.height/2 - i*0.25 - 0.1, 0,   1.40, 0.2, 0.15))
         micButton.label.lineheight = 0.07
         micButton.label.text = mic.name
-        micButton.onActivated = function() self.menu:actuate({"chooseMic", mic.name}) end
+        micButton.onActivated = function()
+            self.menu:actuate({"chooseMic", mic.name})
+        end
         micButton.isDefault = mic.isDefault
         self.micList:addSubview(micButton)
     end

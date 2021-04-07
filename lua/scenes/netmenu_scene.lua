@@ -240,6 +240,7 @@ end
 
 --- Pick a new microphone to record from
 function NetMenuScene.dynamicActions:chooseMic(newMicName)
+  print("Switching mics to", newMicName)
   settings.d.currentMicrophone = newMicName
   settings.save()
   local ok = true

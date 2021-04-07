@@ -34,11 +34,9 @@ function SoundEng:useMic(micName)
   end
   
   self.mic = self:_openMic(micName)
-  if self.mic then
-    lovr.event.push("micchanged", self.currentMicName, self.hasMic)
-    return true
-  end
-  return false
+  local success = self.mic ~= nil
+  lovr.event.push("micchanged", self.currentMicName, success)
+  return success
 end
 
 function SoundEng:retryMic()
@@ -49,7 +47,7 @@ function SoundEng:_openMic(micName)
   print("Attempting to open microphone", micName)
   self._lastAttemptedMic = micName
 
-  self.mic = {
+  local mic = {
     name= micName,
     captureBuffer = lovr.data.newSound(960, "i16", "mono", 48000, "stream"),
     captureStream = lovr.data.newSound(0.5*48000, "i16", "mono", 48000, "stream"),
@@ -62,17 +60,14 @@ function SoundEng:_openMic(micName)
     end
   end
 
-  if lovr.audio.setDevice("capture", chosenDeviceId, self.mic.captureStream, "shared") then
+  if lovr.audio.setDevice("capture", chosenDeviceId, mic.captureStream, "shared") then
     print("Opened mic", micName)
     lovr.audio.start("capture")
-    return true
+    return mic
   else
     print("Failed to open mic", micName)
-    self.mic = nil
-    return false
+    return nil
   end
-
-  return true
 end
 
 function SoundEng:onLoad()
@@ -302,7 +297,7 @@ function SoundEng:updateSoundEffect(voice, comp)
       if localTrimmedPosition < 0.1 then
         localTrimmedPosition = 0
       end
-      voice.source:tell(localTrimmedPosition)
+      voice.source:seek(localTrimmedPosition)
     end
   end
 
