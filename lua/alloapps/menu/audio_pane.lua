@@ -32,7 +32,9 @@ function AudioPane:_init(menu)
     end)
     
     self.unsub2 = Store.singleton():listen("currentMic", function(micSettings)
-        self:setCurrentMicrophone(micSettings.name, micSettings.status)
+        if micSettings then
+            self:setCurrentMicrophone(micSettings.name, micSettings.status)
+        end
     end)
 end
 

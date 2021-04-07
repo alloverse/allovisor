@@ -77,7 +77,7 @@ function SoundEng:onLoad()
 
   if not self.parent.isMenu then
     self.unsub = Store.singleton():listen("currentMic", function(micSettings)
-      if micSettings.status == "pending" then
+      if micSettings and micSettings.status == "pending" then
         self:useMic(micSettings.name)
       end
     end)

@@ -58,9 +58,8 @@ while running do
 
         outChans[cmd.reqFrom]:push("ok", true)
 
-        if storage[cmd.listen].value then
-            chan:push(json.encode({key=cmd.listen, value=storage[cmd.listen].value}))
-        end
+        
+        chan:push(json.encode({key=cmd.listen, value=storage[cmd.listen].value}))
     elseif cmd.unlisten then
         local chan = pubChans[cmd.pubFrom]
         local subIndex = nil

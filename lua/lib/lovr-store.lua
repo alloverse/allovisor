@@ -3,8 +3,12 @@ local util = require("lib.util")
 local class = require("pl.class")
 string.random = require("alloui.random_string")
 
+-- The Store lets you store key-value pairs in a thread-safe manner. These key-value
+-- pairs may also be saved to disk ("persisted"); this is appropriate for app settings.
 class.Store()
 
+-- Always access the Store through its thread-local singleton. This makes sure
+-- there is only one Store per thread, which is the maximum needed.
 function Store.singleton()
     if not Store._instance then
         Store._instance = Store()
@@ -30,10 +34,13 @@ function Store:_init()
     assert(ok == "ok")
 end
 
+-- Must only be called once. Shuts down the worker thread and disables Store on all threads.
 function Store:shutdown()
     self.outChan:push(json.encode({quit=true}))
 end
 
+-- Save the value 'value' under 'key'. If 'persistent', also save to disk.
+-- Note: value must only contain json-safe data types (table, string, number)
 function Store:save(key, value, persistent)
     if persistent == nil then persistent = false end
 
@@ -49,6 +56,7 @@ function Store:save(key, value, persistent)
     assert(ok == "ok")
 end
 
+-- Load the value for 'key' in the Store.
 -- returns value or nil
 function Store:load(key)
     self.outChan:push(json.encode({
@@ -60,6 +68,8 @@ function Store:load(key)
     return json.decode(value)
 end
 
+-- Listen to changes in the value for 'key'. Callback is called with 'value' when it
+-- changes, and also once immediately after listening (with nil, if no value is available).
 function Store:listen(key, callback)
     self.outChan:push(json.encode({
         listen= key,
@@ -89,6 +99,7 @@ function Store:listen(key, callback)
     end
 end
 
+-- Poll for changes to values. Call this regularly to make your 'listen' callbacks be called.
 function Store:poll()
     local subEventS = self.pubChan:pop()
     while subEventS do
