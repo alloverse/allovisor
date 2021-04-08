@@ -61,7 +61,7 @@ while running do
         end
         outChans[cmd.from]:push("ok", true)
         
-        for _, chan in ipairs(storage[cmd.save.key].subs) do
+        for id, chan in pairs(storage[cmd.save.key].subs) do
             chan:push(json.encode({key=cmd.save.key, value=storage[cmd.save.key].value}))
         end
     elseif cmd.request then
@@ -77,32 +77,15 @@ while running do
             storage[cmd.listen] = {subs={}}
         end
         local chan = pubChans[cmd.pubFrom]
-        local found = false
-        for _, v in ipairs(storage[cmd.listen].subs) do
-            if v == chan then 
-                found = true
-                break
-            end
-        end
-        if not found then
-            table.insert(storage[cmd.listen].subs, chan)
-        end
-
+        storage[cmd.listen].subs[cmd.subId] = chan
         outChans[cmd.reqFrom]:push("ok", true)
-
         
-        chan:push(json.encode({key=cmd.listen, value=storage[cmd.listen].value}))
+        chan:push(json.encode({
+            key=cmd.listen, 
+            value=(storage[cmd.listen] and storage[cmd.listen].value or defaults[cmd.listen])
+        }))
     elseif cmd.unlisten then
-        local chan = pubChans[cmd.pubFrom]
-        local subIndex = nil
-        for i, v in ipairs(storage[cmd.unlisten].subs) do
-            if v == chan then 
-                subIndex = i
-                break
-             end
-        end
-        assert(subIndex)
-        table.remove(storage[cmd.unlisten].subs, subIndex)
+        storage[cmd.unlisten].subs[cmd.subId] = nil
     end
 end
 print("Exiting store thread.")

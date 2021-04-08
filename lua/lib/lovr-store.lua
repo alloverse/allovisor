@@ -83,31 +83,27 @@ end
 -- Listen to changes in the value for 'key'. Callback is called with 'value' when it
 -- changes, and also once immediately after listening (with nil, if no value is available).
 function Store:listen(key, callback)
+    local subId = string.random(16)
     self.outChan:push(json.encode({
         listen= key,
         pubFrom= self.pubId,
         reqFrom= self.chanId,
+        subId= subId
     }))
-    table.insert(self.subs, {
+    self.subs[subId] =  {
         key= key,
         callback= callback,
-    })
+    }
+
     local ok = self.inChan:pop(true)
     assert(ok == "ok")
     return function()
         self.outChan:push(json.encode({
             unlisten= key,
-            pubFrom= self.pubId
+            pubFrom= self.pubId,
+            subId = subId,
         }))
-        local subIndex = nil
-        for i, sub in ipairs(self.subs) do
-            if sub.callback == callback then 
-                subIndex = i
-                break
-             end
-        end
-        assert(subIndex)
-        table.remove(self.subs, subIndex)
+        self.subs[subId] = nil
     end
 end
 
@@ -116,9 +112,9 @@ function Store:poll()
     local subEventS = self.pubChan:pop()
     while subEventS do
         local subEvent = json.decode(subEventS)
-        for _, v in ipairs(self.subs) do
-            if v.key == subEvent.key then
-                v.callback(subEvent.value)
+        for id, sub in pairs(self.subs) do
+            if sub.key == subEvent.key then
+                sub.callback(subEvent.value)
             end
         end
         subEventS = self.pubChan:pop()
