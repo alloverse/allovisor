@@ -22,11 +22,6 @@ function Menu:createUI()
   return self.root
 end
 
-function Menu:updateDebugTitle(newState)
-  self.menus.main.optionsPane.debugButton.label:setText(newState and "Debug (On)" or "Debug (Off)")
-  self.menus.overlay.optionsPane.debugButton.label:setText(newState and "Debug (On)" or "Debug (Off)")
-end
-
 function Menu:updateMessage(msg)
   self.menus.main.messageLabel:setText(msg)
   self.menus.overlay.messageLabel:setText(msg)

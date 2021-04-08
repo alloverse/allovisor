@@ -39,7 +39,6 @@ function NetMenuScene:_init(menuServerPort)
   }
 
   self:setupAvatars()
-  self:updateDebugTitle()
   self:updateDisplayName()
   self:super()
 end
@@ -78,10 +77,6 @@ function NetMenuScene:setupAvatars()
     Store.singleton():save("avatarName", chosenAvatarName, true)
   end
   self:sendToApp("avatarchooser", {"showAvatar", chosenAvatarName})
-end
-
-function NetMenuScene:updateDebugTitle()
-  self:sendToApp("mainmenu", {"updateMenu", "updateDebugTitle", Store.singleton():load("debug") })
 end
 
 function NetMenuScene:updateDisplayName()
@@ -209,16 +204,6 @@ function NetMenuScene.dynamicActions:disconnect()
   self.parent.net:onDisconnect()
 end
 
---- Toggle debug mode.
-function NetMenuScene.dynamicActions:toggleDebug(sender)
-  local newDebug = not Store.singleton():load("debug")
-  Store.singleton():save("debug", newDebug, true)
-  self.net.debug = newDebug
-  if lovr.scenes.net then
-    lovr.scenes.net.debug = newDebug
-  end
-  self:updateDebugTitle()
-end
 
 --- Cycle through the list of avatars.
 function NetMenuScene.dynamicActions:changeAvatar(direction, sender)

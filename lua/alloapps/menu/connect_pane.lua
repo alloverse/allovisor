@@ -43,9 +43,6 @@ function ConnectPane:_init(menu)
         halign="left"
     })
 
-    settings.load()
-    self.settings = settings
-
     pen:move(0, -pen.size.height, 0)
     for i, conn in ipairs(Store.singleton():load("recentPlaces")) do
         local connectButton = self:addSubview(ui.Button(pen:copy()))
