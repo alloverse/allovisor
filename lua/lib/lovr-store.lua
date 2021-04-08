@@ -1,6 +1,7 @@
 local json = require("alloui.json")
 local util = require("lib.util")
 local class = require("pl.class")
+local pretty = require("pl.pretty")
 string.random = require("alloui.random_string")
 
 -- The Store lets you store key-value pairs in a thread-safe manner. These key-value
@@ -37,6 +38,17 @@ end
 -- Must only be called once. Shuts down the worker thread and disables Store on all threads.
 function Store:shutdown()
     self.outChan:push(json.encode({quit=true}))
+end
+
+-- Set what the default values should be for the given key-pairs. If no value has been stored previously,
+-- these default values will be returned instead.
+function Store:registerDefaults(defs)
+    self.outChan:push(json.encode({
+        defaults= defs,
+        from= self.chanId
+    }))
+    local ok = self.inChan:pop(true)
+    assert(ok == "ok")
 end
 
 -- Save the value 'value' under 'key'. If 'persistent', also save to disk.
