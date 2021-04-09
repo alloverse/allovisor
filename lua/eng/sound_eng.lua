@@ -171,6 +171,7 @@ end
 
 function SoundEng:onUpdate(dt)
   if self.client == nil then return end
+  if not self.parent.active then return end
 
   while self.captureStream and self.captureStream:getDuration("samples") >= 960 do
     local sd = self.captureStream:read(self.captureBuffer, 960)
