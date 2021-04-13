@@ -20,14 +20,6 @@ function AudioPane:_init(menu)
     self:addSubview(self.micList)
 
     self.unsub1 = Store.singleton():listen("availableCaptureDevices", function(microphones)
-        if microphones == nil or #microphones == 0 then
-            microphones = {{
-                default = true,
-                name = "Default",
-                type = "capture"
-            }}
-        end
-        print("Available capture devices: ", pretty.write(microphones))
         self:setAvailableMicrophones(microphones)
     end)
     

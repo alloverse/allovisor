@@ -60,14 +60,23 @@ function SoundEng:_openMic(micName)
     end
   end
 
-  if lovr.audio.setDevice("capture", chosenDeviceId, mic.captureStream, "shared") then
-    print("Opened mic", micName)
-    lovr.audio.start("capture")
-    return mic
-  else
-    print("Failed to open mic", micName)
+  local setStatus = lovr.audio.setDevice("capture", chosenDeviceId, mic.captureStream, "shared")
+  if not setStatus then
+    print("Failed to setDevice, seeing if permissions help", micName)
+    lovr.system.requestPermission('audiocapture')
     return nil
   end
+  print("Selected mic", micName)
+
+  local startStatus = lovr.audio.start("capture")
+  if not startStatus then
+    print("Failed to open mic, missing permissions. Requesting permissions.")
+    lovr.system.requestPermission('audiocapture')
+    return nil
+  end
+
+  print("Opened mic", micName)
+  return mic
 end
 
 function SoundEng:onLoad()

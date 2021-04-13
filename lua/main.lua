@@ -79,6 +79,7 @@ local urlToHandle = nil
 local restoreData = nil
 function lovr.load(args)
   print("lovr.load(", pretty.write(args), ")")
+  lovr.system.requestPermission('audiocapture')
   if args.restart then
     restoreData = json.decode(args.restart)
     urlToHandle = restoreData.url
@@ -198,8 +199,19 @@ function _asyncLoadResume()
 
   if lovr.audio then
     local capDevs = lovr.audio.getDevices("capture")
-    for k, v in ipairs(capDevs) do v.id = nil end
+    local defaultCandidate = nil
+    for k, v in ipairs(capDevs) do 
+      v.id = nil 
+      if v.default or string.find(v.name, "default") or string.find(v.name, "Default") or defaultCandidate == nil then
+        defaultCandidate = v.name
+      end
+    end
+    print("Available microphone/capture audio devices:", pretty.write(capDevs))
     Store.singleton():save("availableCaptureDevices", capDevs)
+    if Store.singleton():load("currentMic") == nil and defaultCandidate then
+      print("Setting default mic candidate", defaultCandidate)
+      Store.singleton():save("currentMic", {name= defaultCandidate, status="pending"}, true)
+    end
   end
 end
 
@@ -338,8 +350,10 @@ end
 
 local permissionsHaveRetried = false
 function lovr.permission(permission, granted)
-  if permission == "audiocapture" and granted and lovr.scenes.net and not permissionsHaveRetried then
+  print("Permission ", permission, "response", granted)
+  if permission == "audiocapture" and granted and lovr.scenes and lovr.scenes.net and not permissionsHaveRetried then
     permissionsHaveRetried = true
+    print("Mic permissions have been granted, reopening mic.")
     lovr.scenes.net.engines.sound:retryMic()
   end
 end
