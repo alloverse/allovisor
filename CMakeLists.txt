@@ -88,7 +88,7 @@ if(WIN32)
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libluajit> ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ode> ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:openvr_api64> ${CMAKE_CURRENT_BINARY_DIR}
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:lib_msdfgen> ${CMAKE_CURRENT_BINARY_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:msdfgen> ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:opus> ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:allonet> ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:lovr> ${CMAKE_CURRENT_BINARY_DIR}
@@ -122,7 +122,7 @@ if(WIN32)
     install(FILES $<TARGET_FILE:libluajit> DESTINATION .)
     install(FILES $<TARGET_FILE:ode> DESTINATION .)
     install(FILES $<TARGET_FILE:openvr_api64> DESTINATION .)
-    install(FILES $<TARGET_FILE:lib_msdfgen> DESTINATION .)
+    install(FILES $<TARGET_FILE:msdfgen> DESTINATION .)
     install(FILES $<TARGET_FILE:opus> DESTINATION .)
     install(FILES $<TARGET_FILE:allonet> DESTINATION .)
     install(FILES $<TARGET_FILE:lovr> DESTINATION .)
@@ -201,7 +201,7 @@ elseif(APPLE)
     move_lib(opus)
     move_lib(glfw)
     move_lib(libluajit)
-    move_lib(lib_msdfgen)
+    move_lib(msdfgen)
     move_lib(ode)
     move_lib(openvr_api)
     

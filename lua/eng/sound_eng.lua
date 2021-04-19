@@ -337,10 +337,9 @@ end
 
 function SoundEng:onDisconnect()
   if self.mic ~= nil then
-    self.mic:stopRecording()
+    lovr.audio.stop("capture")
+    self.mic = nil
   end
-
-  lovr.audio.stop()
 end
 
 function SoundEng:sourceFromAsset(asset, callback)
