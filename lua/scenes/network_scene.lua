@@ -162,7 +162,7 @@ function NetworkScene:avatarSpec(avatarName)
             },
             transform = {
               matrix={
-                lovr.math.mat4():rotate(3.14, 0, 1, 0):translate(0, 0.3, 0.05):rotate(-3.14/8, 1, 0, 0):unpack(true)
+                lovr.math.mat4():rotate(3.14, 0, 1, 0):translate(0, 0.3, 0.062):rotate(-3.14/8, 1, 0, 0):unpack(true)
               }
             },
             children = {
