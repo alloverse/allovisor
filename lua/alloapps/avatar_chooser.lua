@@ -96,6 +96,15 @@ function AvatarChooser:_createUI()
 
   self.oldDisplayName = ""
   self.displayNameField = ui.TextField(ui.Bounds(0, 0, 0,   1.0, 0.16, 0.1):move(0, 2.2, -0.2))
+
+
+  self.displayNameField.onChange = function(field, oldText, newText)
+    self.oldDisplayName = newText
+    self:actuate({"setDisplayName", newText})
+    self.avatarNameTagLabel:setText(newText) -- Sets the name on the Avatar puppet's nametag
+    return true
+  end
+
   self.displayNameField.onReturn = function(field, text)
     self.oldDisplayName = text
     self:actuate({"setDisplayName", text})
