@@ -405,12 +405,18 @@ function PoseEng:grabForDevice(handIndex, device)
   elseif ray.heldEntity == nil and gripStrength > requiredGripStrength and ray.highlightedEntity then
     ray.heldEntity = ray.highlightedEntity
 
-    local worldFromHand = ray.hand.components.transform:getMatrix()
-    local handFromWorld = worldFromHand:invert()
-    local worldFromHeld = ray.heldEntity.components.transform:getMatrix()
-    local handFromHeld = handFromWorld * worldFromHeld
+    local targetHandTransform = ray.heldEntity.components.grabbable.target_hand_transform
+    if targetHandTransform then
+      targetHandTransform = lovr.math.mat4(unpack(targetHandTransform))
+      ray.grabber_from_entity_transform:set(targetHandTransform)
+    else
+      local worldFromHand = ray.hand.components.transform:getMatrix()
+      local handFromWorld = worldFromHand:invert()
+      local worldFromHeld = ray.heldEntity.components.transform:getMatrix()
+      local handFromHeld = handFromWorld * worldFromHeld
 
-    ray.grabber_from_entity_transform:set(handFromHeld)
+      ray.grabber_from_entity_transform:set(handFromHeld)
+    end
   end
 
   if previouslyHeld ~= ray.heldEntity then
