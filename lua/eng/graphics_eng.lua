@@ -15,6 +15,8 @@ local Asset = require("lib.alloui.lua.alloui.asset")
 
 local GraphicsEng = classNamed("GraphicsEng", Ent)
 
+local Renderer = require('eng.renderer')
+
 --- Initialize the graphics engine.
 function GraphicsEng:_init()
   self:super()
@@ -28,6 +30,9 @@ function GraphicsEng:_init()
 
   -- A list of models loaded from a directory for previewing
   self.testModels = {}
+
+
+  self.renderer = Renderer()
 end
 
 --- Called when the application loads.
@@ -95,27 +100,49 @@ function GraphicsEng:onDraw()
   -- Collect all the objects to sort and draw
   local objects = {}
 
+
+
+  local function aabbForModel(model)
+    local minx, maxx, miny, maxy, minz, maxz = model:getAABB()
+    return {
+        min = lovr.math.newVec3(minx, miny, minz),
+        max = lovr.math.newVec3(maxx, maxy, maxz)
+    }
+  end
+
+  local function aabbForEntity(entity)
+    local model = self.models_for_eids[entity.id]
+    if model and model.getAABB then 
+      return aabbForModel(model) 
+    end
+
+    return {
+      min = lovr.math.newVec3(-1, -1, -1),
+      max = lovr.math.newVec3(1, 1, 1)
+    }
+  end
+
   -- enteties
   for _, entity in pairs(self.client.state.entities) do
     local material = entity.components.material
     local hasTransparency = material and material.hasTransparency
     local shader_name = material and material.shader_name or "basic"
     local material_alpha = material and material.color and type(material.color[4]) == "number" and material.color[4] or 1
+    assert(entity.id, "must have an id")
     table.insert(objects, {
+      id = entity.id,
+      visible = true,
+      AABB = aabbForEntity(entity),
+      position = (function()
+        local pos = entity.components.transform:getMatrix():mul(lovr.math.vec3())
+        return pos
+      end)(),
+      hasTransparency = true,
+      hasReflection = true,
       material = {
-        shaderKey = shader_name,
-        hasTransparency = hasTransparency or material_alpha < 1,
+        metalness = 0,
+        roughness = 1,
       },
-      getPosition = function(object)
-          local model = self.models_for_eids[entity.id]
-          if model and model.getAABB then 
-            local minx, maxx, miny, maxy, minz, maxz = model:getAABB()
-            local x, y, z = (maxx+minx)*0.5, (maxy+miny)*0.5, (maxz+minz)*0.5
-            return lovr.math.vec3(x, y, z)
-          else
-            return entity.components.transform:getMatrix():mul(lovr.math.vec3())
-          end
-      end,
       draw = function(object)
         -- local entity = object.entity
         lovr.graphics.push()
@@ -126,26 +153,45 @@ function GraphicsEng:onDraw()
     })
   end
 
-  for _, model in ipairs(self.testModels) do
+  for i = 0, 3 do
     table.insert(objects, {
-      model = model,
-      material = {
-        shaderKey = "testing",
-        hasTransparency = false,
-      },
-      getPosition = function (object)
-        return lovr.math.vec3(0,0,0)
+      id = 'light ' .. i,
+      type = 'light',
+      draw = function(o)
+        local x, y, z = o.position:unpack()
+        lovr.graphics.sphere(x, y, z, 0.1)
       end,
+      position = lovr.math.newVec3( 0, 6, 6 - i * 4 ),
+      light = {
+        position = lovr.math.newVec3( 0, 6, 6 - i * 4 ),
+        color = {10,10,10,10},
+      },
+      AABB = {
+        min = lovr.math.newVec3(-0.1, -0.1, -0.1),
+        max = lovr.math.newVec3(0.1, 0.1, 0.1),
+      }
+    })
+  end
+
+  for i, model in ipairs(self.testModels) do
+    table.insert(objects, {
+      id = "Test object " .. i,
+      AABB = aabbForModel(model),
+      position = lovr.math.vec3(0,0,0),
       draw = function(object)
         lovr.graphics.setColor(1,1,1,1)
-        lovr.graphics.setShader(self:pbrShaderForModel(object.model))
+        -- lovr.graphics.setShader(self:pbrShaderForModel(object.model))
         object.model:draw()
       end
     })
   end
 
   -- Draw all of them
-  self:drawObjects(objects)
+  local headPosition = self.parent:getHead().components.transform:getMatrix():mul(lovr.math.vec3())
+  self.renderer:render(objects, {
+    drawAABB = self.drawAABBs,
+    -- cameraPosition = lovr.math.newVec3(headPosition)
+  })
 
   lovr.graphics.setColor({1,1,1})
 end
@@ -252,7 +298,7 @@ function GraphicsEng:_drawEntity(entity, applyShader)
       lovr.graphics.setColor(1,1,1,1)
     end
 
-    lovr.graphics.setShader(self:shaderForEntity(entity))
+  --   lovr.graphics.setShader(self:shaderForEntity(entity))
   end
 
   local animationCount = model.animate and model:getAnimationCount()
@@ -273,18 +319,18 @@ function GraphicsEng:_drawEntity(entity, applyShader)
   model:draw()
 
   -- local drawAABBs = true
-  if (self.drawAABBs or self.drawAABBCenters) and model.getAABB then
-    local minx, maxx, miny, maxy, minz, maxz = model:getAABB()
-    local x, y, z = (maxx+minx)*0.5, (maxy+miny)*0.5, (maxz+minz)*0.5
-    local w, h, d = maxx-minx, maxy-miny, maxz-minz
+  -- if (self.drawAABBs or self.drawAABBCenters) and model.getAABB then
+  --   local minx, maxx, miny, maxy, minz, maxz = model:getAABB()
+  --   local x, y, z = (maxx+minx)*0.5, (maxy+miny)*0.5, (maxz+minz)*0.5
+  --   local w, h, d = maxx-minx, maxy-miny, maxz-minz
 
-    if self.drawAABBCenters then 
-      lovr.graphics.sphere(x, y, z, 0.2)
-    end
-    if self.drawAABBs then 
-      lovr.graphics.box("line", x, y, z, w, h, d)
-    end
-  end
+  --   if self.drawAABBCenters then 
+  --     lovr.graphics.sphere(x, y, z, 0.2)
+  --   end
+  --   if self.drawAABBs then 
+  --     lovr.graphics.box("line", x, y, z, w, h, d)
+  --   end
+  -- end
 
 end
 

@@ -349,8 +349,8 @@ function NetworkScene:onDraw(isMirror)
   end
   if head then
     self.viewPoseStack = {
-      lovr.math.mat4(lovr.graphics.getViewPose(1)),
-      lovr.math.mat4(lovr.graphics.getViewPose(2)),
+      lovr.math.newMat4(lovr.graphics.getViewPose(1)),
+      lovr.math.newMat4(lovr.graphics.getViewPose(2)),
     }
     self.inverseCameraTransform:set(head.components.transform:getMatrix())
     self.cameraTransform:set(self.inverseCameraTransform):invert()

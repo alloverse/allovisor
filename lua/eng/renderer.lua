@@ -13,13 +13,13 @@ local Shader = require 'eng.shader'
 local Renderer = class.Renderer()
 
 function Renderer:_init()
-    is_desktop = lovr and lovr.headset
+    is_desktop = lovr and lovr.headset == nil
 
     --- Stores some information of objects
     self.cache = {}
 
     self.shaderObj = Shader()
-    self.shader = self.shaderObj:generate({lights = true, debug = is_desktop})
+    self.shader = self.shaderObj:generate({lights = true, debug = is_desktop or false})
     self.cubemapShader = self.shaderObj:generate({stereo = false, lights = false})
 
     self.standardShaders = {
@@ -203,7 +203,9 @@ function Renderer:prepareView(context)
     end
 
     
-    if view.nr == 1 and lovr.headset then
+    if view.nr == 1 and context.cameraPosition then 
+        view.cameraPosition = context.cameraPosition
+    elseif view.nr == 1 and lovr.headset then
         -- viewModel is not equal to camera position. 
         -- Use it for the subpasses for now but use headset pose for frame
         local x, y, z = lovr.headset.getPose()
@@ -523,7 +525,7 @@ function Renderer:generateCubemap(renderObject, context)
     end
 
     local cubemap = renderObject.reflectionMap or self:findCubemap(renderObject, context)
-    local cubemapSize = context.cubemapSize or 1024
+    local cubemapSize = context.cubemapSize or 128
 
 
     if not cubemap then

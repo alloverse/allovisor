@@ -162,7 +162,8 @@ vec4 color(vec4 graphicsColor, sampler2D image, vec2 uv) {
     debug(})
 
     // mapped values
-    vec3 albedo = texture(lovrDiffuseTexture, lovrTexCoord).rgb * graphicsColor.rgb;
+    vec4 diffuseColor = texture(lovrDiffuseTexture, lovrTexCoord) * graphicsColor;
+    vec3 albedo = diffuseColor.rgb;
     vec4 emissive = texture(lovrEmissiveTexture, uv) * lovrEmissiveColor;
     float occlusion = texture(lovrOcclusionTexture, lovrTexCoord).r;
     float roughness = texture(lovrRoughnessTexture, lovrTexCoord).g * lovrRoughness * alloRoughness;
@@ -271,7 +272,7 @@ vec4 color(vec4 graphicsColor, sampler2D image, vec2 uv) {
     debug(environmentDiffuse *= draw_diffuseEnv;)
     debug(environmentSpecular *= draw_specularEnv;)
 
-    vec3 ambient = vec3(0.);
+    vec3 ambient = vec3(0.02, 0.02, 0.01);
     debug(if (draw_specularEnv > 0.) )
         ambient += environmentSpecular;
     debug(if (draw_diffuseEnv > 0.) )
@@ -318,7 +319,7 @@ vec4 color(vec4 graphicsColor, sampler2D image, vec2 uv) {
     if (only_tonemap > 0.) return vec4(result - pre_tonemap, 1.);
 #endif
 
-    return vec4(result, 1.0);
+    return vec4(result, diffuseColor.a);
 
     // //object color
     // vec4 baseColor = graphicsColor * texture(lovrDiffuseTexture, uv);
