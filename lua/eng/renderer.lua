@@ -165,7 +165,7 @@ function Renderer:prepareFrame(context)
     frame.cubemapDepth = 0
     frame.cubemapLimit = { 
         count = 0, 
-        max = is_desktop and 2 or 0,
+        max = is_desktop and 1 or 0,
         maxDepth = is_desktop and 1 or 1,
     }
 
@@ -507,11 +507,13 @@ function Renderer:findCubemap(renderObject, context)
     if renderObject.reflectionMap then
         return renderObject.reflectionMap
     end
+
     -- Objects that were in last frame and are culled in this frame
     for id, object in context.view.objects.culled:iter() do
         if object.reflectionMap then
             local map = object.reflectionMap
             object.reflectionMap = nil
+            print(renderObject.id .. " reuses a cm from " .. id .. " in frame " .. context.frame.nr)
             return map
         end
     end
@@ -558,6 +560,7 @@ function Renderer:generateCubemap(renderObject, context)
     context.frame.objects.needsCubemap[renderObject.id] = nil
     context.view.objects.needsCubemap[renderObject.id] = nil
     renderObject.needsCubemap = false
+    renderObject.reflectionMap = nil
     
 	local view = { lovr.graphics.getViewPose(1) }
 	local proj = { lovr.graphics.getProjection(1) }
@@ -572,13 +575,13 @@ function Renderer:generateCubemap(renderObject, context)
     lovr.graphics.setShader(self.cubemapShader)
 
     
-	local center = renderObject.AABB.center
     -- Get a list of objects that are within a distance based on cm quality
-
+	local center = renderObject.AABB.center
     local maxDistance = 10 - context.views[1].objectToCamera[renderObject.id].distance-- self:dynamicCubemapFarPlane(renderObject, context)
     local maxDistance = self:dynamicCubemapFarPlane(renderObject, context)
-
     local objects = self:objectsWithinDistanceOf(context.frame.renderObjects, center, maxDistance, context)
+
+
 	for i,pose in ipairs{
 		lookAt(center, center + vec3(1,0,0), vec3(0,-1,0)),
 		lookAt(center, center - vec3(1,0,0), vec3(0,-1,0)),
@@ -603,6 +606,8 @@ function Renderer:generateCubemap(renderObject, context)
     lovr.graphics.setProjection(1,unpack(proj))
 	lovr.graphics.setViewPose(1,unpack(view))
     lovr.graphics.setShader(self.shader)
+
+    renderObject.reflectionMap = cubemap
 
     context.frame.cubemapDepth = context.frame.cubemapDepth - 1
 end
