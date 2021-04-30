@@ -133,11 +133,8 @@ function GraphicsEng:onDraw()
       id = entity.id,
       visible = true,
       AABB = aabbForEntity(entity),
-      position = (function()
-        local pos = entity.components.transform:getMatrix():mul(lovr.math.vec3())
-        return pos
-      end)(),
-      hasTransparency = true,
+      position = entity.components.transform:getMatrix():mul(lovr.math.vec3()),
+      hasTransparency = hasTransparency or material_alpha < 1,
       hasReflection = true,
       material = {
         metalness = 0,

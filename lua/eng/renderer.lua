@@ -165,7 +165,7 @@ function Renderer:prepareFrame(context)
     frame.cubemapDepth = 0
     frame.cubemapLimit = { 
         count = 0, 
-        max = is_desktop and 1 or 0,
+        max = is_desktop and 0 or 0,
         maxDepth = is_desktop and 1 or 1,
     }
 
@@ -331,13 +331,13 @@ function Renderer:prepareObjects(context)
     end
 
     if prepareViewObjects then
-        local list = view.objectToCamera
+        local toCamera = view.objectToCamera
         view.objects.transparent:sort(function(a, b)
-            return view.objectToCamera[a].distance < view.objectToCamera[b].distance
+            return toCamera[a].distance > toCamera[b].distance
         end)
 
         view.objects.opaque:sort(function(a, b)
-            return view.objectToCamera[a].distance > view.objectToCamera[b].distance
+            return toCamera[a].distance < toCamera[b].distance
         end)
 
         if context.frame.cubemapDepth >= context.frame.cubemapLimit.maxDepth then
@@ -437,9 +437,12 @@ function Renderer:drawContext(context)
     end
 
     -- Draw transparent objects
+    -- don't write that to depth buffer tho
+    lovr.graphics.setDepthTest('lequal', false)
     for id, object in context.view.objects.transparent:iter() do
         self:drawObject(object, context)
     end
+    lovr.graphics.setDepthTest('lequal', true)
 
     -- Draw where we think camera is
     -- lovr.graphics.setColor(1, 0, 1, 1)
