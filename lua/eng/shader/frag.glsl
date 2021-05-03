@@ -272,7 +272,7 @@ vec4 color(vec4 graphicsColor, sampler2D image, vec2 uv) {
     debug(environmentDiffuse *= draw_diffuseEnv;)
     debug(environmentSpecular *= draw_specularEnv;)
 
-    vec3 ambient = vec3(0.02, 0.02, 0.01);
+    vec3 ambient = vec3(0.);
     debug(if (draw_specularEnv > 0.) )
         ambient += environmentSpecular;
     debug(if (draw_diffuseEnv > 0.) )
