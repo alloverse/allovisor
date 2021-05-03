@@ -165,7 +165,7 @@ function Renderer:prepareFrame(context)
     frame.cubemapDepth = 0
     frame.cubemapLimit = { 
         count = 0, 
-        max = is_desktop and 0 or 0,
+        max = is_desktop and 1 or 0,
         maxDepth = is_desktop and 1 or 1,
     }
 
