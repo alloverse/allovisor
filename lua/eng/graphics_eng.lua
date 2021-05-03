@@ -124,9 +124,11 @@ function GraphicsEng:onDraw()
 
   -- enteties
   for _, entity in pairs(self.client.state.entities) do
-    local material = entity.components.material
+    local material = entity.components.material or {
+      metalness = 0,
+      roughness = 1
+    }
     local hasTransparency = material and material.hasTransparency
-    local shader_name = material and material.shader_name or "basic"
     local material_alpha = material and material.color and type(material.color[4]) == "number" and material.color[4] or 1
     assert(entity.id, "must have an id")
     table.insert(objects, {
@@ -137,8 +139,8 @@ function GraphicsEng:onDraw()
       hasTransparency = hasTransparency or material_alpha < 1,
       hasReflection = true,
       material = {
-        metalness = 0,
-        roughness = 1,
+        metalness = material.metalness,
+        roughness = material.roughness,
       },
       draw = function(object)
         -- local entity = object.entity
