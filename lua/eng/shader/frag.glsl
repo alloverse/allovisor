@@ -19,6 +19,8 @@ uniform int alloEnvironmentMapType; // 0: none, 1: cubemap, 2: spherical
 uniform sampler2D alloEnvironmentMapSpherical;
 uniform samplerCube alloEnvironmentMapCube;
 
+uniform vec4 alloAmbientLightColor;
+
 #ifdef FLAG_debug
 
 uniform float draw_albedo;
@@ -272,7 +274,7 @@ vec4 color(vec4 graphicsColor, sampler2D image, vec2 uv) {
     debug(environmentDiffuse *= draw_diffuseEnv;)
     debug(environmentSpecular *= draw_specularEnv;)
 
-    vec3 ambient = vec3(0.);
+    vec3 ambient = alloAmbientLightColor.rgb;
     debug(if (draw_specularEnv > 0.) )
         ambient += environmentSpecular;
     debug(if (draw_diffuseEnv > 0.) )

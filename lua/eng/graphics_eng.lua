@@ -116,6 +116,17 @@ function GraphicsEng:onDraw()
       return aabbForModel(model) 
     end
 
+    local collider = entity.components.collider
+    if collider and collider.type == "box" then
+      local w = collider.width/2
+      local h = collider.height/2
+      local d = collider.depth/2
+      return {
+        min = lovr.math.newVec3(-w, -h, -d),
+        max = lovr.math.newVec3(w, h, d)
+      }
+    end
+
     return {
       min = lovr.math.newVec3(-1, -1, -1),
       max = lovr.math.newVec3(1, 1, 1)
@@ -533,6 +544,15 @@ function GraphicsEng:onComponentChanged(component_key, component, old_component)
     self:loadComponentModel(component, old_component)
   elseif component_key == "material" then
     self:loadComponentMaterial(component, old_component)
+  elseif component_key == "environment" then
+    pretty.dump(component)
+    if component.ambient then 
+      if component.ambient.light then
+        if component.ambient.light.color then 
+          self.renderer.ambientLightColor = component.ambient.light.color or {0,0,0,1}
+        end
+      end
+    end
   end
 end
 

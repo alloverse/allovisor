@@ -35,6 +35,8 @@ function Renderer:_init()
 
     self.cubemapPool = {}
 
+    self.ambientLightColor = {0.04, 0.04, 0.04, 1}
+
     self.drawLayer = {
         names = {
             "albedo",
@@ -627,6 +629,8 @@ function Renderer:prepareShaderForFrame(shader, context)
     self.lightsBlock:send('lightCount', #positions)
     self.lightsBlock:send('lightColors', colors)
     self.lightsBlock:send('lightPositions', positions)
+
+    shader:send("alloAmbientLightColor", self.ambientLightColor)
 
     for i, name in ipairs(self.drawLayer.names) do
         shader:send("draw_"..name, self.drawLayer.values[i])
