@@ -295,10 +295,10 @@ function GraphicsEng:_drawEntity(entity, applyShader)
     return
   end
 
-  -- don't draw our own head, as it obscures the camera. Also don't draw avatar if we're in overlay
-  if entity.id == self.parent.head_id or (not self.parent.active and parent == self.parent.avatar_id) then
-    return
-  end
+  -- -- don't draw our own head, as it obscures the camera. Also don't draw avatar if we're in overlay
+  -- if entity.id == self.parent.head_id or (not self.parent.active and parent == self.parent.avatar_id) then
+  --   return
+  -- end
 
   -- special case avatars to get PBR shading and face them towards negative Z
   local pose = optchain(entity, "components.intent.actuate_pose")
