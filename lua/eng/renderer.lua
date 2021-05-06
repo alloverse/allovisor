@@ -35,7 +35,7 @@ function Renderer:_init()
 
     self.cubemapPool = {}
 
-    self.ambientLightColor = {0.04, 0.04, 0.04, 1}
+    self.ambientLightColor = {0,0,0,1}
 
     self.drawLayer = {
         names = {
@@ -320,7 +320,10 @@ function Renderer:prepareObjects(context)
 
             -- Precalculate object vector and distance to camera
             local vectorToCamera = view.cameraPosition - renderObject.AABB.center
-            local distanceToCamera = vectorToCamera:length()
+            local distanceToCamera = vectorToCamera:length() - renderObject.AABB.radius
+            if distanceToCamera < 0 then 
+                distanceToCamera = 0
+            end
             view.objectToCamera[object.id] = {
                 vector = vectorToCamera,
                 distance = distanceToCamera
@@ -358,7 +361,7 @@ function Renderer:prepareObjects(context)
                 assert(a and b)
                 local a_score = scores[aid] or getScore(self, a, context)
                 local b_score = scores[bid] or getScore(self, b, context)
-                
+                assert(a_score and b_score)
                 scores[aid] = a_score
                 scores[bid] = b_score
                 return a_score > b_score
@@ -368,11 +371,13 @@ function Renderer:prepareObjects(context)
 end
 
 function Renderer:objectCubemapScore(object, context)
-    local distanceToCamera = context.view.objectToCamera[object.id].distance - object.AABB.radius
+    local distanceToCamera = context.view.objectToCamera[object.id].distance
     local frameNr = context.frame.nr
-    return  1/(distanceToCamera * distanceToCamera) -- smaller is better
+    local distanceDenom = distanceToCamera and (distanceToCamera * distanceToCamera) or 1
+    return  (10-distanceToCamera) -- smaller is better
             * (object.reflectionMap and (frameNr - object.reflectionMap.source.frameNr) or frameNr) -- larger is better
-            * (1.1 - object.material.roughness)
+            * (1.1 - object.material.roughness) -- Shiny objects preferred
+            -- + (object.reflectionMap and 0 or 5.5) -- objects missing a map gets extra help
 end
 
 function Renderer:prepareObject(renderObject, context, prepareFrameObjects, prepareViewObjects)
@@ -791,7 +796,7 @@ function Renderer:dynamicCubemapFarPlane(object, context)
     local min = object.AABB.radius
     local max = object.AABB.radius + context.cubemapFarPlane
     local distanceToCamera = context.views[1].objectToCamera[object.id].distance
-    local factor = (1 - (distanceToCamera / (max-min))) * object.material.roughness
+    local factor = (1 - (distanceToCamera / (max-min))) * (1 - object.material.roughness)
     local k = min + max * factor
     local result = math.min(math.max(min, k), max)
     return result

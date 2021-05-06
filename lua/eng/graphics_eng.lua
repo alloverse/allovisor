@@ -202,9 +202,9 @@ function GraphicsEng:onDraw()
 
   -- Draw all of them
   local headPosition = self.parent:getHead().components.transform:getMatrix():mul(lovr.math.vec3())
-  self.renderer:render(objects, {
+  self.renderStats = self.renderer:render(objects, {
     drawAABB = self.drawAABBs,
-    -- cameraPosition = lovr.math.newVec3(headPosition)
+    cameraPosition = lovr.math.newVec3(headPosition)
   })
 
   lovr.graphics.setColor({1,1,1})
