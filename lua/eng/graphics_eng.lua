@@ -106,18 +106,19 @@ function GraphicsEng:onDraw()
 
 
 
-  local function aabbForModel(model)
+  local function aabbForModel(model, scale_x, scale_y, scale_z)
     local minx, maxx, miny, maxy, minz, maxz = model:getAABB()
     return {
-        min = lovr.math.newVec3(minx, miny, minz),
-        max = lovr.math.newVec3(maxx, maxy, maxz)
+        min = lovr.math.newVec3(minx*scale_x, miny*scale_y, minz*scale_z),
+        max = lovr.math.newVec3(maxx*scale_x, maxy*scale_y, maxz*scale_z)
     }
   end
 
   local function aabbForEntity(entity)
     local model = self.models_for_eids[entity.id]
-    if model and model.getAABB then 
-      return aabbForModel(model) 
+    local _, _, _, sx, sy, sz = entity.components.transform:getMatrix():unpack()
+    if model and model.getAABB then
+      return aabbForModel(model, sx, sy, sz)
     end
 
     local collider = entity.components.collider
@@ -201,12 +202,13 @@ function GraphicsEng:onDraw()
   end
 
   -- Draw all of them
-  local headPosition = self.parent:getHead().components.transform:getMatrix():mul(lovr.math.vec3())
-  self.renderStats = self.renderer:render(objects, {
-    drawAABB = self.drawAABBs,
-    cameraPosition = lovr.math.newVec3(headPosition)
-  })
-
+  if self.parent:getHead() then 
+    local headPosition = self.parent:getHead().components.transform:getMatrix():mul(lovr.math.vec3())
+    self.renderStats = self.renderer:render(objects, {
+      drawAABB = self.drawAABBs,
+      cameraPosition = lovr.math.newVec3(headPosition)
+    })
+  end
   lovr.graphics.setColor({1,1,1})
 end
 
