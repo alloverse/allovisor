@@ -53,18 +53,20 @@ function GraphicsEng:onLoad()
 
   lovr.graphics.setBackgroundColor(.05, .05, .05)
   
+  local skyboxName = "sunset"
   self.cloudSkybox = lovr.graphics.newTexture({
-    left = 'assets/textures/skybox/skybox-left.jpg',
-    right = 'assets/textures/skybox/skybox-right.jpg',
-    top = 'assets/textures/skybox/skybox-top.jpg',
-    bottom = 'assets/textures/skybox/skybox-bottom.jpg',
-    back = 'assets/textures/skybox/skybox-back.jpg',
-    front = 'assets/textures/skybox/skybox-front.jpg'
+    left =  'assets/textures/skybox/' .. skyboxName .. '/left.png',
+    right = 'assets/textures/skybox/' .. skyboxName .. '/right.png',
+    top =   'assets/textures/skybox/' .. skyboxName .. '/top.png',
+    bottom = 'assets/textures/skybox/' .. skyboxName .. '/bottom.png',
+    back = 'assets/textures/skybox/' .. skyboxName .. '/back.png',
+    front = 'assets/textures/skybox/' .. skyboxName .. '/front.png'
   }, {
     type = "cube",
     mipmaps = true
   })
   self.renderer.defaultEnvironmentMap = self.cloudSkybox
+  -- self.renderer.debug = "distance"
 
   local oliveTex = lovr.graphics.newTexture("assets/textures/olive-noise.png", {})
   self.oliveMat = lovr.graphics.newMaterial(oliveTex, 1, 1, 1, 1)
@@ -551,7 +553,6 @@ function GraphicsEng:onComponentChanged(component_key, component, old_component)
   elseif component_key == "material" then
     self:loadComponentMaterial(component, old_component)
   elseif component_key == "environment" then
-    pretty.dump(component)
     if component.ambient then 
       if component.ambient.light then
         if component.ambient.light.color then 

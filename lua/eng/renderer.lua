@@ -372,12 +372,14 @@ end
 
 function Renderer:objectCubemapScore(object, context)
     local distanceToCamera = context.view.objectToCamera[object.id].distance
+    if distanceToCamera == 0 then distanceToCamera = 0.001 end
     local frameNr = context.frame.nr
     local distanceDenom = distanceToCamera and (distanceToCamera * distanceToCamera) or 1
-    return  (10-distanceToCamera) -- smaller is better
+    -- return  (10-distanceToCamera) -- smaller is better
+    return  (5 - distanceToCamera) -- smaller is better
             * (object.reflectionMap and (frameNr - object.reflectionMap.source.frameNr) or frameNr) -- larger is better
             * (1.1 - object.material.roughness) -- Shiny objects preferred
-            -- + (object.reflectionMap and 0 or 5.5) -- objects missing a map gets extra help
+            + (object.reflectionMap and 0 or 50) -- objects missing a map gets extra help
 end
 
 function Renderer:prepareObject(renderObject, context, prepareFrameObjects, prepareViewObjects)
