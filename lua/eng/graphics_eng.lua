@@ -60,7 +60,11 @@ function GraphicsEng:onLoad()
     bottom = 'assets/textures/skybox/skybox-bottom.jpg',
     back = 'assets/textures/skybox/skybox-back.jpg',
     front = 'assets/textures/skybox/skybox-front.jpg'
+  }, {
+    type = "cube",
+    mipmaps = true
   })
+  self.renderer.defaultEnvironmentMap = self.cloudSkybox
 
   local oliveTex = lovr.graphics.newTexture("assets/textures/olive-noise.png", {})
   self.oliveMat = lovr.graphics.newMaterial(oliveTex, 1, 1, 1, 1)
@@ -89,7 +93,7 @@ function GraphicsEng:onDraw()
   if not self.parent.isOverlayScene then
     lovr.graphics.setBackgroundColor(.3, .3, .40)
     lovr.graphics.setShader()
-    lovr.graphics.skybox(self.cloudSkybox)
+    -- lovr.graphics.skybox(self.cloudSkybox)
     self:drawDecorations()
   else
     self:drawOutlines()
@@ -150,8 +154,8 @@ function GraphicsEng:onDraw()
       hasTransparency = hasTransparency or material_alpha < 1,
       hasReflection = true,
       material = {
-        metalness = material.metalness,
-        roughness = material.roughness,
+        metalness = material.metalness or 0,
+        roughness = material.roughness or 1,
       },
       draw = function(object)
         -- local entity = object.entity
