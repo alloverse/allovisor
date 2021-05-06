@@ -276,16 +276,19 @@ function Renderer:prepareObjects(context)
             self:prepareObject(renderObject, context, prepareFrameObjects, prepareViewObjects)
         end    
     else
+        -- rebuild the cache so we don't save removed objects
+        local cache = self.cache
+        self.cache = {}
         for i, object in ipairs(context.sourceObjects) do
-            local renderObject = self.cache[object.id]
+            local renderObject = cache[object.id]
             if not renderObject then
                 renderObject = { 
                     id = object.id,
                     position = lovr.math.newVec3(),
                     lastPosition = lovr.math.newVec3(999999, 9999999),
                 }
-                self.cache[object.id] = renderObject
             end
+            self.cache[object.id] = renderObject
             renderObject.source = object
 
             --TODO: find a quicker way
