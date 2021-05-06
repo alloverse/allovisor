@@ -8,6 +8,7 @@ in vec3 vCameraPositionWorld;
 in vec3 vTangent;
 in vec3 vViewDir;
 in vec3 vNormalView;
+flat in mat3 vWorldFromView;
 
 uniform samplerCube cubemap;
 uniform float time;
@@ -252,6 +253,9 @@ vec4 color(vec4 graphicsColor, sampler2D image, vec2 uv) {
     debug(diffuse /= float(lightCount);)
     debug(specular /= float(lightCount);)
 
+    //-----  Ambiance --------
+    vec3 ambient = alloAmbientLightColor.rgb;
+
     // environment diffuse is the color shining on us and taking up by the material
     vec3 F = fresnelSchlickRoughness(NdotV, baseReflectivity, roughness);
     vec3 kD = (1.0 - F) * (1.0 - metalness);
@@ -259,6 +263,8 @@ vec4 color(vec4 graphicsColor, sampler2D image, vec2 uv) {
     vec3 environmentDiffuse = diffuseEnvironmentMap * kD;
     debug(if(draw_albedo > 0.) )
         environmentDiffuse *= albedo;
+    debug(if (draw_diffuseEnv > 0.) )
+        ambient += environmentDiffuse;
 
 
     // environment specular is the color of environment reflecting off the surface of the material and into our eyes
@@ -266,19 +272,14 @@ vec4 color(vec4 graphicsColor, sampler2D image, vec2 uv) {
     vec2 lookup = prefilteredBRDF(NdotV, roughness); // microfacet statistical amount of light rays hitting us
     vec3 specularEnvironmentMap = environmentMap(R, roughness);
     vec3 environmentSpecular = specularEnvironmentMap * (F * lookup.r + lookup.g);
-
-
-    // if (lovrViewID == 1)
-    // environmentSpecular  /=  4. ;
-
-    debug(environmentDiffuse *= draw_diffuseEnv;)
-    debug(environmentSpecular *= draw_specularEnv;)
-
-    vec3 ambient = alloAmbientLightColor.rgb;
     debug(if (draw_specularEnv > 0.) )
         ambient += environmentSpecular;
-    debug(if (draw_diffuseEnv > 0.) )
-        ambient += environmentDiffuse;
+
+    #ifdef FLAG_refraction
+    vec3 RF = refract(-normalize(V), normalize(vNormalView), 0.66);
+    vec3 refraction = environmentMap(vWorldFromView * RF, roughness).rgb * (1. - diffuseColor.a);
+    ambient += refraction;
+    #endif
 
     #ifdef FLAG_debug
     if (draw_specularEnv == 0. && draw_diffuseEnv == 0.) {

@@ -4,6 +4,7 @@
         out vec3 vCameraPositionWorld;
         out vec3 vViewDir;
         out vec3 vTangent;
+        flat out mat3 vWorldFromView;
         
                 
         vec4 position(mat4 projection, mat4 transform, vec4 vertex) {
@@ -13,5 +14,6 @@
             vCameraPositionWorld = -lovrView[3].xyz * mat3(lovrView);
             vViewDir = -(transform * vertex).xyz;
             vTangent = lovrTangent.xyz;
+            vWorldFromView = transpose(mat3(lovrView));
             return projection * transform * vertex;
         }
