@@ -594,8 +594,7 @@ function Renderer:generateCubemap(renderObject, context)
 	local center = renderObject.AABB.center
     local maxDistance = 10 - context.views[1].objectToCamera[renderObject.id].distance-- self:dynamicCubemapFarPlane(renderObject, context)
     local maxDistance = self:dynamicCubemapFarPlane(renderObject, context)
-    local objects = self:objectsWithinDistanceOf(context.frame.renderObjects, center, maxDistance, context)
-
+    local objects = self:objectsWithinDistanceOf(context.frame.renderObjects, center, maxDistance, context, renderObject)
 
 	for i,pose in ipairs{
 		lookAt(center, center + vec3(1,0,0), vec3(0,-1,0)),
@@ -681,13 +680,15 @@ function Renderer:pointInAABB(point, aabb)
 end
 
 -- Returns a new list of renderObjects from `renderObjects` that are within `distance` of `position`
-function Renderer:objectsWithinDistanceOf(renderObjects, position, distance, context)
+function Renderer:objectsWithinDistanceOf(renderObjects, position, distance, context, ignoredObject)
     local result = {}
     if distance < 0 then return result end
     for i, object in ipairs(renderObjects) do
-        local length = position:distance(object.AABB.center) - object.AABB.radius
-        if (length < distance) then
-            table.insert(result, object)
+        if object ~= ignoredObject then 
+            local length = position:distance(object.AABB.center) - object.AABB.radius
+            if (length < distance) then
+                table.insert(result, object)
+            end
         end
     end
     return result
