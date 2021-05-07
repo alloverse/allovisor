@@ -431,7 +431,7 @@ function Renderer:drawContext(context)
     local frame = context.frame
     local view = context.view
 
-    if self.defaultEnvironmentMap then 
+    if self.defaultEnvironmentMap and self.drawSkybox then 
         lovr.graphics.setShader()
         lovr.graphics.setColor(1,1,1,1)
         lovr.graphics.skybox(self.defaultEnvironmentMap)

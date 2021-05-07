@@ -82,6 +82,7 @@ end
 -- Called by Ent
 -- @see Ent
 function GraphicsEng:onDraw() 
+  lovr.graphics.clear(false, true, true)
   lovr.graphics.setCullingEnabled(true)
   lovr.graphics.setColor(1,1,1,1)
 
