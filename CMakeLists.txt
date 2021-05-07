@@ -12,6 +12,7 @@ SET(ALLO_LUA_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lua)
 
 # Build settings that need to go before add_subdirectory
 SET(LOVR_BUILD_SHARED ON CACHE BOOL "Always build lovr as library")
+SET(LOVR_SYMBOL_VISIBILITY "default" CACHE STRING "Declare bravery")
 SET(LOVR_BUILD_BUNDLE ON CACHE BOOL "Always build lovr bundle on mac")
 SET(LOVR_ENABLE_ENET OFF CACHE BOOL "Disable Lovr enet since allonet embeds its own")
 set(ALLONET_USE_LUA ON CACHE BOOL "Request Lua bridge")
@@ -46,6 +47,9 @@ if(ANDROID)
     endif()
 endif()
 
+file(GLOB ALLO_LOVR_PLUGINS lovr-plugins/*)
+set(LOVR_BUILD_EXTRA_PLUGINS ${ALLO_LOVR_PLUGINS})
+
 
 # Installer settings (again, before any add_subdirectory)
 set(CPACK_PACKAGE_NAME Alloverse)
@@ -68,7 +72,7 @@ add_subdirectory (deps/allonet)
 
 # Build settings that go after add_subdirectory (i e only applies
 # to these targets, not dependencies' targets)
-include_directories(deps/lovr/src)
+include_directories(deps/lovr/src deps/lovr/src/modules)
 include_directories(deps/lovr/deps/luajit/src ${CMAKE_BINARY_DIR}/deps/lovr/luajit)
 
 
@@ -84,7 +88,7 @@ if(WIN32)
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:libluajit> ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:ode> ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:openvr_api64> ${CMAKE_CURRENT_BINARY_DIR}
-        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:lib_msdfgen> ${CMAKE_CURRENT_BINARY_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:msdfgen> ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:opus> ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:allonet> ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:lovr> ${CMAKE_CURRENT_BINARY_DIR}
@@ -95,7 +99,6 @@ if(WIN32)
     set(CPACK_NSIS_HELP_LINK "https://alloverse.com/support")
     set(CPACK_NSIS_URL_INFO_ABOUT "https://alloverse.com/")
     set(CPACK_NSIS_CONTACT "info@alloverse.com")
-    set(CPACK_NSIS_ENABLE_UNINSTALL_BEFORE_INSTALL ON)
     set(CPACK_PACKAGE_INSTALL_DIRECTORY "Alloverse")
     set(CPACK_NSIS_INSTALLED_ICON_NAME "Alloverse.exe")
     set(CPACK_NSIS_DISPLAY_NAME "Alloverse ${PROJECT_VERSION}")
@@ -105,23 +108,24 @@ if(WIN32)
       set(CPACK_NSIS_INSTALL_ROOT "$PROGRAMFILES")
     endif (CMAKE_CL_64)
     set(CPACK_NSIS_EXTRA_INSTALL_COMMANDS "CreateShortCut \\\"$SMPROGRAMS\\\\$STARTMENU_FOLDER\\\\Alloverse.lnk\\\" \\\"$INSTDIR\\\\.\\\\Alloverse.exe \\\"")
+    set(CPACK_COMPONENTS_ALL "Alloverse")
     include(CPack)
 
 
-    install(TARGETS Alloverse DESTINATION .)
+    install(TARGETS Alloverse DESTINATION . COMPONENT Alloverse)
     # from https://braintrekking.wordpress.com/2013/04/27/dll-hell-how-to-include-microsoft-redistributable-runtime-libraries-in-your-cmakecpack-project/
     set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION ".")
     include (InstallRequiredSystemLibraries)
     message( "Runtime installation files: ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}" )
-    install(DIRECTORY lua DESTINATION .)
-    install(FILES $<TARGET_FILE:glfw> DESTINATION .)
-    install(FILES $<TARGET_FILE:libluajit> DESTINATION .)
-    install(FILES $<TARGET_FILE:ode> DESTINATION .)
-    install(FILES $<TARGET_FILE:openvr_api64> DESTINATION .)
-    install(FILES $<TARGET_FILE:lib_msdfgen> DESTINATION .)
-    install(FILES $<TARGET_FILE:opus> DESTINATION .)
-    install(FILES $<TARGET_FILE:allonet> DESTINATION .)
-    install(FILES $<TARGET_FILE:lovr> DESTINATION .)
+    install(DIRECTORY lua DESTINATION . COMPONENT Alloverse)
+    install(FILES $<TARGET_FILE:glfw> DESTINATION . COMPONENT Alloverse)
+    install(FILES $<TARGET_FILE:libluajit> DESTINATION . COMPONENT Alloverse)
+    install(FILES $<TARGET_FILE:ode> DESTINATION . COMPONENT Alloverse)
+    install(FILES $<TARGET_FILE:openvr_api64> DESTINATION . COMPONENT Alloverse)
+    install(FILES $<TARGET_FILE:msdfgen> DESTINATION . COMPONENT Alloverse)
+    install(FILES $<TARGET_FILE:opus> DESTINATION . COMPONENT Alloverse)
+    install(FILES $<TARGET_FILE:allonet> DESTINATION . COMPONENT Alloverse)
+    install(FILES $<TARGET_FILE:lovr> DESTINATION . COMPONENT Alloverse)
 
 elseif(APPLE)
     set(INSTALL_NAME_DIR .)
@@ -197,7 +201,7 @@ elseif(APPLE)
     move_lib(opus)
     move_lib(glfw)
     move_lib(libluajit)
-    move_lib(lib_msdfgen)
+    move_lib(msdfgen)
     move_lib(ode)
     move_lib(openvr_api)
     
@@ -239,4 +243,35 @@ elseif(UNIX)
     add_executable(Alloverse ${ALLO_SOURCES})
     target_link_libraries(Alloverse ${ALLO_LINK_LIBS})
     target_compile_options(Alloverse PRIVATE -Wall -Wextra -pedantic)
+    set_target_properties(Alloverse PROPERTIES
+      RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"
+      BUILD_WITH_INSTALL_RPATH TRUE
+      INSTALL_RPATH "\$ORIGIN"
+    )
+    function(move_lib)
+      if(TARGET ${ARGV0})
+        get_target_property(TARGET_TYPE ${ARGV0} TYPE)
+        if(${TARGET_TYPE} STREQUAL "MODULE_LIBRARY")
+          add_custom_command(TARGET Alloverse POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy
+            $<TARGET_FILE:${ARGV0}>
+            ${CMAKE_BINARY_DIR}/bin/$<TARGET_FILE_NAME:${ARGV0}>
+          )
+        else()
+          add_custom_command(TARGET Alloverse POST_BUILD
+            COMMAND ${CMAKE_COMMAND} -E copy
+            $<TARGET_SONAME_FILE:${ARGV0}>
+            ${CMAKE_BINARY_DIR}/bin/$<TARGET_SONAME_FILE_NAME:${ARGV0}>
+          )
+        endif()
+      endif()
+    endfunction()
+    move_lib(lovr)
+    move_lib(allonet)
+    move_lib(${LOVR_GLFW})
+    move_lib(${LOVR_LUA})
+    move_lib(${LOVR_ODE})
+    move_lib(${LOVR_OPENVR})
+    move_lib(${LOVR_MSDF})
+    move_lib(${LOVR_OCULUS_AUDIO})
 endif()

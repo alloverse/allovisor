@@ -1,7 +1,6 @@
 local ui = require("alloui.ui")
 local pretty = require("pl.pretty")
 local class = require("pl.class")
-local settings = require("lib.lovr-settings")
 
 class.ConnectPane(ui.Surface)
 function ConnectPane:_init(menu)
@@ -44,11 +43,8 @@ function ConnectPane:_init(menu)
         halign="left"
     })
 
-    settings.load()
-    self.settings = settings
-
     pen:move(0, -pen.size.height, 0)
-    for i, conn in ipairs(settings.d.recentPlaces) do
+    for i, conn in ipairs(Store.singleton():load("recentPlaces")) do
         local connectButton = self:addSubview(ui.Button(pen:copy()))
         connectButton.label.text = conn.name or conn.url
         connectButton.onActivated = function() self:connect(conn.url) end

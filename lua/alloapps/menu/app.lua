@@ -22,18 +22,6 @@ function Menu:createUI()
   return self.root
 end
 
-function Menu:updateDebugTitle(newState)
-  self.menus.main.optionsPane.debugButton.label:setText(newState and "Debug (On)" or "Debug (Off)")
-  self.menus.overlay.optionsPane.debugButton.label:setText(newState and "Debug (On)" or "Debug (Off)")
-end
-function Menu:setCurrentMicrophone(mic, status)
-  -- XXX ugly hack save it for if there's no current AudioPane up
-  AudioPane.currentMicrophone = {mic, status}
-  -- XXX ugly hack set it if there IS an AudioPane up
-  if self.nav:top() and self.nav:top().setCurrentMicrophone then
-    self.nav:top():setCurrentMicrophone(mic, status)
-  end
-end
 function Menu:updateMessage(msg)
   self.menus.main.messageLabel:setText(msg)
   self.menus.overlay.messageLabel:setText(msg)

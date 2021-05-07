@@ -18,7 +18,6 @@ local NetMenuScene = classNamed("NetMenuScene", Ent)
 local MenuInteractor = classNamed("MenuInteractor", Ent)
 
 --- lovr settings.
-local settings = require("lib.lovr-settings")
 require("lib.util")
 
 
@@ -27,35 +26,30 @@ function NetMenuScene:_init(menuServerPort)
   self.sendQueue = {}
   self.apps = {}
   self.visible = true
-  settings.load()
-  self.settings = settings
-  if settings.d.recentPlaces == nil or settings.d.recentPlaces[1].url == nil then
-    settings.d.recentPlaces = {
+
+  Store.singleton():registerDefaults{
+    recentPlaces = {
       {name="Nevyn's place", url="alloplace://nevyn.places.alloverse.com"},
       {name="RF4", url="alloplace://rf4.nevyn.nu"},
       {name="Localhost", url="alloplace://localhost"}
-    }
-    settings.save()
-  end
+    },
+    debug= false,
+    avatarName= "female",
+    username= "Unnamed",
+  }
+
   self:setupAvatars()
-  self:updateDebugTitle()
   self:updateDisplayName()
-  lovr.handlers["micchanged"] = function(micName, status)
-    self:sendToApp("mainmenu", {"updateMenu", "setCurrentMicrophone", default(micName, ""), status and "ok" or "error"})
-  end
   self:super()
 end
 
 --- Setup.
 -- Connects to the menuserlv and starts the interactor
 function NetMenuScene:onLoad()
-  self.net = NetworkScene("owner", "alloplace://localhost:"..tostring(self.menuServerPort), settings.d.avatarName, false)
-  self.net.debug = settings.d.debug
+  self.net = NetworkScene("owner", "alloplace://localhost:"..tostring(self.menuServerPort), Store.singleton():load("avatarName"), false)
+  self.net.debug = Store.singleton():load("debug")
   self.net.isMenu = true
   self.net:insert(self)
-
-  
-  NetMenuScene.dynamicActions.chooseMic(self, settings.d.currentMicrophone)
 
   local interactor = MenuInteractor()
   interactor.netmenu = self
@@ -77,20 +71,16 @@ function NetMenuScene:setupAvatars()
       table.insert(self.avatarNames, avatarName)
     end
   end
-  local i = tablex.find(self.avatarNames, settings.d.avatarName)
-  if settings.d.avatarName == nil or i == -1 then
-    settings.d.avatarName = "female"
-    settings.save()
+  local chosenAvatarName = Store.singleton():load("avatarName")
+  if tablex.find(self.avatarNames, chosenAvatarName) == -1 then
+    chosenAvatarName = female
+    Store.singleton():save("avatarName", chosenAvatarName, true)
   end
-  self:sendToApp("avatarchooser", {"showAvatar", settings.d.avatarName})
-end
-
-function NetMenuScene:updateDebugTitle()
-  self:sendToApp("mainmenu", {"updateMenu", "updateDebugTitle", settings.d.debug and true or false })
+  self:sendToApp("avatarchooser", {"showAvatar", chosenAvatarName})
 end
 
 function NetMenuScene:updateDisplayName()
-  self:sendToApp("avatarchooser", {"setDisplayName", default(settings.d.username, "Unnamed")})
+  self:sendToApp("avatarchooser", {"setDisplayName", Store.singleton():load("username")})
 end
 
 function NetMenuScene:setMessage(message)
@@ -169,33 +159,34 @@ end
 
 function NetMenuScene:saveRecentPlace(url, name)
   local entry = {name=name, url=url}
-  for i, place in ipairs(settings.d.recentPlaces) do
+  local recentPlaces = Store.singleton():load("recentPlaces")
+  for i, place in ipairs(recentPlaces) do
     if place.url == url then
       if name == nil and place.name ~= nil then
         entry = place
       end
-      table.remove(settings.d.recentPlaces, i)
+      table.remove(recentPlaces, i)
       break
     end
   end
 
-  table.insert(settings.d.recentPlaces, 1, entry)
+  table.insert(recentPlaces, 1, entry)
 
-  while #settings.d.recentPlaces > 4 do 
-    table.remove(settings.d.recentPlaces) 
+  while #recentPlaces > 4 do 
+    table.remove(recentPlaces) 
   end
   
-  settings.save()
+  Store.singleton():save("recentPlaces", recentPlaces, true)
 end
 
 --- Connect to a place.
 function NetMenuScene.dynamicActions:connect(url)
   self:saveRecentPlace(url, nil)
 
-  local displayName = settings.d.username and settings.d.username or "Unnamed"
+  local displayName = Store.singleton():load("username")
   local isSpectatorCamera = displayName == "Camera"
-  local net = lovr.scenes:showPlace(displayName, url, settings.d.avatarName, isSpectatorCamera)
-  net.debug = settings.d.debug
+  local net = lovr.scenes:showPlace(displayName, url, Store.singleton():load("avatarName"), isSpectatorCamera)
+  net.debug = Store.singleton():load("debug")
 end
 
 --- Quit Alloverse.
@@ -213,42 +204,18 @@ function NetMenuScene.dynamicActions:disconnect()
   self.parent.net:onDisconnect()
 end
 
---- Toggle debug mode.
-function NetMenuScene.dynamicActions:toggleDebug(sender)
-  settings.d.debug = not settings.d.debug
-  settings:save()
-  self.net.debug = settings.d.debug
-  if lovr.scenes.net then
-    lovr.scenes.net.debug = self.net.debug
-  end
-  self:updateDebugTitle()
-end
 
 --- Cycle through the list of avatars.
 function NetMenuScene.dynamicActions:changeAvatar(direction, sender)
-  local i = tablex.find(self.avatarNames, settings.d.avatarName) or 1
+  local i = tablex.find(self.avatarNames, Store.singleton():load("avatarName")) or 1
   local newI = ((i + direction - 1) % #self.avatarNames) + 1
-  settings.d.avatarName = self.avatarNames[newI]
-  settings.save()
-  self:sendToApp("avatarchooser", {"showAvatar", settings.d.avatarName})
+  local newAvatarName = self.avatarNames[newI]
+  Store.singleton():save("avatarName", newAvatarName, true)
+  self:sendToApp("avatarchooser", {"showAvatar", newAvatarName})
 end
 
 function NetMenuScene.dynamicActions:setDisplayName(newName)
-  settings.d.username = newName
-  settings.save()
-end
-
---- Pick a new microphone to record from
-function NetMenuScene.dynamicActions:chooseMic(newMicName)
-  settings.d.currentMicrophone = newMicName
-  settings.save()
-  local ok = true
-  self:sendToApp("mainmenu", {"updateMenu", "setCurrentMicrophone", default(settings.d.currentMicrophone, ""), "working"})
-  optchainm(lovr.scenes, "net.engines.sound.useMic", settings.d.currentMicrophone)
-end
-
-function NetMenuScene:applySettingsToCurrentNet()
-  self.dynamicActions.chooseMic(self, settings.d.currentMicrophone)
+  Store.singleton():save("username", newName, true)
 end
 
 return NetMenuScene

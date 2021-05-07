@@ -61,7 +61,7 @@ end
 function HandRay:drawCone(color)
   local coneCenter = self.from + ((self.to - self.from):normalize() * (self.rayLength/2))
   lovr.graphics.push()
-  local mat = lovr.math.mat4():lookAt(coneCenter, self.to)
+  local mat = lovr.math.mat4():target(coneCenter, self.to)
   lovr.graphics.transform(mat)
   
   lovr.graphics.setColor(color)

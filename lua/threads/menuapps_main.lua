@@ -10,6 +10,7 @@ local allonet = util.load_allonet()
 local running = true
 local chan = lovr.thread.getChannel("appserv")
 local port = chan:pop(true)
+local Store = require("lib.lovr-store")
 lovr.headsetName = chan:pop(true)
 print("Connecting apps to port", port)
 local apps = {
@@ -22,6 +23,7 @@ print("allomenu apps started")
 local _, read = chan:push("booted", 2.0)
 if not read then error("hey you gotta pop booted") end
 while running do
+  Store.singleton():poll()
   for _, app in ipairs(apps) do
     app:update()
   end
