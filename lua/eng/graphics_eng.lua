@@ -42,7 +42,6 @@ function GraphicsEng:onLoad()
     broken = lovr.graphics.newModel('/assets/models/broken.glb'),
     loading = lovr.graphics.newModel('/assets/models/loading.glb'),
   }
-  self:loadHardcodedModel('forest', function() end, '/assets/models/decorations/forest/PUSHILIN_forest.gltf')
 
   self.models_for_eids = {}
   self.materials_for_eids = {}
@@ -67,14 +66,6 @@ function GraphicsEng:onLoad()
   })
   self.renderer.defaultEnvironmentMap = self.cloudSkybox
   -- self.renderer.debug = "distance"
-
-  local oliveTex = lovr.graphics.newTexture("assets/textures/olive-noise.png", {})
-  self.oliveMat = lovr.graphics.newMaterial(oliveTex, 1, 1, 1, 1)
-  self.oliveMat:setScalar("roughness", 1)
-  self.oliveMat:setScalar("metalness", 0)
-
-  local menuplateTex = lovr.graphics.newTexture("assets/textures/menuplate.png", {})
-  self.menuplateMat = lovr.graphics.newMaterial(menuplateTex, 1, 1, 1, 1)
 
 
   self.testModels = {}
@@ -131,57 +122,41 @@ function GraphicsEng:onDraw()
     }
   end
 
-  -- "The floor"
-  table.insert(objects, {
-    id = "floor decoration",
-    AABB = {
-      min = lovr.math.vec3(-32, -32, -32),
-      max = lovr.math.vec3(32, 32, 32)
-    },
-    hasReflection = true,
-    position = lovr.math.vec3(0,0,0),
-    draw = function ()
-      -- "Floorplate"
-    lovr.graphics.circle( 
-      self.oliveMat,
-      0, 0, 0, -- x y z
-      32,  -- radius
-      -3.14/2, -- angle around axis of rotation
-      1, 0, 0 -- rotation axis (x, y, z)
-    )
-    end
-  })
-
   -- enteties
   for _, entity in pairs(self.client.state.entities) do
+    -- Default material property is basically plastic
     local material = entity.components.material or {
       metalness = 0,
       roughness = 1
     }
-    local hasTransparency = material and material.hasTransparency
+
+    -- Transparent obects have opposite draw order than opaque objects
     local material_alpha = material and material.color and type(material.color[4]) == "number" and material.color[4] or 1
+    local hasTransparency = material and material.hasTransparency or material_alpha < 1
     assert(entity.id, "must have an id")
     table.insert(objects, {
       id = entity.id,
       visible = true,
       AABB = aabbForEntity(entity),
       position = entity.components.transform:getMatrix():mul(lovr.math.vec3()),
-      hasTransparency = hasTransparency or material_alpha < 1,
+      hasTransparency = hasTransparency,
       hasReflection = true,
       material = {
         metalness = material.metalness or 0,
         roughness = material.roughness or 1,
       },
-      draw = function(object)
+      draw = function(object, context)
+        if entity.id == self.parent.head_id and context.view.nr == 1 then return end -- Hide head in view but not reflections
         -- local entity = object.entity
         lovr.graphics.push()
         lovr.graphics.transform(entity.components.transform:getMatrix())
-        self:_drawEntity(entity, true)
+        self:_drawEntity(entity)
         lovr.graphics.pop()
       end
     })
   end
 
+  --- Some artificial lights until we have ents for them 
   for i = 0, 3 do
     table.insert(objects, {
       id = 'light ' .. i,
@@ -202,6 +177,7 @@ function GraphicsEng:onDraw()
     })
   end
 
+  --- Add objects that are drag&dropped into the visor
   for i, model in ipairs(self.testModels) do
     table.insert(objects, {
       id = "Test object " .. i,
@@ -215,101 +191,18 @@ function GraphicsEng:onDraw()
     })
   end
 
-  -- Draw all of them
-  if self.parent:getHead() and not self.parent.isOverlayScene then 
+  -- Draw all of them (unless things are not initialized properly)
+  if self.parent:getHead() then 
     local headPosition = self.parent:getHead().components.transform:getMatrix():mul(lovr.math.vec3())
     self.renderStats = self.renderer:render(objects, {
       drawAABB = self.drawAABBs,
       cameraPosition = lovr.math.newVec3(headPosition)
     })
-  else
-    if not self.parent.isOverlayScene then
-      lovr.graphics.setBackgroundColor(.3, .3, .40)
-      lovr.graphics.setShader()
-      -- lovr.graphics.skybox(self.cloudSkybox)
-      self:drawDecorations()
-    else
-      self:drawOutlines()
-    end
   end
-  lovr.graphics.setColor({1,1,1})
-end
-
---- Draws objects in the list in a sorted manner
--- Objects not in view might not be drawn.
--- Each object must have the following structure
--- {
---    material = {
---       shaderKey = string unique to each shader
---       hasTransparency = Objects that has transparency in them gets special sorting treatment
---    }
---    getPosition(object) = function that returns the vec3 world position of the object. It is good if you can cache the result
---    draw(object) = function to handle the drawing of the object
---
---    ... = add other fields you may need in the functions above
--- }
--- @tparam list objects A list of tables with the following structure
-function GraphicsEng:drawObjects(objects)
-  -- TODO: remove objects that are outside the view frustrum
-  math.randomseed(0)
-  -- sort into bins based on material properties
-  local materialBins = {}
-  for i, object in ipairs(objects) do
-    local shader = object.material.shaderKey
-    local hasTransparency = object.material.hasTransparency
-    local key = shader .. (hasTransparency and "_transparent" or "_opaque")
-    local bin = materialBins[key]
-    if not bin then
-      bin = {
-        hasTransparency = hasTransparency,
-        shader = shader,
-      }
-      materialBins[key] = bin
-    end
-    table.insert(bin, object)
-  end
-
-  -- sort bins so that those that include transparency are last
-  local bins = tablex.values(materialBins)
-  table.sort(bins, function (a, b)
-    local aScore = a.hasTransparency and 10 or 0
-    local bScore = b.hasTransparency and 10 or 0
-    return aScore < bScore
-  end)
-
-  if not (self.parent and self.parent:getHead() and self.parent:getHead().components and self.parent:getHead().components.transform) then 
-    print("head not found yet. Skipping drawing objects")
-    return
-  end
-  local headPosition = self.parent:getHead().components.transform:getMatrix():mul(lovr.math.vec3())
-
-  -- Draw the objects one bin at a time
-  for _, bin in ipairs(bins) do
-    
-    -- Sort objects in bins featuring transparency from furthest to closest
-    if bin.hasTransparency then
-      table.sort(bin, function(a, b)
-        local aScore = a:getPosition():distance(headPosition)
-        local bScore = b:getPosition():distance(headPosition)
-        return aScore > bScore
-      end)
-
-      -- don't write depth info
-      lovr.graphics.setDepthTest('lequal', false)
-    else 
-      lovr.graphics.setDepthTest('lequal', true)
-    end
-
-    for _, object in ipairs(bin) do
-      object:draw(object)
-    end
-  end
-
-  lovr.graphics.setDepthTest('lequal', true)
 end
 
 --- Draws an entity.
-function GraphicsEng:_drawEntity(entity, applyShader)
+function GraphicsEng:_drawEntity(entity)
   local geom = entity.components.geometry
   local parent = optchain(entity, "components.relationships.parent")
   local model = self.models_for_eids[entity.id]
@@ -318,26 +211,19 @@ function GraphicsEng:_drawEntity(entity, applyShader)
     return
   end
 
-  -- -- don't draw our own head, as it obscures the camera. Also don't draw avatar if we're in overlay
-  -- if entity.id == self.parent.head_id or (not self.parent.active and parent == self.parent.avatar_id) then
-  --   return
-  -- end
-
   -- special case avatars to get PBR shading and face them towards negative Z
+  -- TODO: move to avatar ents!
   local pose = optchain(entity, "components.intent.actuate_pose")
   if pose ~= nil then 
     lovr.graphics.rotate(3.14, 0, 1, 0)
   end
 
-  if applyShader then
-    local mat = self.materials_for_eids[entity.id]
-    if mat and mat:getColor() ~= nil then
-      lovr.graphics.setColor(mat:getColor())
-    else
-      lovr.graphics.setColor(1,1,1,1)
-    end
 
-  --   lovr.graphics.setShader(self:shaderForEntity(entity))
+  local mat = self.materials_for_eids[entity.id]
+  if mat and mat:getColor() then 
+    lovr.graphics.setColor(mat:getColor())
+  else 
+    lovr.graphics.setColor(1,1,1,1)
   end
 
   local animationCount = model.animate and model:getAnimationCount()
@@ -351,50 +237,11 @@ function GraphicsEng:_drawEntity(entity, applyShader)
     model:animate(name, lovr.timer.getTime())
   end
 
-  if self.colorfulDebug then 
+  if self.colorfulDebug then
     lovr.graphics.setColor(math.random(), math.random(), math.random(), 1)
   end
 
   model:draw()
-
-  -- local drawAABBs = true
-  -- if (self.drawAABBs or self.drawAABBCenters) and model.getAABB then
-  --   local minx, maxx, miny, maxy, minz, maxz = model:getAABB()
-  --   local x, y, z = (maxx+minx)*0.5, (maxy+miny)*0.5, (maxz+minz)*0.5
-  --   local w, h, d = maxx-minx, maxy-miny, maxz-minz
-
-  --   if self.drawAABBCenters then 
-  --     lovr.graphics.sphere(x, y, z, 0.2)
-  --   end
-  --   if self.drawAABBs then 
-  --     lovr.graphics.box("line", x, y, z, w, h, d)
-  --   end
-  -- end
-
-end
-
---- Draws outlines.
-function GraphicsEng:drawOutlines()
-  lovr.graphics.setShader(self.basicShader)
-  lovr.graphics.setDepthTest('lequal', false)
-  lovr.graphics.setColor(0,0,0, 0.5)
-  for eid, entity in pairs(self.client.state.entities) do
-    lovr.graphics.push()
-    lovr.graphics.transform(entity.components.transform:getMatrix())
-    lovr.graphics.scale(1.04, 1.04, 1.04)
-    self:_drawEntity(entity, false)
-    lovr.graphics.pop()
-  end
-  lovr.graphics.setDepthTest('lequal', true)
-end
-
---- The simulation tick
--- Called by Ent
--- @tparam number dt, seconds since last frame
--- @see Ent
-function GraphicsEng:onUpdate(dt)
-  if self.client == nil then return end
-
 end
 
 --- Load a model for supplied component.
@@ -478,35 +325,6 @@ function GraphicsEng:loadTexture(eid, base64, callback)
     end,
     base64
   )
-end
-
-
-function GraphicsEng:modelHasBumpmap(model)
-  local has_bumps = false
-  for i = 1, model:getMaterialCount() do
-    if model:getMaterial(i):getTexture('normal') ~= nil then
-      return true
-    end
-  end
-  return false
-end
-
-function GraphicsEng:pbrShaderForModel(model)
-  if self:modelHasBumpmap(model) then
-    return self.pbrShader.withNormals
-  else
-    return self.pbrShader.withoutNormals
-  end
-end
-
-function GraphicsEng:shaderForEntity(ent)
-  local mat = ent.components.material
-  if mat and mat.shader_name == "pbr" then
-    local mod = self.models_for_eids[ent.id]
-    return self:pbrShaderForModel(mod)
-  else
-    return self.basicShader
-  end
 end
 
 --- Loads a material for supplied component.
@@ -661,65 +479,6 @@ function GraphicsEng:createMesh(geom, old_geom)
   end
 
   return mesh
-end
-
-
---- Draws some forest decorantions
-function GraphicsEng:drawDecorations()
-  local place = self.client.state.entities["place"]
-  local deco = optchain(place, "components.decorations.type")
-
-  lovr.graphics.setShader(self.basicShader)
-  if deco == "mainmenu" then
-    lovr.graphics.circle( 
-      self.menuplateMat,
-      0, 0, 0, -- x y z
-      12,  -- radius
-      -3.14/2, -- angle around axis of rotation
-      1, 0, 0 -- rotation axis (x, y, z)
-    )
-  else
-    
-    local forestModel = nil -- self.hardcoded_models.forest
-    if forestModel then
-      forestModel:draw(0,   .5,   -28,  2,  0,  0,  1,  0,  1)
-      forestModel:draw(4,   .5,   -24,  2,  2,  0,  1,  0,  1)
-      forestModel:draw(8,   .5,   -20,  2,  0,  0,  1,  0,  1)
-      forestModel:draw(12,  .5,   -16,  2,  0,  0,  1,  0,  1)
-      forestModel:draw(16,  .5,   -12,  2,  5,  0,  1,  0,  1)
-      forestModel:draw(20,  .5,   -8,   2,  5,  0,  1,  0,  1)
-      forestModel:draw(24,  .5,   -4,   2,  0,  0,  1,  0,  1)
-      forestModel:draw(28,  .5,   0,    2,  1,  0,  1,  0,  1)
-
-      forestModel:draw(28,  .5,   0,    2,  3,  0,  1,  0,  1)
-      forestModel:draw(24,  .5,   4,    2,  0,  0,  1,  0,  1)
-      forestModel:draw(20,  .5,   8,    2,  0,  0,  1,  0,  1)
-      forestModel:draw(16,  .5,   12,   2,  0,  0,  1,  0,  1)
-      forestModel:draw(12,  .5,   16,   2,  2,  0,  1,  0,  1)
-      forestModel:draw(8,   .5,   20,   2,  2,  0,  1,  0,  1)
-      forestModel:draw(4,   .5,   24,   2,  0,  0,  1,  0,  1)
-      forestModel:draw(0,   .5,   28,   2,  3,  0,  1,  0,  1)
-
-      forestModel:draw(0,   .5,   -28,  2,  0,  0,  1,  0,  1)
-      forestModel:draw(-4,   .5,   -24,  2,  2,  0,  1,  0,  1)
-      forestModel:draw(-8,   .5,   -20,  2,  0,  0,  1,  0,  1)
-      forestModel:draw(-12,  .5,   -16,  2,  0,  0,  1,  0,  1)
-      forestModel:draw(-16,  .5,   -12,  2,  5,  0,  1,  0,  1)
-      forestModel:draw(-20,  .5,   -8,   2,  5,  0,  1,  0,  1)
-      forestModel:draw(-24,  .5,   -4,   2,  0,  0,  1,  0,  1)
-      forestModel:draw(-28,  .5,   0,    2,  1,  0,  1,  0,  1)
-
-      forestModel:draw(-28,  .5,   0,    2,  3,  0,  1,  0,  1)
-      forestModel:draw(-24,  .5,   4,    2,  0,  0,  1,  0,  1)
-      forestModel:draw(-20,  .5,   8,    2,  0,  0,  1,  0,  1)
-      forestModel:draw(-16,  .5,   12,   2,  0,  0,  1,  0,  1)
-      forestModel:draw(-12,  .5,   16,   2,  2,  0,  1,  0,  1)
-      forestModel:draw(-8,   .5,   20,   2,  2,  0,  1,  0,  1)
-      forestModel:draw(-4,   .5,   24,   2,  0,  0,  1,  0,  1)
-      forestModel:draw(-0,   .5,   28,   2,  3,  0,  1,  0,  1)
-    end
-  end
-
 end
 
 --- Calculate vertex normal from three corner vertices

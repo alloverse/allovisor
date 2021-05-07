@@ -166,9 +166,10 @@ function Renderer:prepareFrame(context)
     frame.nr = self.lastFrameNumber + 1
     frame.cubemapDepth = 0
     frame.cubemapLimit = { 
-        count = 0, 
-        max = is_desktop and 1 or 0,
-        maxDepth = is_desktop and 1 or 1,
+        count = 0, -- Max number of cubemaps at any one time
+        max = is_desktop and 1 or 0, -- do not generate more cm's than this per frame
+        maxDepth = is_desktop and 1 or 1, -- >1 makes reflections also render other objects reflections
+        minFrameDistance = is_desktop and 0 or 20, -- Wait tis many frames between each cubemap
     }
 
     frame.prepared = true
@@ -348,9 +349,11 @@ function Renderer:prepareObjects(context)
             return toCamera[a].distance < toCamera[b].distance
         end)
 
-        if context.frame.cubemapDepth >= context.frame.cubemapLimit.maxDepth then
+        local lastCubemapFrame = self.lastCubemapFrame or 0
+        if context.frame.cubemapDepth >= context.frame.cubemapLimit.maxDepth or (context.frame.nr - lastCubemapFrame) < context.frame.cubemapLimit.minFrameDistance then
             view.objects.needsCubemap = OrderedMap()
         else
+            self.lastCubemapFrame = context.frame.nr
             -- Sort the list of objects needing cubemaps
             local list = view.objects.needsCubemap
             local scores = {}
@@ -703,7 +706,6 @@ function Renderer:cullTest(renderObject, context)
     end
 
     -- always cull some
-    
     if renderObject.source.visible == false then
         return true
     end
