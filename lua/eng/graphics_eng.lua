@@ -70,6 +70,8 @@ function GraphicsEng:onLoad()
 
   local oliveTex = lovr.graphics.newTexture("assets/textures/olive-noise.png", {})
   self.oliveMat = lovr.graphics.newMaterial(oliveTex, 1, 1, 1, 1)
+  self.oliveMat:setScalar("roughness", 1)
+  self.oliveMat:setScalar("metalness", 0)
 
   local menuplateTex = lovr.graphics.newTexture("assets/textures/menuplate.png", {})
   self.menuplateMat = lovr.graphics.newMaterial(menuplateTex, 1, 1, 1, 1)
@@ -91,22 +93,11 @@ end
 function GraphicsEng:onDraw() 
   lovr.graphics.setCullingEnabled(true)
   lovr.graphics.setColor(1,1,1,1)
-  
-  if not self.parent.isOverlayScene then
-    lovr.graphics.setBackgroundColor(.3, .3, .40)
-    lovr.graphics.setShader()
-    -- lovr.graphics.skybox(self.cloudSkybox)
-    self:drawDecorations()
-  else
-    self:drawOutlines()
-  end
 
   lovr.graphics.setColor(1, 1, 1, 1)
 
   -- Collect all the objects to sort and draw
   local objects = {}
-
-
 
   local function aabbForModel(model, scale_x, scale_y, scale_z)
     local minx, maxx, miny, maxy, minz, maxz = model:getAABB()
@@ -139,6 +130,27 @@ function GraphicsEng:onDraw()
       max = lovr.math.newVec3(1, 1, 1)
     }
   end
+
+  -- "The floor"
+  table.insert(objects, {
+    id = "floor decoration",
+    AABB = {
+      min = lovr.math.vec3(-32, -32, -32),
+      max = lovr.math.vec3(32, 32, 32)
+    },
+    hasReflection = true,
+    position = lovr.math.vec3(0,0,0),
+    draw = function ()
+      -- "Floorplate"
+    lovr.graphics.circle( 
+      self.oliveMat,
+      0, 0, 0, -- x y z
+      32,  -- radius
+      -3.14/2, -- angle around axis of rotation
+      1, 0, 0 -- rotation axis (x, y, z)
+    )
+    end
+  })
 
   -- enteties
   for _, entity in pairs(self.client.state.entities) do
@@ -204,12 +216,21 @@ function GraphicsEng:onDraw()
   end
 
   -- Draw all of them
-  if self.parent:getHead() then 
+  if self.parent:getHead() and not self.parent.isOverlayScene then 
     local headPosition = self.parent:getHead().components.transform:getMatrix():mul(lovr.math.vec3())
     self.renderStats = self.renderer:render(objects, {
       drawAABB = self.drawAABBs,
       cameraPosition = lovr.math.newVec3(headPosition)
     })
+  else
+    if not self.parent.isOverlayScene then
+      lovr.graphics.setBackgroundColor(.3, .3, .40)
+      lovr.graphics.setShader()
+      -- lovr.graphics.skybox(self.cloudSkybox)
+      self:drawDecorations()
+    else
+      self:drawOutlines()
+    end
   end
   lovr.graphics.setColor({1,1,1})
 end
@@ -658,14 +679,6 @@ function GraphicsEng:drawDecorations()
       1, 0, 0 -- rotation axis (x, y, z)
     )
   else
-    -- "Floorplate"
-    lovr.graphics.circle( 
-      self.oliveMat,
-      0, 0, 0, -- x y z
-      32,  -- radius
-      -3.14/2, -- angle around axis of rotation
-      1, 0, 0 -- rotation axis (x, y, z)
-    )
     
     local forestModel = nil -- self.hardcoded_models.forest
     if forestModel then
