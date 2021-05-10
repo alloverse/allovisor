@@ -158,26 +158,26 @@ function GraphicsEng:onDraw()
     })
   end
 
-  --- Some artificial lights until we have ents for them 
-  for i = 0, 3 do
-    table.insert(objects, {
-      id = 'light ' .. i,
-      type = 'light',
-      draw = function(o)
-        local x, y, z = o.position:unpack()
-        lovr.graphics.sphere(x, y, z, 0.1)
-      end,
-      position = lovr.math.newVec3( 0, 6, 6 - i * 4 ),
-      light = {
-        position = lovr.math.newVec3( 0, 6, 6 - i * 4 ),
-        color = {10,10,10,10},
-      },
-      AABB = {
-        min = lovr.math.newVec3(-0.1, -0.1, -0.1),
-        max = lovr.math.newVec3(0.1, 0.1, 0.1),
-      }
-    })
-  end
+  -- --- Some artificial lights until we have ents for them 
+  -- for i = 0, 3 do
+  --   table.insert(objects, {
+  --     id = 'light ' .. i,
+  --     type = 'light',
+  --     draw = function(o)
+  --       local x, y, z = o.position:unpack()
+  --       lovr.graphics.sphere(x, y, z, 0.1)
+  --     end,
+  --     position = lovr.math.newVec3( 0, 6, 6 - i * 4 ),
+  --     light = {
+  --       position = lovr.math.newVec3( 0, 6, 6 - i * 4 ),
+  --       color = {10,10,10,10},
+  --     },
+  --     AABB = {
+  --       min = lovr.math.newVec3(-0.1, -0.1, -0.1),
+  --       max = lovr.math.newVec3(0.1, 0.1, 0.1),
+  --     }
+  --   })
+  -- end
 
   --- Add objects that are drag&dropped into the visor
   for i, model in ipairs(self.testModels) do
