@@ -71,7 +71,7 @@ vec3 environmentMap(vec3 direction, float roughness) {
     if (alloEnvironmentMapType == 1) {
         // float mipmapCount = log2(float(textureSize(alloEnvironmentMapCube, 0).x));
         float mipmapCount = floor(log2(float(textureSize(alloEnvironmentMapCube, 0).x))) - 1.;
-        float k =  min(sin(PI2*roughness) * 2., 1.);
+        float k =  min(sin(PI2*roughness), 1.);
         return textureLod(alloEnvironmentMapCube, direction, k * mipmapCount).rgb;
     } 
     
@@ -82,7 +82,7 @@ vec3 environmentMap(vec3 direction, float roughness) {
         // float mipmapCount = log2(float(textureSize(alloEnvironmentMapSpherical, 0).x));
         float mipmapCount = floor(log2(float(textureSize(alloEnvironmentMapSpherical, 0).x))) - 2.;
         // return textureLod(alloEnvironmentMapSpherical, cubeUv, ).rgb;
-        float k =  min(sin(PI2*roughness) * 2., 1.);
+        float k =  min(sin(PI2*roughness), 1.);
         return textureLod(alloEnvironmentMapSpherical, cubeUv, k * mipmapCount).rgb;
     }
     return vec3(0.0);
@@ -254,7 +254,7 @@ vec4 color(vec4 graphicsColor, sampler2D image, vec2 uv) {
     debug(specular /= float(lightCount);)
 
     //-----  Ambiance --------
-    vec3 ambient = alloAmbientLightColor.rgb;
+    vec3 ambient = alloAmbientLightColor.rgb * albedo;
 
     // environment diffuse is the color shining on us and taking up by the material
     vec3 F = fresnelSchlickRoughness(NdotV, baseReflectivity, roughness);
