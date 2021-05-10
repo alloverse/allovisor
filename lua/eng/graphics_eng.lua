@@ -65,6 +65,7 @@ function GraphicsEng:onLoad()
     mipmaps = true
   })
   self.renderer.defaultEnvironmentMap = self.cloudSkybox
+  self.renderer.drawSkybox = true
   -- self.renderer.debug = "distance"
 
 
@@ -372,6 +373,22 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
     end
   end
 end
+
+function GraphicsEng:loadEnvironment(component)
+  if component.ambient then 
+    if component.ambient.light then
+      if component.ambient.light.color then
+        self.renderer.ambientLightColor = component.ambient.light.color or {0,0,0,1}
+      end
+    end
+  end
+  if component.skybox then
+    self:loadCubemap(component.skybox, function(cubeTexture)
+      self.renderer.defaultEnvironmentMap = cubeTexture
+    end)
+  end 
+end
+
 --- Called when a new component is added
 -- @tparam string component_key The component type
 -- @tparam component component The new component
@@ -380,6 +397,8 @@ function GraphicsEng:onComponentAdded(component_key, component)
     self:loadComponentModel(component, nil)
   elseif component_key == "material" then
     self:loadComponentMaterial(component, nil)
+  elseif component_key == "environment" then
+    self:loadEnvironment(component)
   end
 end
 
@@ -393,13 +412,7 @@ function GraphicsEng:onComponentChanged(component_key, component, old_component)
   elseif component_key == "material" then
     self:loadComponentMaterial(component, old_component)
   elseif component_key == "environment" then
-    if component.ambient then 
-      if component.ambient.light then
-        if component.ambient.light.color then 
-          self.renderer.ambientLightColor = component.ambient.light.color or {0,0,0,1}
-        end
-      end
-    end
+    self:loadEnvironment(component)
   end
 end
 
@@ -545,6 +558,44 @@ function GraphicsEng:textureFromAsset(asset, callback)
       print("Failed to load texture data")
     end
   end)
+end
+
+function GraphicsEng:loadCubemap(asset_ids, callback)
+  local box = asset_ids
+  local failed = false
+  if box.left and box.right and box.top and box.bottom and box.front and box.back then
+    local sides = {}
+    local function request(side, asset_id)
+      local asset_id = box[side]
+      self.parent.engines.assets:loadTextureData(asset_id, function(textureData)
+        if failed then return end
+        if not textureData then
+          failed = true
+          print("Failed to load " .. side .. " part of a cubemap")
+          pretty.dump(asset_ids)
+        end
+        sides[side] = textureData
+        if sides.left and sides.right and sides.top and sides.bottom and sides.front and sides.back then
+          print("loadCubemap complete")
+          callback(lovr.graphics.newTexture(sides))
+        end
+      end, true)
+    end
+    
+    request('left')
+    request('right')
+    request('bottom')
+    request('top')
+    request('front')
+    request('back')
+  else
+    print("Incomplete cubemap spec")
+    pretty.dump(asset_ids)
+  end
+end
+
+function GraphicsEng:loadTextureAsset(asset_id, callback)
+  self.parent.engines.assets:loadTexture(asset_id, callback)
 end
 
 return GraphicsEng
