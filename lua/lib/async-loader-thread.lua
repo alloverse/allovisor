@@ -15,12 +15,8 @@ function load(type, path, extra, extra2)
     return pcall(lovr.data.newModelData, extra)
   elseif type == "texture-asset" then
     -- expects a lovr blob in extra
-<<<<<<< HEAD
     -- expects a boolean 'flip' in extra2
-    return pcall(lovr.data.newTextureData, extra, not extra2)
-=======
-    return pcall(lovr.data.newImage, extra)
->>>>>>> origin/master
+    return pcall(lovr.data.newImage, extra, not extra2)
   elseif type == "sound-asset" then
     -- expects a lovr blob in extra
     return pcall(lovr.data.newSound, extra)
