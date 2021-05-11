@@ -16,6 +16,8 @@ function ControlsOverlay:onLoad()
 
   ui2.routeMouse()
 
+  self.showControlsOverlay = Store.singleton():load("showControls")
+
   local cbMaker = function(key)
     return function(button, at, pressed)
       self:fakeKeyEvent(key, pressed)
@@ -62,6 +64,10 @@ function ControlsOverlay:onLoad()
     
 end
 
+function ControlsOverlay:enable(isOn)
+  self.showControlsOverlay = isOn
+end
+
 function ControlsOverlay:fakeKeyEvent(key, pressed)
   self.parent:route("onFakeKeyboardEvent", key, pressed)
 end
@@ -71,11 +77,9 @@ function ControlsOverlay:onMousePress(x, y)
 end
 
 function ControlsOverlay:onMirror()
-
-  if Store.singleton():load("showControls") then
+  if self.showControlsOverlay then
     uiMode()
   end
-
 end
 
 
