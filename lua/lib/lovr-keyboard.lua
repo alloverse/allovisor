@@ -1,5 +1,6 @@
+local os = lovr.system and lovr.system.getOS() or lovr.getOS()
 local ffi = assert(type(jit) == 'table' and               -- Only run if we have LuaJIT
-  lovr.getOS() ~= 'Android' and lovr.getOS() ~= 'Web' and -- and also GLFW
+  os ~= 'Android' and os ~= 'Web' and -- and also GLFW
   require 'ffi', "lovr-keyboard cannot run on this platform")
 local C = ffi.os == 'Windows' and ffi.load('glfw3') or ffi.C
 

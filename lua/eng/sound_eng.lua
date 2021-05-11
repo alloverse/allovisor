@@ -16,52 +16,85 @@ function SoundEng:_init()
   self.audio = {}
   self.effects = {}
   self.track_id = 0
-  self.currentMicName = "invalid---"
+  self.mic = nil
   self:super()
 end
 
 function SoundEng:useMic(micName)
-  if self.currentMicName == micName and self.hasMic then return true end
-  self.currentMicName = micName
+  if self.mic and self.mic.name == micName then return true end
 
-  if self.hasMic then
+  if self.mic then
     lovr.audio.stop("capture")
-    self.hasMic = false
-    self.captureStream = nil
-    self.captureBuffer = nil
+    self.mic = nil
   end
   if micName == "Off" or micName == "Mute" then
-    self.hasMic = false
     print("SoundEng: Muted microphone")
-    lovr.event.push("micchanged", self.currentMicName, true)
+    Store.singleton():save("currentMic", {name= "Off", status="ok"}, true)
     return true
   end
   
-  self.hasMic = self:_selectMic(micName) and (lovr.audio.isRunning("capture") or lovr.audio.start("capture"))
-  if self.hasMic then
-    self.captureBuffer = lovr.data.newSoundData(960, 1, 48000, "i16")
-    self.captureStream = lovr.audio.getCaptureStream()
-  end
-  lovr.event.push("micchanged", self.currentMicName, self.hasMic)
-  return self.hasMic
+  self.mic = self:_openMic(micName)
+  local success = self.mic ~= nil
+  Store.singleton():save("currentMic", {name= micName, status= (success and "ok" or "failed")}, true)
+  return success
 end
 
 function SoundEng:retryMic()
-  self:useMic(self.currentMicName)
+  self:useMic(self._lastAttemptedMic)
 end
 
-function SoundEng:_selectMic(micName)
+function SoundEng:_openMic(micName)
+  print("Attempting to open microphone", micName)
+  self._lastAttemptedMic = micName
 
-  print("Using microphone", micName)
-  lovr.audio.setCaptureFormat("i16", 48000)
-  lovr.audio.useDevice("capture", micName)
-  return true
+  local mic = {
+    name= micName,
+    captureBuffer = lovr.data.newSound(960, "i16", "mono", 48000, "stream"),
+    captureStream = lovr.data.newSound(0.5*48000, "i16", "mono", 48000, "stream"),
+  }
+
+  local chosenDeviceId = nil
+  for _, dev in ipairs(lovr.audio.getDevices("capture")) do
+    if dev.name == micName then
+      chosenDeviceId = dev.id
+    end
+  end
+
+  local setStatus = lovr.audio.setDevice("capture", chosenDeviceId, mic.captureStream, "shared")
+  if not setStatus then
+    print("Failed to setDevice, seeing if permissions help", micName)
+    lovr.system.requestPermission('audiocapture')
+    return nil
+  end
+  print("Selected mic", micName)
+
+  local startStatus = lovr.audio.start("capture")
+  if not startStatus then
+    print("Failed to open mic, missing permissions. Requesting permissions.")
+    lovr.system.requestPermission('audiocapture')
+    return nil
+  end
+
+  print("Opened mic", micName)
+  return mic
 end
 
 function SoundEng:onLoad()
   self.client.delegates.onAudio = function(track_id, audio)
     self:onAudio(track_id, audio) 
   end
+
+  if not self.parent.isMenu then
+    self.unsub = Store.singleton():listen("currentMic", function(micSettings)
+      if micSettings and micSettings.status == "pending" then
+        self:useMic(micSettings.name)
+      end
+    end)
+  end
+end
+
+function SoundEng:onDie()
+  if self.unsub then self.unsub() end
 end
 
 function SoundEng:onAudio(track_id, samples)
@@ -70,7 +103,7 @@ function SoundEng:onAudio(track_id, samples)
   end
   local audio = self.audio[track_id]
   if audio == nil then
-    local soundData = lovr.data.newSoundData(48000*1.0, 1, 48000, "i16", "stream")
+    local soundData = lovr.data.newSound(48000*1.0, "i16", "mono", 48000, "stream")
     audio = {
       soundData = soundData,
       source = lovr.audio.newSource(soundData),
@@ -92,7 +125,7 @@ function SoundEng:onAudio(track_id, samples)
   audio.ping = true
 
   local blob = lovr.data.newBlob(samples, "audio for track #"..track_id)
-  audio.soundData:append(blob)
+  audio.soundData:setFrames(blob)
   if audio.source:isPlaying() == false and audio.source:getDuration() >= 0.2 then
     print("Starting playback audio in track "..track_id)
     audio.source:play()
@@ -189,7 +222,7 @@ function SoundEng:onUpdate(dt)
   if self.head then
     local matrix = self.head.components.transform:getMatrix()
     local x, y, z, sx, sy, sz, a, ax, ay, az = matrix:unpack()
-    lovr.audio.setListenerPose(x, y, z, a, ax, ay, az)
+    lovr.audio.setPose(x, y, z, a, ax, ay, az)
   end
 end
 
@@ -279,13 +312,13 @@ function SoundEng:updateSoundEffect(voice, comp)
     local localPosition = math.fmod(globalPosition, oneLength)
     local offset = comp.offset or 0.0
     local localTrimmedPosition = offset + localPosition
-    local currentPosition = voice.source:getTime()
+    local currentPosition = voice.source:tell()
     if math.abs(currentPosition - localTrimmedPosition) > 0.1 then
       -- try to play sounds from exact start even if we slightly missed the start time.
       if localTrimmedPosition < 0.1 then
         localTrimmedPosition = 0
       end
-      voice.source:setTime(localTrimmedPosition)
+      voice.source:seek(localTrimmedPosition)
     end
   end
 
@@ -304,10 +337,9 @@ end
 
 function SoundEng:onDisconnect()
   if self.mic ~= nil then
-    self.mic:stopRecording()
+    lovr.audio.stop("capture")
+    self.mic = nil
   end
-
-  lovr.audio.stop()
 end
 
 function SoundEng:sourceFromAsset(asset, callback)

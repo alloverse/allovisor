@@ -9,11 +9,13 @@ function OptionsPane:_init(menu)
     self:setColor({1,1,1,1})
 
     self.debugButton = ui.Button(ui.Bounds(0, 0.4, 0.01,   1.4, 0.2, 0.15))
-    self.debugButton.label.text = "Debug (Off)"
-    self.debugButton.onActivated = function() 
-        menu:actuate({"toggleDebug"}) 
-    end
     self:addSubview(self.debugButton)
+    self.unsub = Store.singleton():listen("debug", function(debug)
+        self.debugButton.label:setText(debug and "Debug (On)" or "Debug (Off)")
+        self.debugButton.onActivated = function() 
+            Store.singleton():save("debug", not debug, true)
+        end
+    end)
 
     local audioButton = ui.Button(ui.Bounds(0, 0.1, 0.01,     1.4, 0.2, 0.15))
     audioButton.label.text = "Audio settings..."
@@ -21,8 +23,13 @@ function OptionsPane:_init(menu)
         self.nav:push(AudioPane(menu))
     end
     self:addSubview(audioButton)
-
 end
+
+function AudioPane:sleep()
+    Surface.sleep(self)
+    if self.unsub then self.unsub() end
+end
+
 
 return OptionsPane
 

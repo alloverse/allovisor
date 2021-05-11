@@ -1,8 +1,11 @@
 local Client = require("alloui.client")
+class = require('pl.class')
+tablex = require('pl.tablex')
+pretty = require('pl.pretty')
+vec3 = require("modules.vec3")
+mat4 = require("modules.mat4")
 local ui = require("alloui.ui")
-local pretty = require("pl.pretty")
-local class = require("pl.class")
-local tablex = require("pl.tablex")
+
 local EmbeddedApp = require("alloapps.embedded_app")
 
 ----------------------

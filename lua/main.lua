@@ -1,9 +1,11 @@
-local path, cpath = lovr.filesystem.getRequirePath()
+local path = lovr.filesystem.getRequirePath()
+local cpath = package.cpath
 cpath = cpath .. 
 	";?.so;?.dll;" ..
+  lovr.filesystem.getSource() .. "/../deps/allonet/?.so;" ..
 	lovr.filesystem.getSource() .. "/../build/deps/allonet/?.dylib;" ..
 	lovr.filesystem.getSource() .. "/../../build/deps/allonet/?.dylib;"
-if lovr.filesystem.getExecutablePath() and lovr.getOS() == "Windows" then
+if lovr.filesystem.getExecutablePath() and lovr.system.getOS() == "Windows" then
 	cpath = cpath .. lovr.filesystem.getExecutablePath():gsub("lovr.exe", "?.dll")
 end
 path = path ..
@@ -13,7 +15,7 @@ path = path ..
   ";lib/ent/lua/?/init.lua" 
 	
 
-lovr.filesystem.setRequirePath(path, cpath)
+lovr.filesystem.setRequirePath(path)
 package.cpath = cpath
 
 -- load util and allonet into globals in all namespaces on the main thread
@@ -22,6 +24,7 @@ allonet = nil
 allonet = util.load_allonet()
 
 local dragndrop = require("lib.lovr-dragndrop")
+Store = require("lib.lovr-store")
 
 namespace = require "engine.namespace"
 
@@ -69,13 +72,14 @@ end)
 namespace "standard"
 local flat = require "engine.flat"
 local loader = require "lib.async-loader"
-local json = require "cjson"
+local json = require "alloui.json"
 
 local loadCo = nil
 local urlToHandle = nil
 local restoreData = nil
 function lovr.load(args)
   print("lovr.load(", pretty.write(args), ")")
+  lovr.system.requestPermission('audiocapture')
   if args.restart then
     restoreData = json.decode(args.restart)
     urlToHandle = restoreData.url
@@ -105,6 +109,9 @@ function _asyncLoad()
     end
     error(threadname.." didn't start in time")
   end
+  storeThread = lovr.thread.newThread("lib/lovr-store-thread.lua")
+  storeThread:start()
+  
 	menuServerThread = lovr.thread.newThread("threads/menuserv_main.lua")
   menuServerThread:start()
   menuServerPort = check("menuserv"):pop(true)
@@ -189,6 +196,23 @@ function _asyncLoadResume()
       end
     }
   end
+
+  if lovr.audio then
+    local capDevs = lovr.audio.getDevices("capture")
+    local defaultCandidate = nil
+    for k, v in ipairs(capDevs) do 
+      v.id = nil 
+      if v.default or string.find(v.name, "default") or string.find(v.name, "Default") or defaultCandidate == nil then
+        defaultCandidate = v.name
+      end
+    end
+    print("Available microphone/capture audio devices:", pretty.write(capDevs))
+    Store.singleton():save("availableCaptureDevices", capDevs)
+    if Store.singleton():load("currentMic") == nil and defaultCandidate then
+      print("Setting default mic candidate", defaultCandidate)
+      Store.singleton():save("currentMic", {name= defaultCandidate, status="pending"}, true)
+    end
+  end
 end
 
 function lovr.onNetConnected(net, url, place_name)
@@ -222,6 +246,8 @@ function lovr.restart()
   lovr.thread.getChannel("appserv"):push("exit")
   menuServerThread:wait()
   menuAppsThread:wait()
+  Store.singleton():shutdown()
+
   loader:shutdown()
   print("Done, restarting.")
   if restoreData.url then
@@ -257,6 +283,7 @@ function lovr.update(dt)
   if loadCo then
     _asyncLoadResume()
   end
+  Store.singleton():poll()
   if lovr.mouse then
     _updateMouse()
   end
@@ -323,8 +350,10 @@ end
 
 local permissionsHaveRetried = false
 function lovr.permission(permission, granted)
-  if permission == "audiocapture" and granted and lovr.scenes.net and not permissionsHaveRetried then
+  print("Permission ", permission, "response", granted)
+  if permission == "audiocapture" and granted and lovr.scenes and lovr.scenes.net and not permissionsHaveRetried then
     permissionsHaveRetried = true
+    print("Mic permissions have been granted, reopening mic.")
     lovr.scenes.net.engines.sound:retryMic()
   end
 end
@@ -373,7 +402,7 @@ function lovr.run()
     local deltaFramLastFrame = beforeWork-lastFrameTime
     local maxFramerate = 60.0
     local sleepAmount = 1.0/maxFramerate - deltaFramLastFrame
-    if lovr.getOS() == "macOS" and sleepAmount > 0 then
+    if lovr.system.getOS() == "macOS" and sleepAmount > 0 then
       lovr.timer.sleep(sleepAmount)
     end
     lastFrameTime = beforeWork

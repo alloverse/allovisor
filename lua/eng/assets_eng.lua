@@ -37,11 +37,11 @@ end
 --- Loads asset data asynchronously. 
 -- Supported types:
 -- * "model-asset"
--- * "texture-asset" - Produces a textureData
+-- * "texture-asset" - Produces an Image
 -- * "sound-asset"
 -- returns true if asynchronous loading started, or false if 
 -- object was already loaded and callback called immediately
--- @tparam bool flipTexture If type is 'texture-asset' this specifies that the textureData should be returned flipped
+-- @tparam bool flipTexture If type is 'texture-asset' this specifies that the Image should be returned flipped
 function AssetsEng:loadFromAsset(asset, type, callback, flipTexture)
     if asset._lovrObject then 
       callback(asset._lovrObject)
@@ -136,7 +136,7 @@ function AssetsEng:onUpdate(dt)
     end
 end
 
-function AssetsEng:loadTextureData(asset_id, callback, flipped)
+function AssetsEng:loadImage(asset_id, callback, flipped)
     assert(string.match(asset_id, "asset:"), "not an asset id")
 
     self:getAsset(asset_id, function(asset)
@@ -151,9 +151,9 @@ end
 function AssetsEng:loadTexture(asset_id, callback)
     assert(string.match(asset_id, "asset:"), "not an asset id")
 
-    self:loadTextureData(asset_id, function(textureData)
-        if textureData then
-            callback(lovr.graphics.newTexture(textureData))
+    self:loadImage(asset_id, function(image)
+        if image then
+            callback(lovr.graphics.newTexture(image))
         else
             print("Failed to load texture data")
         end

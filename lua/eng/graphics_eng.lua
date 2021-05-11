@@ -551,9 +551,9 @@ function GraphicsEng:modelFromAsset(asset, callback)
 end
 
 function GraphicsEng:textureFromAsset(asset, callback)
-  self.parent.engines.assets:loadFromAsset(asset, "texture-asset", function (textureData)
-    if textureData then 
-      callback(lovr.graphics.newTexture(textureData))
+  self.parent.engines.assets:loadFromAsset(asset, "texture-asset", function (image)
+    if image then 
+      callback(lovr.graphics.newTexture(image))
     else
       print("Failed to load texture data")
     end
@@ -567,14 +567,14 @@ function GraphicsEng:loadCubemap(asset_ids, callback)
     local sides = {}
     local function request(side, asset_id)
       local asset_id = box[side]
-      self.parent.engines.assets:loadTextureData(asset_id, function(textureData)
+      self.parent.engines.assets:loadImage(asset_id, function(image)
         if failed then return end
-        if not textureData then
+        if not image then
           failed = true
           print("Failed to load " .. side .. " part of a cubemap")
           pretty.dump(asset_ids)
         end
-        sides[side] = textureData
+        sides[side] = image
         if sides.left and sides.right and sides.top and sides.bottom and sides.front and sides.back then
           print("loadCubemap complete")
           callback(lovr.graphics.newTexture(sides))

@@ -15,18 +15,22 @@ function load(type, path, extra, extra2)
     return pcall(lovr.data.newModelData, extra)
   elseif type == "texture-asset" then
     -- expects a lovr blob in extra
+<<<<<<< HEAD
     -- expects a boolean 'flip' in extra2
     return pcall(lovr.data.newTextureData, extra, not extra2)
+=======
+    return pcall(lovr.data.newImage, extra)
+>>>>>>> origin/master
   elseif type == "sound-asset" then
     -- expects a lovr blob in extra
-    return pcall(lovr.data.newSoundData, extra)
+    return pcall(lovr.data.newSound, extra)
   elseif type == "model" then
     -- expects a file path in path
     return pcall(lovr.data.newModelData, path)
   elseif type == "base64png" then
     local data = util.base64decode(extra)
     local blob = lovr.data.newBlob(data, "texture")
-    return pcall(lovr.data.newTextureData, blob)
+    return pcall(lovr.data.newImage, blob)
   else
     return false, "no such loader"
   end
