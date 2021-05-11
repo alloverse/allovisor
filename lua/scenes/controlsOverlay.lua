@@ -71,7 +71,11 @@ function ControlsOverlay:onMousePress(x, y)
 end
 
 function ControlsOverlay:onMirror()
-  uiMode()
+
+  if Store.singleton():load("showControls") then
+    uiMode()
+  end
+
 end
 
 

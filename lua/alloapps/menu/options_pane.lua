@@ -17,12 +17,22 @@ function OptionsPane:_init(menu)
         end
     end)
 
-    local audioButton = ui.Button(ui.Bounds(0, 0.1, 0.01,     1.4, 0.2, 0.15))
+    local toggleControlsButton = ui.Button(ui.Bounds(0, 0.1, 0.01,   1.4, 0.2, 0.15))
+    self:addSubview(toggleControlsButton)
+    self.unsub_what = Store.singleton():listen("showControls", function(showControls)
+        toggleControlsButton.label:setText(showControls and "Controls (On)" or "Controls (Off)")
+        toggleControlsButton.onActivated = function() 
+            Store.singleton():save("showControls", not showControls, true)
+        end
+    end)
+
+    local audioButton = ui.Button(ui.Bounds(0, -0.2, 0.01,     1.4, 0.2, 0.15))
     audioButton.label.text = "Audio settings..."
     audioButton.onActivated = function() 
         self.nav:push(AudioPane(menu))
     end
     self:addSubview(audioButton)
+
 end
 
 function AudioPane:sleep()
