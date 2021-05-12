@@ -16,10 +16,13 @@ function ControlsOverlay:onLoad()
 
   ui2.routeMouse()
 
+
   Store.singleton():listen("showControls", function(show)
+    print("Loading showControls as", show, "(controlsOverlay@22)")
     self.showControlsOverlay = show
   end)
 
+  
   local cbMaker = function(key)
     return function(button, at, pressed)
       self:fakeKeyEvent(key, pressed)

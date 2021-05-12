@@ -24,6 +24,17 @@ function saveStorage()
     local written = lovr.filesystem.write(path, json.encode(diskRep))
 end
 
+function fetchValue(key)
+  local found = storage[key]
+  local value = nil
+  if found then
+    value = found.value
+  else
+    value = defaults[key]
+  end
+  return value
+end
+
 local diskS = lovr.filesystem.read(path, -1) 
 diskRep = diskS and json.decode(diskS) or {}
 for k, v in pairs(diskRep) do
@@ -32,6 +43,8 @@ for k, v in pairs(diskRep) do
         persistent= true,
         subs= {}
     }
+
+    print(k, v)
 end
 
 local running = true
@@ -65,9 +78,8 @@ while running do
             chan:push(json.encode({key=cmd.save.key, value=storage[cmd.save.key].value}))
         end
     elseif cmd.request then
-        local found = storage[cmd.request]
-        local value = found and found.value or defaults[cmd.request]
-        if not value then
+        local value = fetchValue(cmd.request)
+        if type(value) == "nil" then
             outChans[cmd.from]:push(nil, true)
         else
             outChans[cmd.from]:push(json.encode(value), true)
@@ -82,7 +94,7 @@ while running do
         
         chan:push(json.encode({
             key=cmd.listen, 
-            value=(storage[cmd.listen] and storage[cmd.listen].value or defaults[cmd.listen])
+            value=fetchValue(cmd.listen)
         }))
     elseif cmd.unlisten then
         storage[cmd.unlisten].subs[cmd.subId] = nil

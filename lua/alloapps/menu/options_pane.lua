@@ -19,11 +19,19 @@ function OptionsPane:_init(menu)
 
     local toggleControlsButton = ui.Button(ui.Bounds(0, 0.1, 0.01,   1.4, 0.2, 0.15))
     self:addSubview(toggleControlsButton)
-    self.unsubShowControls = Store.singleton():listen("showControls", function(showControls)
-        toggleControlsButton.label:setText(showControls and "Controls (On)" or "Controls (Off)")
-        toggleControlsButton.onActivated = function() 
-            -- Saves the state for next session
-            Store.singleton():save("showControls", not showControls, true)
+
+    print("Loading showControls as", Store.singleton():load("showControls"), "(options_pane@23)")
+
+    self.unsubShowControls = Store.singleton():listen("showControls", function(show)
+        print("Loading showControls as", show, "(options_pane@26)")
+        
+        toggleControlsButton.label:setText(show and "Controls (On)" or "Controls (Off)")
+
+        toggleControlsButton.onActivated = function()
+          local new = not show
+          print("Saving showControls as", new, "(options_pane@32)")
+          -- Saves the state for next session
+          Store.singleton():save("showControls", not show, true)
         end
     end)
 
