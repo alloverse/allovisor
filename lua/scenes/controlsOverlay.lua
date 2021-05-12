@@ -17,9 +17,8 @@ function ControlsOverlay:onLoad()
   ui2.routeMouse()
 
 
-  Store.singleton():listen("showControls", function(show)
-    print("Loading showControls as", show, "(controlsOverlay@22)")
-    self.showControlsOverlay = show
+  Store.singleton():listen("showOverlay", function(show)
+    self.showOverlay = show
   end)
 
   
@@ -78,7 +77,7 @@ function ControlsOverlay:onMousePress(x, y)
 end
 
 function ControlsOverlay:onMirror()
-  if self.showControlsOverlay then
+  if self.showOverlay then
     uiMode()
   end
 end

@@ -43,8 +43,6 @@ for k, v in pairs(diskRep) do
         persistent= true,
         subs= {}
     }
-
-    print(k, v)
 end
 
 local running = true

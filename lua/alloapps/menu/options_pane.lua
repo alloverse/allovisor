@@ -20,18 +20,13 @@ function OptionsPane:_init(menu)
     local toggleControlsButton = ui.Button(ui.Bounds(0, 0.1, 0.01,   1.4, 0.2, 0.15))
     self:addSubview(toggleControlsButton)
 
-    print("Loading showControls as", Store.singleton():load("showControls"), "(options_pane@23)")
-
-    self.unsubShowControls = Store.singleton():listen("showControls", function(show)
-        print("Loading showControls as", show, "(options_pane@26)")
-        
-        toggleControlsButton.label:setText(show and "Controls (On)" or "Controls (Off)")
+    self.unsubshowOverlay = Store.singleton():listen("showOverlay", function(show)
+        toggleControlsButton.label:setText(show and "Overlay (On)" or "Overlay (Off)")
 
         toggleControlsButton.onActivated = function()
           local new = not show
-          print("Saving showControls as", new, "(options_pane@32)")
           -- Saves the state for next session
-          Store.singleton():save("showControls", not show, true)
+          Store.singleton():save("showOverlay", not show, true)
         end
     end)
 
@@ -47,7 +42,7 @@ end
 function OptionsPane:sleep()
     Surface.sleep(self)
     if self.unsub then self.unsub() end
-    if self.unsubShowControls then self.unsubShowControls() end
+    if self.unsubshowOverlay then self.unsubshowOverlay() end
 end
 
 
