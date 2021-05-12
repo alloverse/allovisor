@@ -17,17 +17,32 @@ function OptionsPane:_init(menu)
         end
     end)
 
-    local audioButton = ui.Button(ui.Bounds(0, 0.1, 0.01,     1.4, 0.2, 0.15))
+    local toggleControlsButton = ui.Button(ui.Bounds(0, 0.1, 0.01,   1.4, 0.2, 0.15))
+    self:addSubview(toggleControlsButton)
+
+    self.unsubshowOverlay = Store.singleton():listen("showOverlay", function(show)
+        toggleControlsButton.label:setText(show and "Overlay (On)" or "Overlay (Off)")
+
+        toggleControlsButton.onActivated = function()
+          local new = not show
+          -- Saves the state for next session
+          Store.singleton():save("showOverlay", not show, true)
+        end
+    end)
+
+    local audioButton = ui.Button(ui.Bounds(0, -0.2, 0.01,     1.4, 0.2, 0.15))
     audioButton.label.text = "Audio settings..."
     audioButton.onActivated = function() 
         self.nav:push(AudioPane(menu))
     end
     self:addSubview(audioButton)
+
 end
 
-function AudioPane:sleep()
+function OptionsPane:sleep()
     Surface.sleep(self)
     if self.unsub then self.unsub() end
+    if self.unsubshowOverlay then self.unsubshowOverlay() end
 end
 
 
