@@ -34,7 +34,7 @@ function NetMenuScene:_init(menuServerPort)
       {name="Localhost", url="alloplace://localhost"}
     },
     debug= false,
-    showControls= true,
+    showOverlay= true,
     avatarName= "female",
     username= "",
   }
