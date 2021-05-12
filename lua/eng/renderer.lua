@@ -15,6 +15,13 @@ local Renderer = class.Renderer()
 function Renderer:_init()
     is_desktop = lovr and lovr.headset == nil
 
+    self.defaults = {
+        cubemapLimit = {
+            max = is_desktop and 1 or 0, -- do not generate more cm's than this per frame
+            minFrameDistance = is_desktop and 0 or 20, -- Wait this many frames between generating any new cubemap
+        }
+    }
+
     --- Stores some information of objects
     self.cache = {}
 
@@ -87,6 +94,8 @@ function Renderer:render(objects, options)
     context.stats = {
         views = 0, -- number of passes rendered
         drawnObjects = 0, -- number of objects drawn (counts same object each pass)
+        drawnObjectIds = {}, -- Keys and values are object.id so each object is present only once
+        uniqueDrawnObjects = 0,
         culledObjects = 0, -- number of objects that was not drawn (counts same object each pass)
         generatedCubemaps = 0, -- number of cubemaps generated
         maxReflectionDepth = 0, -- max reached depth (cubemap gen triggers a cubemap gen. This should not happen.)
@@ -101,6 +110,8 @@ function Renderer:render(objects, options)
     self:renderView(context)
 
     self.lastFrameNumber = context.frame.nr
+
+    context.stats.uniqueDrawnObjects = #tablex.keys(context.stats.drawnObjectIds)
 
     return context.stats
 end
@@ -165,11 +176,11 @@ function Renderer:prepareFrame(context)
 
     frame.nr = self.lastFrameNumber + 1
     frame.cubemapDepth = 0
-    frame.cubemapLimit = { 
-        count = 0, -- Max number of cubemaps at any one time
-        max = is_desktop and 1 or 0, -- do not generate more cm's than this per frame
-        maxDepth = is_desktop and 1 or 1, -- >1 makes reflections also render other objects reflections
-        minFrameDistance = is_desktop and 0 or 20, -- Wait tis many frames between each cubemap
+    frame.cubemapLimit = {
+        count = 0, -- cubemap counter
+        max = self.defaults.cubemapLimit.max or 0, -- do not generate more cm's than this per frame
+        maxDepth = self.defaults.cubemapLimit.maxDepth or 1, -- >1 makes reflections also render other objects reflections
+        minFrameDistance = self.defaults.cubemapLimit.minFrameDistance or (is_desktop and 0 or 20), -- Wait this many frames between each cubemap
     }
 
     frame.prepared = true
@@ -497,6 +508,8 @@ function Renderer:drawObject(object, context)
         lovr.graphics.setColor(d, d, d, 1)
     end
 
+    context.stats.drawnObjectIds[object.id] = object.id
+
     object.source.draw(object, context)
     
     if context.drawAABB then
@@ -574,6 +587,7 @@ function Renderer:generateCubemap(renderObject, context)
     context.frame.cubemapLimit.count = context.frame.cubemapLimit.count + 1
     context.stats.maxReflectionDepth = math.max(context.stats.maxReflectionDepth, context.frame.cubemapDepth)
     table.insert(context.stats.cubemapTargets, renderObject.id)
+    
     -- remove this object from needing cubemaps
     context.frame.objects.needsCubemap[renderObject.id] = nil
     context.view.objects.needsCubemap[renderObject.id] = nil
