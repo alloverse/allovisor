@@ -9,13 +9,14 @@ local util = require("lib.util")
 local outChan = lovr.thread.getChannel("AlloLoaderResponses")
 local inChan = lovr.thread.getChannel("AlloLoaderRequests")
 
-function load(type, path, extra)
+function load(type, path, extra, extra2)
   if type == "model-asset" then
     -- expects a lovr blob in extra
     return pcall(lovr.data.newModelData, extra)
   elseif type == "texture-asset" then
     -- expects a lovr blob in extra
-    return pcall(lovr.data.newImage, extra)
+    -- expects a boolean 'flip' in extra2
+    return pcall(lovr.data.newImage, extra, not extra2)
   elseif type == "sound-asset" then
     -- expects a lovr blob in extra
     return pcall(lovr.data.newSound, extra)
@@ -39,7 +40,8 @@ while running do
   else 
     local path = inChan:pop(true)
     local extra = inChan:pop(true)
-    local status, thing = load(type, path, extra)
+    local extra2 = inChan:pop(true)
+    local status, thing = load(type, path, extra, extra2)
     outChan:push(path)
     outChan:push(status)
     outChan:push(thing)

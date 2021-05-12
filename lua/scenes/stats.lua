@@ -4,6 +4,7 @@
 -- @module Stats
 
 namespace "standard"
+local pretty = require "pl.pretty"
 
 local flat = require "engine.flat"
 
@@ -62,6 +63,19 @@ function Stats:onMirror()
         end
 
         s = "Lua KBytes: " .. self.lua_memory .. "\n" .. s            
+        if self.parent and self.parent.net and self.parent.net.engines.graphics.renderStats then
+            local stats = self.parent.net.engines.graphics.renderStats
+            local t = stats.cubemapTargets
+            for _, name in ipairs(t) do
+                s = s .. name .. ","
+            end
+            s = s .. "\n"
+            for k,v in pairs(stats) do
+                if not (type(v) == "table") then
+                    s = s .. k .. " = " .. v .. "\n"
+                end
+            end
+        end
 
         lovr.graphics.setShader(nil)
         lovr.graphics.setColor(1,1,1,1)

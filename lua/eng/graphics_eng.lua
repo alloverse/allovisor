@@ -15,6 +15,8 @@ local Asset = require("lib.alloui.lua.alloui.asset")
 
 local GraphicsEng = classNamed("GraphicsEng", Ent)
 
+local Renderer = require('eng.renderer')
+
 --- Initialize the graphics engine.
 function GraphicsEng:_init()
   self:super()
@@ -28,6 +30,10 @@ function GraphicsEng:_init()
 
   -- A list of models loaded from a directory for previewing
   self.testModels = {}
+
+  self.defaultAmbientLightColor = {0.4,0.4,0.4,1}
+
+  self.renderer = Renderer()
 end
 
 --- Called when the application loads.
@@ -37,7 +43,6 @@ function GraphicsEng:onLoad()
     broken = lovr.graphics.newModel('/assets/models/broken.glb'),
     loading = lovr.graphics.newModel('/assets/models/loading.glb'),
   }
-  self:loadHardcodedModel('forest', function() end, '/assets/models/decorations/forest/PUSHILIN_forest.gltf')
 
   self.models_for_eids = {}
   self.materials_for_eids = {}
@@ -48,20 +53,22 @@ function GraphicsEng:onLoad()
 
   lovr.graphics.setBackgroundColor(.05, .05, .05)
   
+  local skyboxName = "sunset"
   self.cloudSkybox = lovr.graphics.newTexture({
-    left = 'assets/textures/skybox/skybox-left.jpg',
-    right = 'assets/textures/skybox/skybox-right.jpg',
-    top = 'assets/textures/skybox/skybox-top.jpg',
-    bottom = 'assets/textures/skybox/skybox-bottom.jpg',
-    back = 'assets/textures/skybox/skybox-back.jpg',
-    front = 'assets/textures/skybox/skybox-front.jpg'
+    left =  'assets/textures/skybox/' .. skyboxName .. '/left.png',
+    right = 'assets/textures/skybox/' .. skyboxName .. '/right.png',
+    top =   'assets/textures/skybox/' .. skyboxName .. '/top.png',
+    bottom = 'assets/textures/skybox/' .. skyboxName .. '/bottom.png',
+    back = 'assets/textures/skybox/' .. skyboxName .. '/back.png',
+    front = 'assets/textures/skybox/' .. skyboxName .. '/front.png'
+  }, {
+    type = "cube",
+    mipmaps = true
   })
-
-  local oliveTex = lovr.graphics.newTexture("assets/textures/olive-noise.png", {})
-  self.oliveMat = lovr.graphics.newMaterial(oliveTex, 1, 1, 1, 1)
-
-  local menuplateTex = lovr.graphics.newTexture("assets/textures/menuplate.png", {})
-  self.menuplateMat = lovr.graphics.newMaterial(menuplateTex, 1, 1, 1, 1)
+  self.renderer.defaultEnvironmentMap = self.cloudSkybox
+  self.renderer.ambientLightColor = self.defaultAmbientLightColor
+  self.renderer.drawSkybox = true
+  -- self.renderer.debug = "distance"
 
 
   self.testModels = {}
@@ -78,153 +85,128 @@ end
 -- Called by Ent
 -- @see Ent
 function GraphicsEng:onDraw() 
+  lovr.graphics.clear(false, true, true)
   lovr.graphics.setCullingEnabled(true)
   lovr.graphics.setColor(1,1,1,1)
-  
-  if not self.parent.isOverlayScene then
-    lovr.graphics.setBackgroundColor(.3, .3, .40)
-    lovr.graphics.setShader()
-    lovr.graphics.skybox(self.cloudSkybox)
-    self:drawDecorations()
-  else
-    self:drawOutlines()
-  end
 
   lovr.graphics.setColor(1, 1, 1, 1)
 
   -- Collect all the objects to sort and draw
   local objects = {}
 
+  local function aabbForModel(model, scale_x, scale_y, scale_z)
+    local minx, maxx, miny, maxy, minz, maxz = model:getAABB()
+    return {
+        min = lovr.math.newVec3(minx*scale_x, miny*scale_y, minz*scale_z),
+        max = lovr.math.newVec3(maxx*scale_x, maxy*scale_y, maxz*scale_z)
+    }
+  end
+
+  local function aabbForEntity(entity)
+    local model = self.models_for_eids[entity.id]
+    local _, _, _, sx, sy, sz = entity.components.transform:getMatrix():unpack()
+    if model and model.getAABB then
+      return aabbForModel(model, sx, sy, sz)
+    end
+
+    local collider = entity.components.collider
+    if collider and collider.type == "box" then
+      local w = collider.width/2
+      local h = collider.height/2
+      local d = collider.depth/2
+      return {
+        min = lovr.math.newVec3(-w, -h, -d),
+        max = lovr.math.newVec3(w, h, d)
+      }
+    end
+
+    return {
+      min = lovr.math.newVec3(-1, -1, -1),
+      max = lovr.math.newVec3(1, 1, 1)
+    }
+  end
+
   -- enteties
   for _, entity in pairs(self.client.state.entities) do
-    local material = entity.components.material
-    local hasTransparency = material and material.hasTransparency
-    local shader_name = material and material.shader_name or "basic"
+    -- Default material property is basically plastic
+    local material = entity.components.material or {
+      metalness = 0,
+      roughness = 1
+    }
+
+    -- Transparent obects have opposite draw order than opaque objects
     local material_alpha = material and material.color and type(material.color[4]) == "number" and material.color[4] or 1
+    local hasTransparency = material and material.hasTransparency or material_alpha < 1
+    assert(entity.id, "must have an id")
     table.insert(objects, {
+      id = entity.id,
+      visible = true,
+      AABB = aabbForEntity(entity),
+      position = entity.components.transform:getMatrix():mul(lovr.math.vec3()),
+      hasTransparency = hasTransparency,
+      hasReflection = true,
       material = {
-        shaderKey = shader_name,
-        hasTransparency = hasTransparency or material_alpha < 1,
+        metalness = material.metalness or 0,
+        roughness = material.roughness or 1,
       },
-      getPosition = function(object)
-          local model = self.models_for_eids[entity.id]
-          if model and model.getAABB then 
-            local minx, maxx, miny, maxy, minz, maxz = model:getAABB()
-            local x, y, z = (maxx+minx)*0.5, (maxy+miny)*0.5, (maxz+minz)*0.5
-            return lovr.math.vec3(x, y, z)
-          else
-            return entity.components.transform:getMatrix():mul(lovr.math.vec3())
-          end
-      end,
-      draw = function(object)
+      draw = function(object, context)
+        if entity.id == self.parent.head_id and context.view.nr == 1 then return end -- Hide head in view but not reflections
         -- local entity = object.entity
         lovr.graphics.push()
         lovr.graphics.transform(entity.components.transform:getMatrix())
-        self:_drawEntity(entity, true)
+        self:_drawEntity(entity)
         lovr.graphics.pop()
       end
     })
   end
 
-  for _, model in ipairs(self.testModels) do
+  -- --- Some artificial lights until we have ents for them 
+  -- for i = 0, 3 do
+  --   table.insert(objects, {
+  --     id = 'light ' .. i,
+  --     type = 'light',
+  --     draw = function(o)
+  --       local x, y, z = o.position:unpack()
+  --       lovr.graphics.sphere(x, y, z, 0.1)
+  --     end,
+  --     position = lovr.math.newVec3( 0, 6, 6 - i * 4 ),
+  --     light = {
+  --       position = lovr.math.newVec3( 0, 6, 6 - i * 4 ),
+  --       color = {10,10,10,10},
+  --     },
+  --     AABB = {
+  --       min = lovr.math.newVec3(-0.1, -0.1, -0.1),
+  --       max = lovr.math.newVec3(0.1, 0.1, 0.1),
+  --     }
+  --   })
+  -- end
+
+  --- Add objects that are drag&dropped into the visor
+  for i, model in ipairs(self.testModels) do
     table.insert(objects, {
-      model = model,
-      material = {
-        shaderKey = "testing",
-        hasTransparency = false,
-      },
-      getPosition = function (object)
-        return lovr.math.vec3(0,0,0)
-      end,
+      id = "Test object " .. i,
+      AABB = aabbForModel(model),
+      position = lovr.math.vec3(0,0,0),
       draw = function(object)
         lovr.graphics.setColor(1,1,1,1)
-        lovr.graphics.setShader(self:pbrShaderForModel(object.model))
+        -- lovr.graphics.setShader(self:pbrShaderForModel(object.model))
         object.model:draw()
       end
     })
   end
 
-  -- Draw all of them
-  self:drawObjects(objects)
-
-  lovr.graphics.setColor({1,1,1})
-end
-
---- Draws objects in the list in a sorted manner
--- Objects not in view might not be drawn.
--- Each object must have the following structure
--- {
---    material = {
---       shaderKey = string unique to each shader
---       hasTransparency = Objects that has transparency in them gets special sorting treatment
---    }
---    getPosition(object) = function that returns the vec3 world position of the object. It is good if you can cache the result
---    draw(object) = function to handle the drawing of the object
---
---    ... = add other fields you may need in the functions above
--- }
--- @tparam list objects A list of tables with the following structure
-function GraphicsEng:drawObjects(objects)
-  -- TODO: remove objects that are outside the view frustrum
-  math.randomseed(0)
-  -- sort into bins based on material properties
-  local materialBins = {}
-  for i, object in ipairs(objects) do
-    local shader = object.material.shaderKey
-    local hasTransparency = object.material.hasTransparency
-    local key = shader .. (hasTransparency and "_transparent" or "_opaque")
-    local bin = materialBins[key]
-    if not bin then
-      bin = {
-        hasTransparency = hasTransparency,
-        shader = shader,
-      }
-      materialBins[key] = bin
-    end
-    table.insert(bin, object)
+  -- Draw all of them (unless things are not initialized properly)
+  if self.parent:getHead() then 
+    local headPosition = self.parent:getHead().components.transform:getMatrix():mul(lovr.math.vec3())
+    self.renderStats = self.renderer:render(objects, {
+      drawAABB = self.drawAABBs,
+      cameraPosition = lovr.math.newVec3(headPosition)
+    })
   end
-
-  -- sort bins so that those that include transparency are last
-  local bins = tablex.values(materialBins)
-  table.sort(bins, function (a, b)
-    local aScore = a.hasTransparency and 10 or 0
-    local bScore = b.hasTransparency and 10 or 0
-    return aScore < bScore
-  end)
-
-  if not (self.parent and self.parent:getHead() and self.parent:getHead().components and self.parent:getHead().components.transform) then 
-    print("head not found yet. Skipping drawing objects")
-    return
-  end
-  local headPosition = self.parent:getHead().components.transform:getMatrix():mul(lovr.math.vec3())
-
-  -- Draw the objects one bin at a time
-  for _, bin in ipairs(bins) do
-    
-    -- Sort objects in bins featuring transparency from furthest to closest
-    if bin.hasTransparency then
-      table.sort(bin, function(a, b)
-        local aScore = a:getPosition():distance(headPosition)
-        local bScore = b:getPosition():distance(headPosition)
-        return aScore > bScore
-      end)
-
-      -- don't write depth info
-      lovr.graphics.setDepthTest('lequal', false)
-    else 
-      lovr.graphics.setDepthTest('lequal', true)
-    end
-
-    for _, object in ipairs(bin) do
-      object:draw(object)
-    end
-  end
-
-  lovr.graphics.setDepthTest('lequal', true)
 end
 
 --- Draws an entity.
-function GraphicsEng:_drawEntity(entity, applyShader)
+function GraphicsEng:_drawEntity(entity)
   local geom = entity.components.geometry
   local parent = optchain(entity, "components.relationships.parent")
   local model = self.models_for_eids[entity.id]
@@ -233,26 +215,19 @@ function GraphicsEng:_drawEntity(entity, applyShader)
     return
   end
 
-  -- don't draw our own head, as it obscures the camera. Also don't draw avatar if we're in overlay
-  if entity.id == self.parent.head_id or (not self.parent.active and parent == self.parent.avatar_id) then
-    return
-  end
-
   -- special case avatars to get PBR shading and face them towards negative Z
+  -- TODO: move to avatar ents!
   local pose = optchain(entity, "components.intent.actuate_pose")
   if pose ~= nil then 
     lovr.graphics.rotate(3.14, 0, 1, 0)
   end
 
-  if applyShader then
-    local mat = self.materials_for_eids[entity.id]
-    if mat and mat:getColor() ~= nil then
-      lovr.graphics.setColor(mat:getColor())
-    else
-      lovr.graphics.setColor(1,1,1,1)
-    end
 
-    lovr.graphics.setShader(self:shaderForEntity(entity))
+  local mat = self.materials_for_eids[entity.id]
+  if mat and mat:getColor() then 
+    lovr.graphics.setColor(mat:getColor())
+  else 
+    lovr.graphics.setColor(1,1,1,1)
   end
 
   local animationCount = model.animate and model:getAnimationCount()
@@ -266,50 +241,11 @@ function GraphicsEng:_drawEntity(entity, applyShader)
     model:animate(name, lovr.timer.getTime())
   end
 
-  if self.colorfulDebug then 
+  if self.colorfulDebug then
     lovr.graphics.setColor(math.random(), math.random(), math.random(), 1)
   end
 
   model:draw()
-
-  -- local drawAABBs = true
-  if (self.drawAABBs or self.drawAABBCenters) and model.getAABB then
-    local minx, maxx, miny, maxy, minz, maxz = model:getAABB()
-    local x, y, z = (maxx+minx)*0.5, (maxy+miny)*0.5, (maxz+minz)*0.5
-    local w, h, d = maxx-minx, maxy-miny, maxz-minz
-
-    if self.drawAABBCenters then 
-      lovr.graphics.sphere(x, y, z, 0.2)
-    end
-    if self.drawAABBs then 
-      lovr.graphics.box("line", x, y, z, w, h, d)
-    end
-  end
-
-end
-
---- Draws outlines.
-function GraphicsEng:drawOutlines()
-  lovr.graphics.setShader(self.basicShader)
-  lovr.graphics.setDepthTest('lequal', false)
-  lovr.graphics.setColor(0,0,0, 0.5)
-  for eid, entity in pairs(self.client.state.entities) do
-    lovr.graphics.push()
-    lovr.graphics.transform(entity.components.transform:getMatrix())
-    lovr.graphics.scale(1.04, 1.04, 1.04)
-    self:_drawEntity(entity, false)
-    lovr.graphics.pop()
-  end
-  lovr.graphics.setDepthTest('lequal', true)
-end
-
---- The simulation tick
--- Called by Ent
--- @tparam number dt, seconds since last frame
--- @see Ent
-function GraphicsEng:onUpdate(dt)
-  if self.client == nil then return end
-
 end
 
 --- Load a model for supplied component.
@@ -395,35 +331,6 @@ function GraphicsEng:loadTexture(eid, base64, callback)
   )
 end
 
-
-function GraphicsEng:modelHasBumpmap(model)
-  local has_bumps = false
-  for i = 1, model:getMaterialCount() do
-    if model:getMaterial(i):getTexture('normal') ~= nil then
-      return true
-    end
-  end
-  return false
-end
-
-function GraphicsEng:pbrShaderForModel(model)
-  if self:modelHasBumpmap(model) then
-    return self.pbrShader.withNormals
-  else
-    return self.pbrShader.withoutNormals
-  end
-end
-
-function GraphicsEng:shaderForEntity(ent)
-  local mat = ent.components.material
-  if mat and mat.shader_name == "pbr" then
-    local mod = self.models_for_eids[ent.id]
-    return self:pbrShaderForModel(mod)
-  else
-    return self.basicShader
-  end
-end
-
 --- Loads a material for supplied component.
 -- @tparam component component The component to load a material for
 -- @tparam component old_component not used
@@ -468,6 +375,25 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
     end
   end
 end
+
+function GraphicsEng:loadEnvironment(component, wasRemoved)
+  if wasRemoved then component = nil end
+  -- TODO: Merge all active environment components. 
+  -- TODO: Build a table with all environments and their bounds and switch env as player moves between them
+  if component and component.ambient and component.ambient.light and component.ambient.light.color then
+    self.renderer.ambientLightColor = component.ambient.light.color or {0,0,0,1}
+  elseif self.defaultAmbientLightColor then
+    self.renderer.ambientLightColor = self.defaultAmbientLightColor
+  end
+  if component and component.skybox then
+    self:loadCubemap(component.skybox, function(cubeTexture)
+      self.renderer.defaultEnvironmentMap = cubeTexture
+    end)
+  elseif self.cloudSkybox then 
+    self.renderer.defaultEnvironmentMap = self.cloudSkybox
+  end
+end
+
 --- Called when a new component is added
 -- @tparam string component_key The component type
 -- @tparam component component The new component
@@ -476,6 +402,8 @@ function GraphicsEng:onComponentAdded(component_key, component)
     self:loadComponentModel(component, nil)
   elseif component_key == "material" then
     self:loadComponentMaterial(component, nil)
+  elseif component_key == "environment" then
+    self:loadEnvironment(component)
   end
 end
 
@@ -488,6 +416,8 @@ function GraphicsEng:onComponentChanged(component_key, component, old_component)
     self:loadComponentModel(component, old_component)
   elseif component_key == "material" then
     self:loadComponentMaterial(component, old_component)
+  elseif component_key == "environment" then
+    self:loadEnvironment(component)
   end
 end
 
@@ -501,6 +431,8 @@ function GraphicsEng:onComponentRemoved(component_key, component)
     self.models_for_eids[eid] = nil
   elseif component_key == "material" then
     self.materials_for_eids[eid] = nil
+  elseif component_key == "environment" then
+    self:loadEnvironment(component, true)
   end
 end
 
@@ -570,73 +502,6 @@ function GraphicsEng:createMesh(geom, old_geom)
   return mesh
 end
 
-
---- Draws some forest decorantions
-function GraphicsEng:drawDecorations()
-  local place = self.client.state.entities["place"]
-  local deco = optchain(place, "components.decorations.type")
-
-  lovr.graphics.setShader(self.basicShader)
-  if deco == "mainmenu" then
-    lovr.graphics.circle( 
-      self.menuplateMat,
-      0, 0, 0, -- x y z
-      12,  -- radius
-      -3.14/2, -- angle around axis of rotation
-      1, 0, 0 -- rotation axis (x, y, z)
-    )
-  else
-    -- "Floorplate"
-    lovr.graphics.circle( 
-      self.oliveMat,
-      0, 0, 0, -- x y z
-      32,  -- radius
-      -3.14/2, -- angle around axis of rotation
-      1, 0, 0 -- rotation axis (x, y, z)
-    )
-    
-    local forestModel = nil -- self.hardcoded_models.forest
-    if forestModel then
-      forestModel:draw(0,   .5,   -28,  2,  0,  0,  1,  0,  1)
-      forestModel:draw(4,   .5,   -24,  2,  2,  0,  1,  0,  1)
-      forestModel:draw(8,   .5,   -20,  2,  0,  0,  1,  0,  1)
-      forestModel:draw(12,  .5,   -16,  2,  0,  0,  1,  0,  1)
-      forestModel:draw(16,  .5,   -12,  2,  5,  0,  1,  0,  1)
-      forestModel:draw(20,  .5,   -8,   2,  5,  0,  1,  0,  1)
-      forestModel:draw(24,  .5,   -4,   2,  0,  0,  1,  0,  1)
-      forestModel:draw(28,  .5,   0,    2,  1,  0,  1,  0,  1)
-
-      forestModel:draw(28,  .5,   0,    2,  3,  0,  1,  0,  1)
-      forestModel:draw(24,  .5,   4,    2,  0,  0,  1,  0,  1)
-      forestModel:draw(20,  .5,   8,    2,  0,  0,  1,  0,  1)
-      forestModel:draw(16,  .5,   12,   2,  0,  0,  1,  0,  1)
-      forestModel:draw(12,  .5,   16,   2,  2,  0,  1,  0,  1)
-      forestModel:draw(8,   .5,   20,   2,  2,  0,  1,  0,  1)
-      forestModel:draw(4,   .5,   24,   2,  0,  0,  1,  0,  1)
-      forestModel:draw(0,   .5,   28,   2,  3,  0,  1,  0,  1)
-
-      forestModel:draw(0,   .5,   -28,  2,  0,  0,  1,  0,  1)
-      forestModel:draw(-4,   .5,   -24,  2,  2,  0,  1,  0,  1)
-      forestModel:draw(-8,   .5,   -20,  2,  0,  0,  1,  0,  1)
-      forestModel:draw(-12,  .5,   -16,  2,  0,  0,  1,  0,  1)
-      forestModel:draw(-16,  .5,   -12,  2,  5,  0,  1,  0,  1)
-      forestModel:draw(-20,  .5,   -8,   2,  5,  0,  1,  0,  1)
-      forestModel:draw(-24,  .5,   -4,   2,  0,  0,  1,  0,  1)
-      forestModel:draw(-28,  .5,   0,    2,  1,  0,  1,  0,  1)
-
-      forestModel:draw(-28,  .5,   0,    2,  3,  0,  1,  0,  1)
-      forestModel:draw(-24,  .5,   4,    2,  0,  0,  1,  0,  1)
-      forestModel:draw(-20,  .5,   8,    2,  0,  0,  1,  0,  1)
-      forestModel:draw(-16,  .5,   12,   2,  0,  0,  1,  0,  1)
-      forestModel:draw(-12,  .5,   16,   2,  2,  0,  1,  0,  1)
-      forestModel:draw(-8,   .5,   20,   2,  2,  0,  1,  0,  1)
-      forestModel:draw(-4,   .5,   24,   2,  0,  0,  1,  0,  1)
-      forestModel:draw(-0,   .5,   28,   2,  3,  0,  1,  0,  1)
-    end
-  end
-
-end
-
 --- Calculate vertex normal from three corner vertices
 local function get_triangle_normal(vert1, vert2, vert3)   
   return vec3.new(vert3.x - vert1.x, vert3.z - vert1.z, vert3.y - vert1.y)
@@ -693,13 +558,51 @@ function GraphicsEng:modelFromAsset(asset, callback)
 end
 
 function GraphicsEng:textureFromAsset(asset, callback)
-  self.parent.engines.assets:loadFromAsset(asset, "texture-asset", function (textureData)
-    if textureData then 
-      callback(lovr.graphics.newTexture(textureData))
+  self.parent.engines.assets:loadFromAsset(asset, "texture-asset", function (image)
+    if image then 
+      callback(lovr.graphics.newTexture(image))
     else
       print("Failed to load texture data")
     end
   end)
+end
+
+function GraphicsEng:loadCubemap(asset_ids, callback)
+  local box = asset_ids
+  local failed = false
+  if box.left and box.right and box.top and box.bottom and box.front and box.back then
+    local sides = {}
+    local function request(side, asset_id)
+      local asset_id = box[side]
+      self.parent.engines.assets:loadImage(asset_id, function(image)
+        if failed then return end
+        if not image then
+          failed = true
+          print("Failed to load " .. side .. " part of a cubemap")
+          pretty.dump(asset_ids)
+        end
+        sides[side] = image
+        if sides.left and sides.right and sides.top and sides.bottom and sides.front and sides.back then
+          print("loadCubemap complete")
+          callback(lovr.graphics.newTexture(sides))
+        end
+      end, true)
+    end
+    
+    request('left')
+    request('right')
+    request('bottom')
+    request('top')
+    request('front')
+    request('back')
+  else
+    print("Incomplete cubemap spec")
+    pretty.dump(asset_ids)
+  end
+end
+
+function GraphicsEng:loadTextureAsset(asset_id, callback)
+  self.parent.engines.assets:loadTexture(asset_id, callback)
 end
 
 return GraphicsEng

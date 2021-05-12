@@ -37,11 +37,12 @@ end
 --- Loads asset data asynchronously. 
 -- Supported types:
 -- * "model-asset"
--- * "texture-asset"
+-- * "texture-asset" - Produces an Image
 -- * "sound-asset"
 -- returns true if asynchronous loading started, or false if 
 -- object was already loaded and callback called immediately
-function AssetsEng:loadFromAsset(asset, type, callback)
+-- @tparam bool flipTexture If type is 'texture-asset' this specifies that the Image should be returned flipped
+function AssetsEng:loadFromAsset(asset, type, callback, flipTexture)
     if asset._lovrObject then 
       callback(asset._lovrObject)
       return
@@ -50,6 +51,7 @@ function AssetsEng:loadFromAsset(asset, type, callback)
       table.insert(asset._lovrObjectLoadingCallbacks, callback)
       return
     end
+    print(asset)
     asset._lovrObjectLoadingCallbacks = {callback}
   
     local blob = lovr.data.newBlob(asset:read(), asset:id())
@@ -69,9 +71,11 @@ function AssetsEng:loadFromAsset(asset, type, callback)
         end
         asset._lovrObjectLoadingCallbacks = nil
       end,
-      blob
+      blob,
+      flipTexture
     )
-  end
+end
+
 function AssetsEng:onFileDrop(path)
     print(self, "got a file drop:", path)
 
@@ -131,5 +135,30 @@ function AssetsEng:onUpdate(dt)
         self.droppedPaths = nil
     end
 end
+
+function AssetsEng:loadImage(asset_id, callback, flipped)
+    assert(string.match(asset_id, "asset:"), "not an asset id")
+
+    self:getAsset(asset_id, function(asset)
+        if asset then
+            self:loadFromAsset(asset, "texture-asset", callback, flipped)
+        else
+            print("Texture asset " .. asset_id .. " was not found")
+        end
+    end)
+end
+
+function AssetsEng:loadTexture(asset_id, callback)
+    assert(string.match(asset_id, "asset:"), "not an asset id")
+
+    self:loadImage(asset_id, function(image)
+        if image then
+            callback(lovr.graphics.newTexture(image))
+        else
+            print("Failed to load texture data")
+        end
+    end)
+end
+
 
 return AssetsEng
