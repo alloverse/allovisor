@@ -31,6 +31,7 @@ function GraphicsEng:_init()
   -- A list of models loaded from a directory for previewing
   self.testModels = {}
 
+  self.defaultAmbientLightColor = {0.4,0.4,0.4,1}
 
   self.renderer = Renderer()
 end
@@ -65,6 +66,7 @@ function GraphicsEng:onLoad()
     mipmaps = true
   })
   self.renderer.defaultEnvironmentMap = self.cloudSkybox
+  self.renderer.ambientLightColor = self.defaultAmbientLightColor
   self.renderer.drawSkybox = true
   -- self.renderer.debug = "distance"
 
@@ -374,19 +376,22 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
   end
 end
 
-function GraphicsEng:loadEnvironment(component)
-  if component.ambient then 
-    if component.ambient.light then
-      if component.ambient.light.color then
-        self.renderer.ambientLightColor = component.ambient.light.color or {0,0,0,1}
-      end
-    end
+function GraphicsEng:loadEnvironment(component, wasRemoved)
+  if wasRemoved then component = nil end
+  -- TODO: Merge all active environment components. 
+  -- TODO: Build a table with all environments and their bounds and switch env as player moves between them
+  if component and component.ambient and component.ambient.light and component.ambient.light.color then
+    self.renderer.ambientLightColor = component.ambient.light.color or {0,0,0,1}
+  elseif self.defaultAmbientLightColor then
+    self.renderer.ambientLightColor = self.defaultAmbientLightColor
   end
-  if component.skybox then
+  if component and component.skybox then
     self:loadCubemap(component.skybox, function(cubeTexture)
       self.renderer.defaultEnvironmentMap = cubeTexture
     end)
-  end 
+  elseif self.cloudSkybox then 
+    self.renderer.defaultEnvironmentMap = self.cloudSkybox
+  end
 end
 
 --- Called when a new component is added
@@ -426,6 +431,8 @@ function GraphicsEng:onComponentRemoved(component_key, component)
     self.models_for_eids[eid] = nil
   elseif component_key == "material" then
     self.materials_for_eids[eid] = nil
+  elseif component_key == "environment" then
+    self:loadEnvironment(component, true)
   end
 end
 

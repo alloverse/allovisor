@@ -35,7 +35,7 @@ function Renderer:_init()
 
     self.cubemapPool = {}
 
-    self.ambientLightColor = {0,0,0,1}
+    self.ambientLightColor = {0.4,0.4,0.4,1}
 
     self.drawLayer = {
         names = {
