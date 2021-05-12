@@ -16,7 +16,9 @@ function ControlsOverlay:onLoad()
 
   ui2.routeMouse()
 
-  self.showControlsOverlay = Store.singleton():load("showControls")
+  Store.singleton():listen("showControls", function(show)
+    self.showControlsOverlay = show
+  end)
 
   local cbMaker = function(key)
     return function(button, at, pressed)
@@ -62,10 +64,6 @@ function ControlsOverlay:onLoad()
   local alloCustomLayout = AlloCustomLayout{managed=ents, parent=self, pass={swap=self}}
   alloCustomLayout:layout()
     
-end
-
-function ControlsOverlay:enable(isOn)
-  self.showControlsOverlay = isOn
 end
 
 function ControlsOverlay:fakeKeyEvent(key, pressed)

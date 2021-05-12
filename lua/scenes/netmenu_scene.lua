@@ -34,8 +34,9 @@ function NetMenuScene:_init(menuServerPort)
       {name="Localhost", url="alloplace://localhost"}
     },
     debug= false,
+    showControls= true,
     avatarName= "female",
-    username= "Unnamed",
+    username= "",
   }
 
   self:setupAvatars()

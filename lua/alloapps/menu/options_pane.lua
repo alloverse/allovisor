@@ -19,9 +19,10 @@ function OptionsPane:_init(menu)
 
     local toggleControlsButton = ui.Button(ui.Bounds(0, 0.1, 0.01,   1.4, 0.2, 0.15))
     self:addSubview(toggleControlsButton)
-    self.unsub_what = Store.singleton():listen("showControls", function(showControls)
+    self.unsubShowControls = Store.singleton():listen("showControls", function(showControls)
         toggleControlsButton.label:setText(showControls and "Controls (On)" or "Controls (Off)")
         toggleControlsButton.onActivated = function() 
+            -- Saves the state for next session
             Store.singleton():save("showControls", not showControls, true)
         end
     end)
@@ -35,9 +36,10 @@ function OptionsPane:_init(menu)
 
 end
 
-function AudioPane:sleep()
+function OptionsPane:sleep()
     Surface.sleep(self)
     if self.unsub then self.unsub() end
+    if self.unsubShowControls then self.unsubShowControls() end
 end
 
 
