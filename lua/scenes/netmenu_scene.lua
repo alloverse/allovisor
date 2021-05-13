@@ -29,9 +29,8 @@ function NetMenuScene:_init(menuServerPort)
 
   Store.singleton():registerDefaults{
     recentPlaces = {
-      {name="Nevyn's place", url="alloplace://nevyn.places.alloverse.com"},
-      {name="RF4", url="alloplace://rf4.nevyn.nu"},
-      {name="Localhost", url="alloplace://localhost"}
+      {name="Sandbox", url="alloplace://sandbox.places.alloverse.com"},
+      {name="Nevyn's place", url="alloplace://nevyn.places.alloverse.com"}
     },
     debug= false,
     showOverlay= true,
