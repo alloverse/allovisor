@@ -72,9 +72,9 @@ function PoseEng:updateButton(device, button)
     down = down or (self.mouseIsDown and self.mouseMode == "interact")
   elseif device == "hand/left" and button == "grip" then
     down = down or self:getAxis(device, button) > 0.5
-  elseif button == "menu" and self.keyboard then
-    down = down or self:isKeyboardButtonPressed("r")
-  elseif button == "b" and self.keyboard then
+  elseif button == "menu" and device == "hand/left" and self.keyboard then
+    down = down or self:isKeyboardButtonPressed("escape")
+  elseif button == "x" and device == "hand/left" and self.keyboard then
     down = down or self:isKeyboardButtonPressed("lshift")
   end
   self.currentButtonStates[device][button] = down

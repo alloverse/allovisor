@@ -35,22 +35,11 @@ function ControlsOverlay:onLoad()
     ui2.AlloKeyEnt{id="a",label="A", onButton = cbMaker("a")},
     ui2.AlloKeyEnt{id="s",label="S", onButton = cbMaker("s")},
     ui2.AlloKeyEnt{id="d",label="D", onButton = cbMaker("d")},
-    ui2.AlloKeyEnt{id="r",label="R", onButton = cbMaker("r")},
     ui2.AlloLabelUiEnt{id="movelabel", label="Move"},
-    ui2.AlloLabelUiEnt{id="menulabel", label="Menu"},
-
     
-    -- Close button
+    -- Menu button
     ui2.AlloKeyEnt{id="escape", label="esc", onButton = cbMaker("esc")},
-    ui2.AlloLabelUiEnt{id="closelabel", label="Close"},
-
-
-    -- Grab button
-    -- ui2.AlloKeyEnt{id="f", label="F", onButton = function()
-    --   self:onKeyPress("f")
-    -- end},
-    -- ui2.AlloLabelUiEnt{id="grablabel", label="Grab"},
-
+    ui2.AlloLabelUiEnt{id="menulabel", label="Menu"},
 
     -- Mouse
     ui2.AlloDummyMouseEnt{id="dummyMouse"},
@@ -153,7 +142,7 @@ function AlloCustomLayout:layout(relayout)
     -- close
     elseif e.id == "escape" then
       bound = bound2(vec2(leftedge, topedge-buttonHeight), vec2(leftedge+buttonWidth, topedge))
-    elseif e.id == "closelabel" then
+    elseif e.id == "menulabel" then
       bound = bound2(vec2(leftedge, topedge-buttonHeight-labelHeight-labelSpacing-spacing), vec2(leftedge+buttonWidth, topedge-buttonHeight-labelSpacing-spacing))
 
     -- grab
@@ -162,11 +151,11 @@ function AlloCustomLayout:layout(relayout)
     -- elseif e.id == "grablabel" then
     --   bound = bound2(vec2(.8+leftedge, bottomedge-labelHeight/2), vec2(.8+leftedge+buttonWidth, bottomedge-labelHeight/2+labelHeight))
 
-	-- menu
-	elseif e.id == "r" then
-		bound = bound2(vec2(.8+leftedge, bottomedge-labelHeight/2+labelHeight+labelSpacing), vec2(.8+leftedge+buttonWidth, bottomedge-labelHeight/2+buttonHeight+labelHeight+labelSpacing))
-	elseif e.id == "menulabel" then
-		bound = bound2(vec2(.8+leftedge, bottomedge-labelHeight/2), vec2(.8+leftedge+buttonWidth, bottomedge-labelHeight/2+labelHeight))
+    -- old menu
+    -- elseif e.id == "r" then
+    -- 	bound = bound2(vec2(.8+leftedge, bottomedge-labelHeight/2+labelHeight+labelSpacing), vec2(.8+leftedge+buttonWidth, bottomedge-labelHeight/2+buttonHeight+labelHeight+labelSpacing))
+    -- elseif e.id == "menulabel" then
+    -- 	bound = bound2(vec2(.8+leftedge, bottomedge-labelHeight/2), vec2(.8+leftedge+buttonWidth, bottomedge-labelHeight/2+labelHeight))
 
     -- mouse
     elseif e.id == "dummyMouse" then

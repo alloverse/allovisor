@@ -23,6 +23,21 @@ function SceneManager:_init(menuServerPort)
     self:_makeScene("controls")
 end
 
+function SceneManager:onKeyPress(code, scancode, repetition)
+  if code == "escape" then
+    self:toggleMenu()
+  end
+end
+
+function SceneManager:onUpdate()  
+  if lovr.headset then
+    print("lovr.headset")
+    if lovr.headset.wasPressed("hand/left", "menu") then
+      self:toggleMenu()
+    end
+  end
+end
+
 function SceneManager:showPlace(...)
     if self.net then
         self.net:onDisconnect(0, "Connected elsewhere")
@@ -48,10 +63,18 @@ function SceneManager:setMenuVisible(visible)
     if self.net then
         self.net:route("setActive", not visible)
     end
-
+    
     self.menu.net:route("setActive", visible)
     self.menu.net:moveToOrigin()
 end
+
+
+function SceneManager:toggleMenu()
+  if self.net then -- only be able to toggle the menu if connected to a place
+    self:setMenuVisible(not self.menu.visible)
+  end
+end
+
 
 function SceneManager:hideOverlay()
     self.controls:die()
