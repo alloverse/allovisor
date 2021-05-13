@@ -16,7 +16,6 @@ print("Connecting apps to port", port)
 local apps = {
    require("alloapps.menu.app")(port),
    require("alloapps.avatar_chooser")(port),
-   require("alloapps.app_chooser")(port)
 }
 
 print("allomenu apps started")
