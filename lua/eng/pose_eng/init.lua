@@ -320,7 +320,7 @@ function PoseEng:updateIntent(dt)
 
   -- root entity movement
   local mx, my = self:getAxis("hand/left", "thumbstick")
-  if self:isDown("hand/right", "b") then
+  if self:isDown("hand/left", "x") then
     mx = mx * 2
     my = my * 2
   end
