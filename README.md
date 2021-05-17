@@ -11,7 +11,7 @@ with, and easier to extend with low level functionality.
 For all platforms:
 
 * You must have [Git LFS](https://git-lfs.github.com) installed to fetch assets
-* If LFS doesn't fetch assets for you automatically after cloning, do `git lfs fetch`
+* If LFS doesn't fetch assets for you automatically after cloning, do `git lfs install` followed by `git lfs pull`
 * You must also fetch submodules: `git submodule update --init --recursive`
 
 ### Mac
