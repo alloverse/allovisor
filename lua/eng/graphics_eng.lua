@@ -128,36 +128,40 @@ function GraphicsEng:onDraw()
 
   -- enteties
   for _, entity in pairs(self.client.state.entities) do
-    -- Default material property is basically plastic
-    local material = entity.components.material or {
-      metalness = 0,
-      roughness = 1
-    }
+    local geom = entity.components.geometry
+    local model = self.models_for_eids[entity.id]
+    if geom and model then
+      -- Default material property is basically plastic
+      local material = entity.components.material or {
+        metalness = 0,
+        roughness = 1
+      }
 
-    -- Transparent obects have opposite draw order than opaque objects
-    local material_alpha = material and material.color and type(material.color[4]) == "number" and material.color[4] or 1
-    local hasTransparency = material and material.hasTransparency or material_alpha < 1
-    assert(entity.id, "must have an id")
-    table.insert(objects, {
-      id = entity.id,
-      visible = true,
-      AABB = aabbForEntity(entity),
-      position = entity.components.transform:getMatrix():mul(lovr.math.vec3()),
-      hasTransparency = hasTransparency,
-      hasReflection = true,
-      material = {
-        metalness = material.metalness or 0,
-        roughness = material.roughness or 1,
-      },
-      draw = function(object, context)
-        if entity.id == self.parent.head_id and context.view.nr == 1 then return end -- Hide head in view but not reflections
-        -- local entity = object.entity
-        lovr.graphics.push()
-        lovr.graphics.transform(entity.components.transform:getMatrix())
-        self:_drawEntity(entity)
-        lovr.graphics.pop()
-      end
-    })
+      -- Transparent obects have opposite draw order than opaque objects
+      local material_alpha = material and material.color and type(material.color[4]) == "number" and material.color[4] or 1
+      local hasTransparency = material and material.hasTransparency or material_alpha < 1
+      assert(entity.id, "must have an id")
+      table.insert(objects, {
+        id = entity.id,
+        visible = true,
+        AABB = aabbForEntity(entity),
+        position = entity.components.transform:getMatrix():mul(lovr.math.vec3()),
+        hasTransparency = hasTransparency,
+        hasReflection = true,
+        material = {
+          metalness = material.metalness or 0,
+          roughness = material.roughness or 1,
+        },
+        draw = function(object, context)
+          if entity.id == self.parent.head_id and context.view.nr == 1 then return end -- Hide head in view but not reflections
+          -- local entity = object.entity
+          lovr.graphics.push()
+          lovr.graphics.transform(entity.components.transform:getMatrix())
+          self:_drawEntity(entity)
+          lovr.graphics.pop()
+        end
+      })
+    end
   end
 
   -- --- Some artificial lights until we have ents for them 
@@ -208,13 +212,14 @@ end
 --- Draws an entity.
 function GraphicsEng:_drawEntity(entity)
   local geom = entity.components.geometry
-  local parent = optchain(entity, "components.relationships.parent")
   local model = self.models_for_eids[entity.id]
+  local parent = optchain(entity, "components.relationships.parent")
   
-  if geom == nil or model == nil then
-    return
+  if not geom or not model then 
+    pretty.dump(entity)
+    assert(geom and model, "Should not have been included in drawable objects")
   end
-
+  
   -- special case avatars to get PBR shading and face them towards negative Z
   -- TODO: move to avatar ents!
   local pose = optchain(entity, "components.intent.actuate_pose")
