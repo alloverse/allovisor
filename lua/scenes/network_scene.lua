@@ -243,10 +243,6 @@ function NetworkScene:onLoad()
     end
   end
 
-  if self.isSpectatorCamera and self.parent.hideOverlay then
-    self.parent:hideOverlay()
-  end
-
   self.unsub = Store.singleton():listen("debug", function(debug)
     self.debug = debug
   end)

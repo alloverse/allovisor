@@ -68,6 +68,8 @@ end
 function ControlsOverlay:onMirror()
   if self.showOverlay then
     uiMode()
+  else
+    return route_terminate
   end
 end
 
@@ -332,7 +334,7 @@ function ui2.AlloMouseButtonEnt:onMousePressed(x, y, button)
   if self.id == "lmb" and button == 1 or self.id == "rmb" and button == 2 then
     self.down = true
   end
-end 
+end
 
 function ui2.AlloMouseButtonEnt:onMouseReleased(x, y, button)
   if self.id == "lmb" and button == 1 or self.id == "rmb" and button == 2 then

@@ -74,11 +74,6 @@ function SceneManager:toggleMenu()
   end
 end
 
-
-function SceneManager:hideOverlay()
-    self.controls:die()
-end
-
 function SceneManager:onNetConnected(net, url, placeName)
     if placeName ~= "Menu" then
         self.menu:setMessage("Connected to "..placeName)
