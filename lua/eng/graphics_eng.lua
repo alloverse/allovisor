@@ -367,7 +367,6 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
       end)
     else
       -- backwards compat.
-      print("b64 tex")
       local texture = self:loadTexture(eid, textureName, function(tex)
         mat:setTexture(tex)
         apply()
@@ -583,7 +582,6 @@ function GraphicsEng:loadCubemap(asset_ids, callback)
         end
         sides[side] = image
         if sides.left and sides.right and sides.top and sides.bottom and sides.front and sides.back then
-          print("loadCubemap complete")
           callback(lovr.graphics.newTexture(sides))
         end
       end, true)

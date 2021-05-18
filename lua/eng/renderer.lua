@@ -14,7 +14,8 @@ local Renderer = class.Renderer()
 
 function Renderer:_init()
     is_desktop = lovr and lovr.headset == nil
-
+    
+    self.debugPrints = false
     self.defaults = {
         cubemapLimit = {
             max = is_desktop and 1 or 0, -- do not generate more cm's than this per frame
@@ -544,7 +545,9 @@ function Renderer:findCubemap(renderObject, context)
         if object.reflectionMap then
             local map = object.reflectionMap
             object.reflectionMap = nil
-            print(renderObject.id .. " reuses a cm from " .. id .. " in frame " .. context.frame.nr)
+            if self.debugPrints then
+                print(renderObject.id .. " reuses a cm from " .. id .. " in frame " .. context.frame.nr)
+            end
             return map
         end
     end
@@ -562,7 +565,9 @@ function Renderer:generateCubemap(renderObject, context)
 
 
     if not cubemap then
-        print("New cm for " .. renderObject.id .. " in frame " .. context.frame.nr, cubemapSize .. "x" .. cubemapSize)
+        if self.debugPrints then
+            print("New cm for " .. renderObject.id .. " in frame " .. context.frame.nr, cubemapSize .. "x" .. cubemapSize)
+        end
         local texture = lovr.graphics.newTexture(cubemapSize, cubemapSize, { 
             format = "rg11b10f",
             stereo = not is_desktop,

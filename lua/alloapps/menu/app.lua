@@ -29,7 +29,6 @@ end
 function Menu:switchToMenu(name)
   if self.nav:top() and self.nav:bottom().name == name then return end
 
-  print("Switching to menu", name)
   self.nav:popAll()
   self.nav:push(self.menus[name])
 end

@@ -51,7 +51,6 @@ function AssetsEng:loadFromAsset(asset, type, callback, flipTexture)
       table.insert(asset._lovrObjectLoadingCallbacks, callback)
       return
     end
-    print(asset)
     asset._lovrObjectLoadingCallbacks = {callback}
   
     local blob = lovr.data.newBlob(asset:read(), asset:id())
@@ -77,8 +76,6 @@ function AssetsEng:loadFromAsset(asset, type, callback, flipTexture)
 end
 
 function AssetsEng:onFileDrop(path)
-    print(self, "got a file drop:", path)
-
     local function acceptsFile(entity)
         if entity.components.acceptsfile then
             if entity.components.acceptsfile.extensions then

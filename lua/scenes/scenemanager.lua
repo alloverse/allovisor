@@ -57,7 +57,6 @@ function SceneManager:transitionToMainMenu()
 end
 
 function SceneManager:setMenuVisible(visible)
-    print("Setting menu to", visible)
     self.menu.visible = visible
 
     if self.net then
