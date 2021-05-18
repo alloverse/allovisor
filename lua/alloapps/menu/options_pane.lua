@@ -10,39 +10,45 @@ function OptionsPane:_init(menu)
 
     self.debugButton = ui.Button(ui.Bounds(0, 0.4, 0.01,   1.4, 0.2, 0.15))
     self:addSubview(self.debugButton)
-    self.unsub = Store.singleton():listen("debug", function(debug)
+    self.debugOverlaySub = nil
+
+    self.toggleControlsButton = ui.Button(ui.Bounds(0, 0.1, 0.01,   1.4, 0.2, 0.15))
+    self:addSubview(self.toggleControlsButton)
+    self.controlOverlaySub = nil
+
+    self.audioButton = ui.Button(ui.Bounds(0, -0.2, 0.01,     1.4, 0.2, 0.15))
+    self.audioButton.label.text = "Audio settings..."
+    self.audioButton.onActivated = function() 
+        self.nav:push(AudioPane(menu))
+    end
+    self:addSubview(self.audioButton)
+end
+
+function OptionsPane:awake()
+    Surface.awake(self)
+    print("Option awake")
+
+    self.debugOverlaySub = Store.singleton():listen("debug", function(debug)
         self.debugButton.label:setText(debug and "Debug (On)" or "Debug (Off)")
-        self.debugButton.onActivated = function() 
+        self.debugButton.onActivated = function()
             Store.singleton():save("debug", not debug, true)
         end
     end)
 
-    local toggleControlsButton = ui.Button(ui.Bounds(0, 0.1, 0.01,   1.4, 0.2, 0.15))
-    self:addSubview(toggleControlsButton)
+    self.controlOverlaySub = Store.singleton():listen("showOverlay", function(show)
+        self.toggleControlsButton.label:setText(show and "Overlay (On)" or "Overlay (Off)")
 
-    self.unsubshowOverlay = Store.singleton():listen("showOverlay", function(show)
-        toggleControlsButton.label:setText(show and "Overlay (On)" or "Overlay (Off)")
-
-        toggleControlsButton.onActivated = function()
-          local new = not show
-          -- Saves the state for next session
+        self.toggleControlsButton.onActivated = function()
           Store.singleton():save("showOverlay", not show, true)
         end
     end)
-
-    local audioButton = ui.Button(ui.Bounds(0, -0.2, 0.01,     1.4, 0.2, 0.15))
-    audioButton.label.text = "Audio settings..."
-    audioButton.onActivated = function() 
-        self.nav:push(AudioPane(menu))
-    end
-    self:addSubview(audioButton)
-
 end
 
 function OptionsPane:sleep()
+    print("Option sleep")
+    if self.debugOverlaySub then self.debugOverlaySub() end
+    if self.controlOverlaySub then self.controlOverlaySub() end
     Surface.sleep(self)
-    if self.unsub then self.unsub() end
-    if self.unsubshowOverlay then self.unsubshowOverlay() end
 end
 
 
