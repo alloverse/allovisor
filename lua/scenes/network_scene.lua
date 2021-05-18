@@ -319,7 +319,7 @@ function NetworkScene:moveToOrigin()
       }
     }, "remove", {}}
   })
-  self.engines.pose.yaw = 0.00001
+  self.engines.pose.yaw = 0.0
 end
 
 function NetworkScene:onDisconnect(code, message)
