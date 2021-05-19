@@ -23,6 +23,7 @@ local engines = {
   PhysicsEng = require "eng.physics_eng",
   TextEng = require "eng.text_eng",
   AssetsEng = require "eng.assets_eng",
+  stats = require("scenes.stats"),
 }
 
 local assets = {
@@ -229,12 +230,13 @@ function NetworkScene:onLoad()
       physics = engines.PhysicsEng(),
       text = engines.TextEng(),
       assets = engines.AssetsEng(),
+      stats = engines.stats(),
     }
     if engines.SoundEng.supported() then
       self.engines.sound = engines.SoundEng()
     end
     
-    for _, ename in ipairs({"graphics", "text", "pose", "physics", "sound", "assets"}) do
+    for _, ename in ipairs({"graphics", "text", "pose", "physics", "sound", "assets", "stats"}) do
       local engine = self.engines[ename]
       if engine then
         engine.client = self.client
@@ -336,6 +338,9 @@ function NetworkScene:onDisconnect(code, message)
 end
 
 function NetworkScene:onDraw(isMirror)
+  if not self.active then
+    return route_terminate
+  end
   local atStartOfDraw = lovr.timer.getTime()
   lovr.graphics.push()
   drawMode()
@@ -377,34 +382,16 @@ function NetworkScene:onDraw(isMirror)
   self.drawTime = lovr.timer.getTime() - atStartOfDraw
 end
 
-function NetworkScene:onDebugDraw()
-  lovr.graphics.setShader()
-  lovr.graphics.setColor(1,1,1,1)
-  for eid, entity in pairs(self.client.state.entities) do
-    local trans = entity.components.transform
-
-    if trans ~= nil then
-      local mat = trans:getMatrix()
-      local rowmajor_mat = lovr.math.mat4(mat):transpose()
-      local pos = mat:mul(lovr.math.vec3())
-      local s = string.format("Entity[%s]", eid)
-      local parent = entity:getParent()
-      if parent then
-        s = string.format("%s\nParent: %s", s, parent.id )
-      end
-      s = string.format("%s\n %.1f %.1f %.1f %.1f\n%.1f %.1f %.1f %.1f\n%.1f %.1f %.1f %.1f\n%.1f %.1f %.1f %.1f", s, rowmajor_mat:unpack(true))
-      lovr.graphics.print(s, 
-        pos.x, pos.y, pos.z,
-        0.01, --  scale
-        0, 0, 1, 0,
-        0, -- wrap
-        "left"
-      )
-    end
+function NetworkScene:onMirror( )
+  if not self.active then
+    return route_terminate
   end
 end
 
 function NetworkScene:after_onDraw()
+  if not self.active then
+    return route_terminate
+  end
   if self.debug then
     self:route("onDebugDraw")
   end
@@ -417,6 +404,9 @@ function NetworkScene:after_onDraw()
 end
 
 function NetworkScene:onUpdate(dt)
+  if not self.active then
+    return route_terminate
+  end
   local atStartOfPoll = lovr.timer.getTime()
   if self.client then
     self.client:poll(self.standardDt)
@@ -432,8 +422,8 @@ function NetworkScene:onUpdate(dt)
   self.client:simulate()
   self.simulateTime = lovr.timer.getTime() - atStartOfSimulate
 
-  local stats = Stats.instance
-  if stats and not self.isOverlayScene then
+  local stats = self.engines.stats
+  if stats then
     stats:enable(self.debug)
     stats:set("Clocks", string.format(
       "Server %.3fs\nClient %.3fs", 

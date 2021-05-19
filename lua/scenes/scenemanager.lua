@@ -5,10 +5,9 @@ namespace("menu", "alloverse")
 local SceneClasses = {
     menu = require("scenes.netmenu_scene"),
     net = require("scenes.network_scene"),
-    stats = require("scenes.stats"),
     controls = require("scenes.controlsOverlay"),
 }
-local sceneOrder = {"net", "menu", "stats", "controls"}
+local sceneOrder = {"net", "menu", "controls"}
 
 -- This scene manages the main scenes in the app, to make
 -- sure things render in the correct order. 
@@ -19,7 +18,6 @@ function SceneManager:_init(menuServerPort)
     self:super()
 
     self:_makeScene("menu", menuServerPort)
-    self:_makeScene("stats")
     self:_makeScene("controls")
 end
 
