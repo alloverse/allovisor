@@ -13,7 +13,6 @@ namespace("networkscene", "alloverse")
 local tablex = require "pl.tablex"
 local pretty = require "pl.pretty"
 local Client = require "alloui.client"
-local Stats = require("scenes.stats")
 local Asset = require("lib.alloui.lua.alloui.asset")
 
 local engines = {
@@ -23,7 +22,7 @@ local engines = {
   PhysicsEng = require "eng.physics_eng",
   TextEng = require "eng.text_eng",
   AssetsEng = require "eng.assets_eng",
-  stats = require("scenes.stats"),
+  StatsEng = require("eng.stats_eng"),
 }
 
 local assets = {
@@ -230,7 +229,7 @@ function NetworkScene:onLoad()
       physics = engines.PhysicsEng(),
       text = engines.TextEng(),
       assets = engines.AssetsEng(),
-      stats = engines.stats(),
+      stats = engines.StatsEng(),
     }
     if engines.SoundEng.supported() then
       self.engines.sound = engines.SoundEng()

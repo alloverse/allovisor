@@ -8,28 +8,28 @@ local pretty = require "pl.pretty"
 
 local flat = require "engine.flat"
 
-local Stats = classNamed("Stats", Ent)
+local StatsEng = classNamed("Stats", Ent)
 
 local margin = .05
 
-function Stats:_init()
+function StatsEng:_init()
     self:clear()
     self:super()
 end
 
-function Stats:clear()
+function StatsEng:clear()
     self.stats = {}
 end
 
-function Stats:set(key, value)
+function StatsEng:set(key, value)
     self.stats[key] = value
 end
 
-function Stats:enable(isOn)
+function StatsEng:enable(isOn)
     self.on = isOn
 end
 
-function Stats:statsString()
+function StatsEng:statsString()
     local s = ""
     for k, v in pairs(self.stats) do
         s = s .. k .. ":   " .. v .. "\n"
@@ -70,7 +70,7 @@ function Stats:statsString()
     return s
 end
 
-function Stats:onMirror()
+function StatsEng:onMirror()
     if self.on then
         uiMode()
         lovr.graphics.setShader(nil)
@@ -86,7 +86,7 @@ function Stats:onMirror()
     end
 end
 
-function Stats:onDraw2()
+function StatsEng:onDraw2()
     lovr.graphics.setShader(nil)
     lovr.graphics.setColor(1,1,1,1)
     lovr.graphics.setFont(flat.font)
@@ -101,4 +101,4 @@ function Stats:onDraw2()
 end
 
 
-return Stats
+return StatsEng
