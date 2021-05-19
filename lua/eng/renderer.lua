@@ -18,7 +18,7 @@ function Renderer:_init()
     self.debugPrints = false
     self.defaults = {
         cubemapLimit = {
-            max = is_desktop and 1 or 0, -- do not generate more cm's than this per frame
+            max = is_desktop and 0 or 0, -- do not generate more cm's than this per frame
             minFrameDistance = is_desktop and 0 or 20, -- Wait this many frames between generating any new cubemap
         }
     }
@@ -452,22 +452,26 @@ function Renderer:drawContext(context)
     lovr.graphics.setShader(self.shader)
 
     -- Generate cubemaps where needed
-    for id, object in view.objects.needsCubemap:iter() do
-        if self:shouldGenerateCubemap(object, context) then 
-            self:generateCubemap(object, context)
+    local cubemapsEnabled = context.frame.cubemapLimit.max > 0
+    if cubemapsEnabled then 
+        for id, object in view.objects.needsCubemap:iter() do
+            if self:shouldGenerateCubemap(object, context) then 
+                self:generateCubemap(object, context)
+            end
         end
     end
 
     -- Draw normal objects
+    local drawObject = self.drawObject
     for id, object in context.view.objects.opaque:iter() do
-        self:drawObject(object, context)
+        drawObject(self, object, context)
     end
 
     -- Draw transparent objects
     -- don't write that to depth buffer tho
     lovr.graphics.setDepthTest('lequal', false)
     for id, object in context.view.objects.transparent:iter() do
-        self:drawObject(object, context)
+        drawObject(self, object, context)
     end
     lovr.graphics.setDepthTest('lequal', true)
 
@@ -499,7 +503,28 @@ function Renderer:drawObject(object, context)
     --     end
     -- end
     
-    self:prepareShaderForObject(object, context)
+
+    -- unrolled shader setup function
+    local shader = lovr.graphics.getShader()
+    if shader then
+        local send = shader.send
+        
+        local material = object.material
+        send(shader, "alloMetalness", material.metalness or 1)
+        send(shader, "alloRoughness", material.roughness or 1)
+
+        local envMap = object.reflectionMap and object.reflectionMap.texture or self.defaultEnvironmentMap
+        if not envMap then 
+            send(shader, "alloEnvironmentMapType", 0)
+        elseif envMap:getType() == "cube" then
+            send(shader, "alloEnvironmentMapType", 1);
+            send(shader, "alloEnvironmentMapCube", envMap)
+        else
+            send(shader, "alloEnvironmentMapType", 2);
+            send(shader, "alloEnvironmentMapSpherical", envMap)
+        end
+    end
+
     lovr.graphics.setColor(1,1,1,1)
     context.stats.drawnObjects = context.stats.drawnObjects + 1
 
@@ -673,25 +698,6 @@ end
 
 function Renderer:prepareShaderForView(shader, context)
     
-end
-
-function Renderer:prepareShaderForObject(object, context)
-    local shader = lovr.graphics.getShader()
-    if not shader then return end
-    local material = object.material
-    shader:send("alloMetalness", material.metalness or 1)
-    shader:send("alloRoughness", material.roughness or 1)
-
-    local envMap = object.reflectionMap and object.reflectionMap.texture or self.defaultEnvironmentMap
-    if not envMap then 
-        shader:send("alloEnvironmentMapType", 0)
-    elseif envMap:getType() == "cube" then
-        shader:send("alloEnvironmentMapType", 1);
-        shader:send("alloEnvironmentMapCube", envMap)
-    else
-        shader:send("alloEnvironmentMapType", 2);
-        shader:send("alloEnvironmentMapSpherical", envMap)
-    end
 end
 
 function Renderer:pointInAABB(point, aabb)

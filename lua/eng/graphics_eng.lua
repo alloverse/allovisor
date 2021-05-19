@@ -17,6 +17,10 @@ local GraphicsEng = classNamed("GraphicsEng", Ent)
 
 local Renderer = require('eng.renderer')
 
+local graphics = lovr.graphics
+local vec3 = lovr.math.vec3
+local newVec3 = lovr.math.newVec3
+
 --- Initialize the graphics engine.
 function GraphicsEng:_init()
   self:super()
@@ -40,8 +44,8 @@ end
 -- Loads the default models, shaders, etc. 
 function GraphicsEng:onLoad()
   self.hardcoded_models = {
-    broken = lovr.graphics.newModel('/assets/models/broken.glb'),
-    loading = lovr.graphics.newModel('/assets/models/loading.glb'),
+    broken = graphics.newModel('/assets/models/broken.glb'),
+    loading = graphics.newModel('/assets/models/loading.glb'),
   }
 
   self.models_for_eids = {}
@@ -51,10 +55,10 @@ function GraphicsEng:onLoad()
   self.basicShader = alloBasicShader
   self.pbrShader = alloPbrShader
 
-  lovr.graphics.setBackgroundColor(.05, .05, .05)
+  graphics.setBackgroundColor(.05, .05, .05)
   
   local skyboxName = "sunset"
-  self.cloudSkybox = lovr.graphics.newTexture({
+  self.cloudSkybox = graphics.newTexture({
     left =  'assets/textures/skybox/' .. skyboxName .. '/left.png',
     right = 'assets/textures/skybox/' .. skyboxName .. '/right.png',
     top =   'assets/textures/skybox/' .. skyboxName .. '/top.png',
@@ -84,12 +88,12 @@ end
 --- Called each frame to draw the world
 -- Called by Ent
 -- @see Ent
-function GraphicsEng:onDraw() 
-  lovr.graphics.clear(false, true, true)
-  lovr.graphics.setCullingEnabled(true)
-  lovr.graphics.setColor(1,1,1,1)
+function GraphicsEng:onDraw()
+  graphics.clear(false, true, true)
+  graphics.setCullingEnabled(true)
+  graphics.setColor(1,1,1,1)
 
-  lovr.graphics.setColor(1, 1, 1, 1)
+  graphics.setColor(1, 1, 1, 1)
 
   -- Collect all the objects to sort and draw
   local objects = {}
@@ -97,8 +101,8 @@ function GraphicsEng:onDraw()
   local function aabbForModel(model, scale_x, scale_y, scale_z)
     local minx, maxx, miny, maxy, minz, maxz = model:getAABB()
     return {
-        min = lovr.math.newVec3(minx*scale_x, miny*scale_y, minz*scale_z),
-        max = lovr.math.newVec3(maxx*scale_x, maxy*scale_y, maxz*scale_z)
+        min = newVec3(minx*scale_x, miny*scale_y, minz*scale_z),
+        max = newVec3(maxx*scale_x, maxy*scale_y, maxz*scale_z)
     }
   end
 
@@ -115,17 +119,19 @@ function GraphicsEng:onDraw()
       local h = collider.height/2
       local d = collider.depth/2
       return {
-        min = lovr.math.newVec3(-w, -h, -d),
-        max = lovr.math.newVec3(w, h, d)
+        min = newVec3(-w, -h, -d),
+        max = newVec3(w, h, d)
       }
     end
 
     return {
-      min = lovr.math.newVec3(-1, -1, -1),
-      max = lovr.math.newVec3(1, 1, 1)
+      min = newVec3(-1, -1, -1),
+      max = newVec3(1, 1, 1)
     }
   end
 
+
+  local drawEntity = self._drawEntity
   -- enteties
   for _, entity in pairs(self.client.state.entities) do
     local geom = entity.components.geometry
@@ -145,7 +151,7 @@ function GraphicsEng:onDraw()
         id = entity.id,
         visible = true,
         AABB = aabbForEntity(entity),
-        position = entity.components.transform:getMatrix():mul(lovr.math.vec3()),
+        position = entity.components.transform:getMatrix():mul(vec3()),
         hasTransparency = hasTransparency,
         hasReflection = true,
         material = {
@@ -154,11 +160,7 @@ function GraphicsEng:onDraw()
         },
         draw = function(object, context)
           if entity.id == self.parent.head_id and context.view.nr == 1 then return end -- Hide head in view but not reflections
-          -- local entity = object.entity
-          lovr.graphics.push()
-          lovr.graphics.transform(entity.components.transform:getMatrix())
-          self:_drawEntity(entity)
-          lovr.graphics.pop()
+          drawEntity(self, entity)
         end
       })
     end
@@ -190,10 +192,9 @@ function GraphicsEng:onDraw()
     table.insert(objects, {
       id = "Test object " .. i,
       AABB = aabbForModel(model),
-      position = lovr.math.vec3(0,0,0),
+      position = vec3(0,0,0),
       draw = function(object)
-        lovr.graphics.setColor(1,1,1,1)
-        -- lovr.graphics.setShader(self:pbrShaderForModel(object.model))
+        graphics.setColor(1,1,1,1)
         object.model:draw()
       end
     })
@@ -201,10 +202,10 @@ function GraphicsEng:onDraw()
 
   -- Draw all of them (unless things are not initialized properly)
   if self.parent:getHead() then 
-    local headPosition = self.parent:getHead().components.transform:getMatrix():mul(lovr.math.vec3())
+    local headPosition = self.parent:getHead().components.transform:getMatrix():mul(vec3())
     self.renderStats = self.renderer:render(objects, {
       drawAABB = self.drawAABBs,
-      cameraPosition = lovr.math.newVec3(headPosition)
+      cameraPosition = newVec3(headPosition)
     })
   end
 end
@@ -213,7 +214,9 @@ end
 function GraphicsEng:_drawEntity(entity)
   local geom = entity.components.geometry
   local model = self.models_for_eids[entity.id]
-  local parent = optchain(entity, "components.relationships.parent")
+
+  graphics.push()
+  graphics.transform(entity.components.transform:getMatrix())
   
   if not geom or not model then 
     pretty.dump(entity)
@@ -224,15 +227,15 @@ function GraphicsEng:_drawEntity(entity)
   -- TODO: move to avatar ents!
   local pose = optchain(entity, "components.intent.actuate_pose")
   if pose ~= nil then 
-    lovr.graphics.rotate(3.14, 0, 1, 0)
+    graphics.rotate(3.14, 0, 1, 0)
   end
 
 
   local mat = self.materials_for_eids[entity.id]
   if mat and mat:getColor() then 
-    lovr.graphics.setColor(mat:getColor())
+    graphics.setColor(mat:getColor())
   else 
-    lovr.graphics.setColor(1,1,1,1)
+    graphics.setColor(1,1,1,1)
   end
 
   local animationCount = model.animate and model:getAnimationCount()
@@ -247,10 +250,12 @@ function GraphicsEng:_drawEntity(entity)
   end
 
   if self.colorfulDebug then
-    lovr.graphics.setColor(math.random(), math.random(), math.random(), 1)
+    graphics.setColor(math.random(), math.random(), math.random(), 1)
   end
 
   model:draw()
+
+  graphics.pop()
 end
 
 --- Load a model for supplied component.
@@ -312,7 +317,7 @@ function GraphicsEng:loadHardcodedModel(name, callback, path)
          print("Failed to load model", name, ":", model)
          self.hardcoded_models[name] = self.hardcoded_models.broken
        else
-         local model = lovr.graphics.newModel(modelData)
+         local model = graphics.newModel(modelData)
          self.hardcoded_models[name] = model
        end
        callback(self.hardcoded_models[name])
@@ -328,7 +333,7 @@ function GraphicsEng:loadTexture(eid, base64, callback)
        if texdata== nil or status == false then
          print("Failed to load base64 texture", eid, ":", texdata)
        else
-         local tex = lovr.graphics.newTexture(texdata)
+         local tex = graphics.newTexture(texdata)
          callback(tex)
        end
     end,
@@ -341,7 +346,7 @@ end
 -- @tparam component old_component not used
 function GraphicsEng:loadComponentMaterial(component, old_component)
   local eid = component.getEntity().id
-  local mat = lovr.graphics.newMaterial()
+  local mat = graphics.newMaterial()
   if component.color ~= nil then
     mat:setColor("diffuse", component.color[1], component.color[2], component.color[3], component.color[4])
   end
@@ -483,7 +488,7 @@ function GraphicsEng:createMesh(geom, old_geom)
     local vertices = tablex.map(function (x) return array2d.flatten(x) end, combined)
 
     -- Setup the mesh
-    mesh = lovr.graphics.newMesh(
+    mesh = graphics.newMesh(
       mesh_format,
       vertices,
       'triangles', -- DrawMode
@@ -498,7 +503,7 @@ function GraphicsEng:createMesh(geom, old_geom)
   if (old_geom == nil or old_geom.texture ~= geom.texture) and geom.texture then
     -- decode texture data and setup material
     self:loadTexture(eid, geom.texture, function(tex)
-      local material = lovr.graphics.newMaterial(tex)
+      local material = graphics.newMaterial(tex)
       mesh:setMaterial(material)
     end)
   end
@@ -508,8 +513,8 @@ end
 
 --- Calculate vertex normal from three corner vertices
 local function get_triangle_normal(vert1, vert2, vert3)   
-  return vec3.new(vert3.x - vert1.x, vert3.z - vert1.z, vert3.y - vert1.y)
-    :cross(vec3.new(vert2.x - vert1.x, vert2.z - vert1.z, vert2.y - vert1.y))
+  return vec3(vert3.x - vert1.x, vert3.z - vert1.z, vert3.y - vert1.y)
+    :cross(vec3(vert2.x - vert1.x, vert2.z - vert1.z, vert2.y - vert1.y))
     :normalize()
 end
 
@@ -524,9 +529,9 @@ function GraphicsEng:generateGeometryWithNormals(geom)
   for _, tri in ipairs(geom.triangles) do
     local a, b, c = tri[1] + 1, tri[2] + 1, tri[3] + 1 -- vertex indices
     local tri_vertices = {
-      vec3.new(geom.vertices[a]),
-      vec3.new(geom.vertices[b]),
-      vec3.new(geom.vertices[c])
+      vec3(table.unpack(geom.vertices[a])),
+      vec3(table.unpack(geom.vertices[b])),
+      vec3(table.unpack(geom.vertices[c]))
     }
     local normal = get_triangle_normal(unpack(tri_vertices))
     for _, v in ipairs(tri_vertices) do
@@ -551,7 +556,7 @@ end
 function GraphicsEng:modelFromAsset(asset, callback)
   if self.parent.engines.assets:loadFromAsset(asset, "model-asset", function (modelData)
     if modelData then 
-      callback(lovr.graphics.newModel(modelData))
+      callback(graphics.newModel(modelData))
     else
       print("Failed to parse model data for " .. asset:id())
       callback(self.hardcoded_models.broken)
@@ -564,7 +569,7 @@ end
 function GraphicsEng:textureFromAsset(asset, callback)
   self.parent.engines.assets:loadFromAsset(asset, "texture-asset", function (image)
     if image then 
-      callback(lovr.graphics.newTexture(image))
+      callback(graphics.newTexture(image))
     else
       print("Failed to load texture data")
     end
@@ -587,7 +592,7 @@ function GraphicsEng:loadCubemap(asset_ids, callback)
         end
         sides[side] = image
         if sides.left and sides.right and sides.top and sides.bottom and sides.front and sides.back then
-          callback(lovr.graphics.newTexture(sides))
+          callback(graphics.newTexture(sides))
         end
       end, true)
     end
