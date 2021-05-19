@@ -20,6 +20,7 @@ local Renderer = require('eng.renderer')
 local graphics = lovr.graphics
 local vec3 = lovr.math.vec3
 local newVec3 = lovr.math.newVec3
+local newMat4 = lovr.math.newMat4
 
 --- Initialize the graphics engine.
 function GraphicsEng:_init()
@@ -109,8 +110,6 @@ end
 function GraphicsEng:onDraw()
     graphics.clear(false, true, true)
     graphics.setCullingEnabled(true)
-    graphics.setColor(1,1,1,1)
-
     graphics.setColor(1, 1, 1, 1)
 
     local aabbForModel = self.aabbForModel
@@ -118,9 +117,9 @@ function GraphicsEng:onDraw()
     -- Collect all the objects to sort and draw
     local objects = self.renderObjects
     
-    local drawEntity = self._drawEntity
     local count = 0
     -- enteties
+    -- TODO: Use a managed list instead based on added/removed componets
     for id, entity in pairs(self.client.state.entities) do
         local model = self.models_for_eids[entity.id]
         if model then
@@ -134,7 +133,7 @@ function GraphicsEng:onDraw()
             -- Transparent obects have opposite draw order than opaque objects
             local material_alpha = material and material.color and type(material.color[4]) == "number" and material.color[4] or 1
             local hasTransparency = material and material.hasTransparency or material_alpha < 1
-            local transform = entity.components.transform:getMatrix()
+            local transform = newMat4(entity.components.transform:getMatrix())
             assert(entity.id, "must have an id")
             objects[count] = {
                 id = id,
@@ -148,14 +147,33 @@ function GraphicsEng:onDraw()
                     roughness = material.roughness or 1,
                 },
                 draw = function(object, context)
+                    -- TODO: not nice with an inline closure but will be less expensive with a managed object list
+
                     -- Hide head from view but not from reflections.
-                    -- TODO: move to entity
-                    if context.view.nr == 1 and entity:getParent().id == self.parent.head_id then
-                        return
+                    -- TODO: This is stupid expensive for what it does. Move to somewhere
+                    if context.view.nr == 1 then
+                        local parent = entity:getParent()
+                        if parent and parent.id == self.parent.head_id then
+                            return
+                        end
                     end
                     graphics.push()
                     graphics.transform(transform)
-                    drawEntity(self, entity, model)
+
+                    -- Is this reeeeally the right place to handle animations at all?
+                    -- TODO: some hack so this it only run for entities that needs it
+                    local animationCount = model.animate and model:getAnimationCount()
+                    if animationCount and animationCount > 0 then
+                        local name = model:getAnimationName(1)
+                        for i = 1, animationCount do 
+                            if model:getAnimationName(i) == "autoplay" then
+                            name = "autoplay"
+                            end
+                        end
+                        model:animate(name, lovr.timer.getTime())
+                    end
+                  
+                    model:draw()
                     graphics.pop()
                 end
             }
@@ -167,9 +185,8 @@ function GraphicsEng:onDraw()
         table.insert(objects, {
             id = "Test object " .. i,
             AABB = aabbForModel(self, model, lovr.math.mat4()),
-            position = vec3(0,0,0),
+            position = newVec3(0,0,0),
             draw = function(object)
-                graphics.setColor(1,1,1,1)
                 object.model:draw()
             end
         })
@@ -188,22 +205,6 @@ function GraphicsEng:onDraw()
             cameraPosition = newVec3(headPosition)
         })
     end
-end
-
---- Draws an entity.
-function GraphicsEng:_drawEntity(entity, model)
-  local animationCount = model.animate and model:getAnimationCount()
-  if animationCount and animationCount > 0 then
-    local name = model:getAnimationName(1)
-    for i = 1, animationCount do 
-      if model:getAnimationName(i) == "autoplay" then
-        name = "autoplay"
-      end
-    end
-    model:animate(name, lovr.timer.getTime())
-  end
-
-  model:draw()
 end
 
 --- Load a model for supplied component.

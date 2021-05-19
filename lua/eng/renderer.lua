@@ -18,7 +18,7 @@ function Renderer:_init()
     self.debugPrints = false
     self.defaults = {
         cubemapLimit = {
-            max = is_desktop and 0 or 0, -- do not generate more cm's than this per frame
+            max = is_desktop and 1 or 0, -- do not generate more cm's than this per frame
             minFrameDistance = is_desktop and 0 or 20, -- Wait this many frames between generating any new cubemap
         }
     }
