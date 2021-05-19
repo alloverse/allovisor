@@ -82,140 +82,127 @@ function GraphicsEng:onLoad()
     self:loadHardcodedModel('testing/'..name, function(m) 
       table.insert(self.testModels, m)
     end)
-  end
+end
 end
 
-
---- Called each frame to draw the world
--- Called by Ent
--- @see Ent
-function GraphicsEng:onDraw()
-  graphics.clear(false, true, true)
-  graphics.setCullingEnabled(true)
-  graphics.setColor(1,1,1,1)
-
-  graphics.setColor(1, 1, 1, 1)
-
-  -- Collect all the objects to sort and draw
-  local objects = self.renderObjects
-
-  local function aabbForModel(model, scale_x, scale_y, scale_z)
+function GraphicsEng:aabbForModel(model, scale_x, scale_y, scale_z)
     local minx, maxx, miny, maxy, minz, maxz = model:getAABB()
     return {
         min = newVec3(minx*scale_x, miny*scale_y, minz*scale_z),
         max = newVec3(maxx*scale_x, maxy*scale_y, maxz*scale_z)
     }
-  end
+end
 
-  local function aabbForEntity(entity)
+function GraphicsEng:aabbForEntity(entity)
     local model = self.models_for_eids[entity.id]
     local _, _, _, sx, sy, sz = entity.components.transform:getMatrix():unpack()
     if model and model.getAABB then
-      return aabbForModel(model, sx, sy, sz)
+        local minx, maxx, miny, maxy, minz, maxz = model:getAABB()
+        return {
+            min = newVec3(minx*sx, miny*sy, minz*sz),
+            max = newVec3(maxx*sx, maxy*sy, maxz*sz)
+        }
     end
 
     local collider = entity.components.collider
     if collider and collider.type == "box" then
-      local w = collider.width/2
-      local h = collider.height/2
-      local d = collider.depth/2
-      return {
-        min = newVec3(-w, -h, -d),
-        max = newVec3(w, h, d)
-      }
+        local w = collider.width/2
+        local h = collider.height/2
+        local d = collider.depth/2
+        return {
+            min = newVec3(-w, -h, -d),
+            max = newVec3(w, h, d)
+        }
     end
-
+    
     return {
-      min = newVec3(-1, -1, -1),
-      max = newVec3(1, 1, 1)
+        min = newVec3(-1, -1, -1),
+        max = newVec3(1, 1, 1)
     }
-  end
+end
 
+--- Called each frame to draw the world
+-- Called by Ent
+-- @see Ent
+function GraphicsEng:onDraw()
+    graphics.clear(false, true, true)
+    graphics.setCullingEnabled(true)
+    graphics.setColor(1,1,1,1)
 
-  local drawEntity = self._drawEntity
-  local count = 0
-  -- enteties
-  for id, entity in pairs(self.client.state.entities) do
-    local geom = entity.components.geometry
-    local model = self.models_for_eids[entity.id]
-    if geom and model then
-      count = count + 1
-      -- Default material property is basically plastic
-      local material = entity.components.material or {
-        metalness = 0,
-        roughness = 1
-      }
+    graphics.setColor(1, 1, 1, 1)
 
-      -- Transparent obects have opposite draw order than opaque objects
-      local material_alpha = material and material.color and type(material.color[4]) == "number" and material.color[4] or 1
-      local hasTransparency = material and material.hasTransparency or material_alpha < 1
-      assert(entity.id, "must have an id")
-      objects[count] = {
-        id = id,
-        visible = true,
-        AABB = aabbForEntity(entity),
-        position = newVec3(entity.components.transform:getMatrix():mul(vec3())),
-        hasTransparency = hasTransparency,
-        hasReflection = true,
-        material = {
-          metalness = material.metalness or 0,
-          roughness = material.roughness or 1,
-        },
-        draw = function(object, context)
-          if context.view.nr == 1 and entity:getParent().id == self.parent.head_id then return end -- Hide head in view but not reflections
-          drawEntity(self, entity)
+    local aabbForEntity = self.aabbForEntity
+    
+    -- Collect all the objects to sort and draw
+    local objects = self.renderObjects
+    
+    local drawEntity = self._drawEntity
+    local count = 0
+    -- enteties
+    for id, entity in pairs(self.client.state.entities) do
+        local geom = entity.components.geometry
+        local model = self.models_for_eids[entity.id]
+        if geom and model then
+            count = count + 1
+            -- Default material property is basically plastic
+            local material = entity.components.material or {
+                metalness = 0,
+                roughness = 1
+            }
+
+            -- Transparent obects have opposite draw order than opaque objects
+            local material_alpha = material and material.color and type(material.color[4]) == "number" and material.color[4] or 1
+            local hasTransparency = material and material.hasTransparency or material_alpha < 1
+            assert(entity.id, "must have an id")
+            objects[count] = {
+                id = id,
+                visible = true,
+                AABB = aabbForEntity(self, entity),
+                position = newVec3(entity.components.transform:getMatrix():mul(vec3())),
+                hasTransparency = hasTransparency,
+                hasReflection = true,
+                material = {
+                    metalness = material.metalness or 0,
+                    roughness = material.roughness or 1,
+                },
+                draw = function(object, context)
+                    -- Hide head from view but not from reflections.
+                    -- TODO: move to entity
+                    if context.view.nr == 1 and entity:getParent().id == self.parent.head_id then
+                        return
+                    end
+                    drawEntity(self, entity)
+                end
+            }
         end
-      }
     end
-  end
 
-  -- clear the eventual remaining old objects
-  for j = count, #objects do
-    objects[j] = nil
-  end
-
-  -- --- Some artificial lights until we have ents for them
-  -- for i = 0, 3 do
-  --   table.insert(objects, {
-  --     id = 'light ' .. i,
-  --     type = 'light',
-  --     draw = function(o)
-  --       local x, y, z = o.position:unpack()
-  --       lovr.graphics.sphere(x, y, z, 0.1)
-  --     end,
-  --     position = lovr.math.newVec3( 0, 6, 6 - i * 4 ),
-  --     light = {
-  --       position = lovr.math.newVec3( 0, 6, 6 - i * 4 ),
-  --       color = {10,10,10,10},
-  --     },
-  --     AABB = {
-  --       min = lovr.math.newVec3(-0.1, -0.1, -0.1),
-  --       max = lovr.math.newVec3(0.1, 0.1, 0.1),
-  --     }
-  --   })
-  -- end
-
-  --- Add objects that are drag&dropped into the visor
-  for i, model in ipairs(self.testModels) do
-    table.insert(objects, {
-      id = "Test object " .. i,
-      AABB = aabbForModel(model),
-      position = vec3(0,0,0),
-      draw = function(object)
-        graphics.setColor(1,1,1,1)
-        object.model:draw()
-      end
-    })
-  end
-
-  -- Draw all of them (unless things are not initialized properly)
-  if self.parent:getHead() then 
-    local headPosition = self.parent:getHead().components.transform:getMatrix():mul(vec3())
-    self.renderStats = self.renderer:render(objects, {
-      drawAABB = self.drawAABBs,
-      cameraPosition = newVec3(headPosition)
-    })
-  end
+    --- Add objects that are drag&dropped into the visor
+    for i, model in ipairs(self.testModels) do
+        table.insert(objects, {
+            id = "Test object " .. i,
+            AABB = aabbForModel(model),
+            position = vec3(0,0,0),
+            draw = function(object)
+                graphics.setColor(1,1,1,1)
+                object.model:draw()
+            end
+        })
+    end
+  
+    -- clear eventual old objects
+    for j = count, #objects do
+        objects[j] = nil
+    end
+  
+    -- Draw all of them (unless things are not initialized properly)
+    if self.parent:getHead() then 
+        local headPosition = self.parent:getHead().components.transform:getMatrix():mul(vec3())
+        self.renderStats = self.renderer:render(objects, {
+            drawAABB = self.drawAABBs,
+            cameraPosition = newVec3(headPosition)
+        })
+    end
 end
 
 --- Draws an entity.
