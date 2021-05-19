@@ -102,53 +102,87 @@ function NetworkScene:avatarSpec(avatarName)
     },
     children = {
       {
-        geometry = {
-          type = "asset",
-          name = assets["avatars/"..avatarName.."/left-hand"]:id()
-        },
         intent = {
           actuate_pose = "hand/left"
         },
-        material= {
-          shader_name= "pbr"
-        }
+        children = {
+          {
+            geometry = {
+              type = "asset",
+              name = assets["avatars/"..avatarName.."/left-hand"]:id()
+            },
+            transform = {
+              matrix = { -- 180 deg rotation around y to compensate for models not being aligned to alloverse coordinate space
+                -0.9999988079071,0,-0.0015925480984151,0,
+                0,1,0,0,
+                0.0015925480984151,0,-0.9999988079071,0,
+                0,0,0,1
+              },
+            },
+          },
+        },
       },
       {
-        geometry = {
-          type = "asset",
-          name = assets["avatars/"..avatarName.."/right-hand"]:id()
-        },
         intent = {
           actuate_pose = "hand/right"
         },
-        material= {
-          shader_name= "pbr"
-        }
+        children = {
+          {
+            geometry = {
+              type = "asset",
+              name = assets["avatars/"..avatarName.."/right-hand"]:id()
+            },
+            transform = {
+              matrix = { -- 180 deg rotation around y to compensate for models not being aligned to alloverse coordinate space
+                -0.9999988079071,0,-0.0015925480984151,0,
+                0,1,0,0,
+                0.0015925480984151,0,-0.9999988079071,0,
+                0,0,0,1
+              },
+            },
+          }
+        },
       },
       {
-        geometry = {
-          type = "asset",
-          name = assets["avatars/"..avatarName.."/head"]:id()
-        },
-        material= {
-          shader_name= "pbr"
-        },
         intent = {
           actuate_pose = "head"
-        }
+        },
+        children = {
+          {
+            geometry = {
+              type = "asset",
+              name = assets["avatars/"..avatarName.."/head"]:id()
+            },
+            transform = {
+              matrix = { -- 180 deg rotation around y to compensate for models not being aligned to alloverse coordinate space
+                -0.9999988079071,0,-0.0015925480984151,0,
+                0,1,0,0,
+                0.0015925480984151,0,-0.9999988079071,0,
+                0,0,0,1
+              },
+            },
+          },
+        },
       },
       {
-        geometry = {
-          type = "asset",
-          name = assets["avatars/"..avatarName.."/torso"]:id()
-        },
-        material= {
-          shader_name= "pbr"
-        },
         intent = {
           actuate_pose = "torso"
         },
         children = {
+          {
+            geometry = {
+              type = "asset",
+              name = assets["avatars/"..avatarName.."/torso"]:id()
+            },
+            transform = {
+              matrix = { -- 180 deg rotation around y to compensate for models not being aligned to alloverse coordinate space
+                -0.9999988079071,0,-0.0015925480984151,0,
+                0,1,0,0,
+                0.0015925480984151,0,-0.9999988079071,0,
+                0,0,0,1
+              },
+            },
+          },
           {
             geometry = {
               type = "inline",

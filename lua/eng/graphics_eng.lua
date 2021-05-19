@@ -159,7 +159,7 @@ function GraphicsEng:onDraw()
           roughness = material.roughness or 1,
         },
         draw = function(object, context)
-          if entity.id == self.parent.head_id and context.view.nr == 1 then return end -- Hide head in view but not reflections
+          if context.view.nr == 1 and entity:getParent().id == self.parent.head_id then return end -- Hide head in view but not reflections
           drawEntity(self, entity)
         end
       })
@@ -218,16 +218,9 @@ function GraphicsEng:_drawEntity(entity)
   graphics.push()
   graphics.transform(entity.components.transform:getMatrix())
   
-  if not geom or not model then 
+  if not geom or not model then
     pretty.dump(entity)
     assert(geom and model, "Should not have been included in drawable objects")
-  end
-  
-  -- special case avatars to get PBR shading and face them towards negative Z
-  -- TODO: move to avatar ents!
-  local pose = optchain(entity, "components.intent.actuate_pose")
-  if pose ~= nil then 
-    graphics.rotate(3.14, 0, 1, 0)
   end
 
 
@@ -254,7 +247,6 @@ function GraphicsEng:_drawEntity(entity)
   end
 
   model:draw()
-
   graphics.pop()
 end
 

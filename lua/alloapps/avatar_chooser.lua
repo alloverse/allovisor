@@ -16,13 +16,22 @@ end
 
 function BodyPart:specification()
   local mySpec = tablex.union(View.specification(self), {
-      geometry= {
-        type= "hardcoded-model",
-        name= "avatars/" .. self.avatarName .. "/" .. self.partName
+      children = {
+        {
+          transform = {
+            matrix = { -- 180 deg rotation around y to compensate for models not being aligned in alloverse coordinate space
+              -0.9999988079071,0,-0.0015925480984151,0,
+              0,1,0,0,
+              0.0015925480984151,0,-0.9999988079071,0,
+              0,0,0,1
+            },
+          },
+          geometry= {
+            type= "hardcoded-model",
+            name= "avatars/" .. self.avatarName .. "/" .. self.partName
+          },
+        },
       },
-      material= {
-        shader_name= "pbr"
-      }
   })
   if self.followingId then
     mySpec.intent= {
