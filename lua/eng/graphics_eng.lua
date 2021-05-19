@@ -38,6 +38,7 @@ function GraphicsEng:_init()
   self.defaultAmbientLightColor = {0.4,0.4,0.4,1}
 
   self.renderer = Renderer()
+  self.renderObjects = {}
 end
 
 --- Called when the application loads.
@@ -96,7 +97,7 @@ function GraphicsEng:onDraw()
   graphics.setColor(1, 1, 1, 1)
 
   -- Collect all the objects to sort and draw
-  local objects = {}
+  local objects = self.renderObjects
 
   local function aabbForModel(model, scale_x, scale_y, scale_z)
     local minx, maxx, miny, maxy, minz, maxz = model:getAABB()
@@ -132,11 +133,13 @@ function GraphicsEng:onDraw()
 
 
   local drawEntity = self._drawEntity
+  local count = 0
   -- enteties
-  for _, entity in pairs(self.client.state.entities) do
+  for id, entity in pairs(self.client.state.entities) do
     local geom = entity.components.geometry
     local model = self.models_for_eids[entity.id]
     if geom and model then
+      count = count + 1
       -- Default material property is basically plastic
       local material = entity.components.material or {
         metalness = 0,
@@ -147,11 +150,11 @@ function GraphicsEng:onDraw()
       local material_alpha = material and material.color and type(material.color[4]) == "number" and material.color[4] or 1
       local hasTransparency = material and material.hasTransparency or material_alpha < 1
       assert(entity.id, "must have an id")
-      table.insert(objects, {
-        id = entity.id,
+      objects[count] = {
+        id = id,
         visible = true,
         AABB = aabbForEntity(entity),
-        position = entity.components.transform:getMatrix():mul(vec3()),
+        position = newVec3(entity.components.transform:getMatrix():mul(vec3())),
         hasTransparency = hasTransparency,
         hasReflection = true,
         material = {
@@ -162,11 +165,16 @@ function GraphicsEng:onDraw()
           if context.view.nr == 1 and entity:getParent().id == self.parent.head_id then return end -- Hide head in view but not reflections
           drawEntity(self, entity)
         end
-      })
+      }
     end
   end
 
-  -- --- Some artificial lights until we have ents for them 
+  -- clear the eventual remaining old objects
+  for j = count, #objects do
+    objects[j] = nil
+  end
+
+  -- --- Some artificial lights until we have ents for them
   -- for i = 0, 3 do
   --   table.insert(objects, {
   --     id = 'light ' .. i,
