@@ -39,6 +39,7 @@ function GraphicsEng:_init()
 
   self.renderer = Renderer()
   self.renderObjects = {}
+  self.aabb_for_model = {}
 end
 
 --- Called when the application loads.
@@ -85,40 +86,21 @@ function GraphicsEng:onLoad()
 end
 end
 
-function GraphicsEng:aabbForModel(model, scale_x, scale_y, scale_z)
-    local minx, maxx, miny, maxy, minz, maxz = model:getAABB()
-    return {
-        min = newVec3(minx*scale_x, miny*scale_y, minz*scale_z),
-        max = newVec3(maxx*scale_x, maxy*scale_y, maxz*scale_z)
-    }
-end
-
-function GraphicsEng:aabbForEntity(entity)
-    local model = self.models_for_eids[entity.id]
-    local _, _, _, sx, sy, sz = entity.components.transform:getMatrix():unpack()
-    if model and model.getAABB then
+function GraphicsEng:aabbForModel(model, transform)
+    local _, _, _, sx, sy, sz = transform:unpack()
+    if model.getAABB then
         local minx, maxx, miny, maxy, minz, maxz = model:getAABB()
         return {
             min = newVec3(minx*sx, miny*sy, minz*sz),
             max = newVec3(maxx*sx, maxy*sy, maxz*sz)
         }
-    end
-
-    local collider = entity.components.collider
-    if collider and collider.type == "box" then
-        local w = collider.width/2
-        local h = collider.height/2
-        local d = collider.depth/2
+    else
+        local aabb = self.aabb_for_model[model]
         return {
-            min = newVec3(-w, -h, -d),
-            max = newVec3(w, h, d)
+            min = newVec3(aabb.min * vec3(sx, sy, sz)),
+            max = newVec3(aabb.max * vec3(sx, sy, sz)),
         }
     end
-    
-    return {
-        min = newVec3(-1, -1, -1),
-        max = newVec3(1, 1, 1)
-    }
 end
 
 --- Called each frame to draw the world
@@ -131,7 +113,7 @@ function GraphicsEng:onDraw()
 
     graphics.setColor(1, 1, 1, 1)
 
-    local aabbForEntity = self.aabbForEntity
+    local aabbForModel = self.aabbForModel
     
     -- Collect all the objects to sort and draw
     local objects = self.renderObjects
@@ -140,9 +122,8 @@ function GraphicsEng:onDraw()
     local count = 0
     -- enteties
     for id, entity in pairs(self.client.state.entities) do
-        local geom = entity.components.geometry
         local model = self.models_for_eids[entity.id]
-        if geom and model then
+        if model then
             count = count + 1
             -- Default material property is basically plastic
             local material = entity.components.material or {
@@ -153,12 +134,13 @@ function GraphicsEng:onDraw()
             -- Transparent obects have opposite draw order than opaque objects
             local material_alpha = material and material.color and type(material.color[4]) == "number" and material.color[4] or 1
             local hasTransparency = material and material.hasTransparency or material_alpha < 1
+            local transform = entity.components.transform:getMatrix()
             assert(entity.id, "must have an id")
             objects[count] = {
                 id = id,
                 visible = true,
-                AABB = aabbForEntity(self, entity),
-                position = newVec3(entity.components.transform:getMatrix():mul(vec3())),
+                AABB = aabbForModel(self, model, transform),
+                position = newVec3(transform:mul(vec3())),
                 hasTransparency = hasTransparency,
                 hasReflection = true,
                 material = {
@@ -171,7 +153,10 @@ function GraphicsEng:onDraw()
                     if context.view.nr == 1 and entity:getParent().id == self.parent.head_id then
                         return
                     end
-                    drawEntity(self, entity)
+                    graphics.push()
+                    graphics.transform(transform)
+                    drawEntity(self, entity, model)
+                    graphics.pop()
                 end
             }
         end
@@ -181,7 +166,7 @@ function GraphicsEng:onDraw()
     for i, model in ipairs(self.testModels) do
         table.insert(objects, {
             id = "Test object " .. i,
-            AABB = aabbForModel(model),
+            AABB = aabbForModel(self, model, lovr.math.mat4()),
             position = vec3(0,0,0),
             draw = function(object)
                 graphics.setColor(1,1,1,1)
@@ -206,28 +191,9 @@ function GraphicsEng:onDraw()
 end
 
 --- Draws an entity.
-function GraphicsEng:_drawEntity(entity)
-  local geom = entity.components.geometry
-  local model = self.models_for_eids[entity.id]
-
-  graphics.push()
-  graphics.transform(entity.components.transform:getMatrix())
-  
-  if not geom or not model then
-    pretty.dump(entity)
-    assert(geom and model, "Should not have been included in drawable objects")
-  end
-
-
-  local mat = self.materials_for_eids[entity.id]
-  if mat and mat:getColor() then 
-    graphics.setColor(mat:getColor())
-  else 
-    graphics.setColor(1,1,1,1)
-  end
-
+function GraphicsEng:_drawEntity(entity, model)
   local animationCount = model.animate and model:getAnimationCount()
-  if model.animate and animationCount > 0 then
+  if animationCount and animationCount > 0 then
     local name = model:getAnimationName(1)
     for i = 1, animationCount do 
       if model:getAnimationName(i) == "autoplay" then
@@ -237,12 +203,7 @@ function GraphicsEng:_drawEntity(entity)
     model:animate(name, lovr.timer.getTime())
   end
 
-  if self.colorfulDebug then
-    graphics.setColor(math.random(), math.random(), math.random(), 1)
-  end
-
   model:draw()
-  graphics.pop()
 end
 
 --- Load a model for supplied component.
@@ -274,9 +235,9 @@ function GraphicsEng:loadComponentModel(component, old_component)
 
   -- after loading, apply material if already loaded
   local mat = self.materials_for_eids[eid]
-  local mod = self.models_for_eids[eid]
-  if mat ~= nil and mod ~= nil and mod.setMaterial ~= nil then
-    self.models_for_eids[eid]:setMaterial(mat)
+  local model = self.models_for_eids[eid]
+  if mat and model and model.setMaterial then
+    model:setMaterial(mat)
   end
 end
 
@@ -338,12 +299,13 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
     mat:setColor("diffuse", component.color[1], component.color[2], component.color[3], component.color[4])
   end
 
-  local apply = function()
+  local apply = function(texture)
+    mat:setTexture(texture)
     self.materials_for_eids[eid] = mat
     -- apply the material to matching mesh, if loaded
-    local mesh = self.models_for_eids[eid]
-    if mesh and mesh.setMaterial then
-      mesh:setMaterial(mat)
+    local model = self.models_for_eids[eid]
+    if model and model.setMaterial then
+      model:setMaterial(mat)
     end
   end
   
@@ -354,20 +316,14 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
     if string.match(textureName, "asset:") then
       self.parent.engines.assets:getAsset(textureName, function(asset)
         if asset then 
-          local texture = self:textureFromAsset(asset, function (texture)
-            mat:setTexture(texture)
-            apply()
-          end)
+          self:textureFromAsset(asset, apply)
         else
           print("Texture asset " .. textureName .. " was not found")
         end  
       end)
     else
       -- backwards compat.
-      local texture = self:loadTexture(eid, textureName, function(tex)
-        mat:setTexture(tex)
-        apply()
-      end)      
+      self:loadTexture(eid, textureName, apply)
     end
   end
 end
@@ -436,66 +392,86 @@ end
 -- @tparam geometry_component geom
 -- @tparam geometry_component old_geom
 function GraphicsEng:createMesh(geom, old_geom)
-  local eid = geom.getEntity().id
-  local mesh = self.models_for_eids[eid]
-  if old_geom then
-    --print("createMesh", tablex.deepcompare(geom.triangles, old_geom.triangles), tablex.deepcompare(geom.vertices, old_geom.vertices), tablex.deepcompare(geom.uvs, old_geom.uvs))
-  end
-
-  if mesh == nil 
-    or not tablex.deepcompare(geom.triangles, old_geom.triangles) 
-    or not tablex.deepcompare(geom.vertices, old_geom.vertices)
-    or not tablex.deepcompare(geom.uvs, old_geom.uvs) 
-    or not tablex.deepcompare(geom.normals, old_geom.normals) then
-
-    if geom.normals == nil then 
-      geom = self:generateGeometryWithNormals(geom)
+    local eid = geom.getEntity().id
+    local mesh = self.models_for_eids[eid]
+    if old_geom then
+        --print("createMesh", tablex.deepcompare(geom.triangles, old_geom.triangles), tablex.deepcompare(geom.vertices, old_geom.vertices), tablex.deepcompare(geom.uvs, old_geom.uvs))
     end
 
-    -- convert the flattened zero-based indices list
-    local z_indices = array2d.flatten(geom.triangles)
-    -- convert to 1-based 
-    local indices = tablex.map(function (x) return x + 1 end, z_indices)
+    if mesh == nil
+        or not tablex.deepcompare(geom.triangles, old_geom.triangles)
+        or not tablex.deepcompare(geom.vertices, old_geom.vertices)
+        or not tablex.deepcompare(geom.uvs, old_geom.uvs)
+        or not tablex.deepcompare(geom.normals, old_geom.normals) then
 
-    -- figure out vertex format
-    local vertex_data = {geom.vertices}
-    local mesh_format = {{'lovrPosition', 'float', 3}}
-    if (geom.uvs) then 
-      table.insert(vertex_data, geom.uvs)
-      table.insert(mesh_format, {'lovrTexCoord', 'float', 2})
+        if geom.normals == nil then 
+            geom = self:generateGeometryWithNormals(geom)
+        end
+
+        -- convert the flattened zero-based indices list
+        local z_indices = array2d.flatten(geom.triangles)
+        -- convert to 1-based
+        local indices = tablex.map(function (x) return x + 1 end, z_indices)
+
+        -- figure out vertex format
+        local vertex_data = {geom.vertices}
+        local mesh_format = {{'lovrPosition', 'float', 3}}
+        if (geom.uvs) then 
+            table.insert(vertex_data, geom.uvs)
+            table.insert(mesh_format, {'lovrTexCoord', 'float', 2})
+        end
+        if (geom.normals) then 
+            table.insert(vertex_data, geom.normals)
+            table.insert(mesh_format, {'lovrNormal', 'float', 3})
+        end
+        -- zip together vertex data
+        local combined = tablex.zip(unpack(vertex_data))
+
+        -- flatten the inner tables
+        local vertices = tablex.map(function (x) return array2d.flatten(x) end, combined)
+
+        -- Setup the mesh
+        mesh = graphics.newMesh(
+            mesh_format,
+            vertices,
+            'triangles', -- DrawMode
+            'static', -- MeshUsage. dynamic, static, stream
+            false -- do we need to read the data from the mesh later
+        )
+
+        mesh:setVertices(vertices)
+        mesh:setVertexMap(indices)
+
+        -- build aabb
+        local minx, maxx, miny, maxy, minz, maxz
+        for i, pt in ipairs(geom.vertices) do
+            local x, y, z = table.unpack(pt)
+            if not minx or x < minx then minx = x end
+            if not miny or y < miny then miny = y end
+            if not minz or z < minz then minz = z end
+
+            if not maxx or x > maxx then maxx = x end
+            if not maxy or y > maxy then maxy = y end
+            if not maxz or z > maxz then maxz = z end
+        end
+        
+        local aabb = {
+            min = newVec3(minx, miny, minz),
+            max = newVec3(maxx, maxy, maxz)
+        }
+        print(aabb.min, aabb.max)
+        self.aabb_for_model[mesh] = aabb
     end
-    if (geom.normals) then 
-      table.insert(vertex_data, geom.normals)
-      table.insert(mesh_format, {'lovrNormal', 'float', 3})
+
+    if (old_geom == nil or old_geom.texture ~= geom.texture) and geom.texture then
+        -- decode texture data and setup material
+        self:loadTexture(eid, geom.texture, function(tex)
+        local material = graphics.newMaterial(tex)
+        mesh:setMaterial(material)
+        end)
     end
-    -- zip together vertex data
-    local combined = tablex.zip(unpack(vertex_data))
 
-    -- flatten the inner tables
-    local vertices = tablex.map(function (x) return array2d.flatten(x) end, combined)
-
-    -- Setup the mesh
-    mesh = graphics.newMesh(
-      mesh_format,
-      vertices,
-      'triangles', -- DrawMode
-      'static', -- MeshUsage. dynamic, static, stream
-      false -- do we need to read the data from the mesh later
-    )
-
-    mesh:setVertices(vertices)
-    mesh:setVertexMap(indices)
-  end
-
-  if (old_geom == nil or old_geom.texture ~= geom.texture) and geom.texture then
-    -- decode texture data and setup material
-    self:loadTexture(eid, geom.texture, function(tex)
-      local material = graphics.newMaterial(tex)
-      mesh:setMaterial(material)
-    end)
-  end
-
-  return mesh
+    return mesh
 end
 
 --- Calculate vertex normal from three corner vertices

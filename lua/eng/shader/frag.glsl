@@ -165,7 +165,7 @@ vec4 color(vec4 graphicsColor, sampler2D image, vec2 uv) {
     debug(})
 
     // mapped values
-    vec4 diffuseColor = texture(lovrDiffuseTexture, lovrTexCoord) * graphicsColor;
+    vec4 diffuseColor = texture(lovrDiffuseTexture, lovrTexCoord) * lovrGraphicsColor * lovrVertexColor * lovrDiffuseColor;
     vec3 albedo = diffuseColor.rgb;
     vec4 emissive = texture(lovrEmissiveTexture, uv) * lovrEmissiveColor;
     float occlusion = texture(lovrOcclusionTexture, lovrTexCoord).r;
