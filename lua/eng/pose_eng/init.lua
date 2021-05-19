@@ -114,58 +114,6 @@ function PoseEng:onDraw()
   -- end
 end
 
-function PoseEng:onDebugDraw()
-  lovr.graphics.push()
-  lovr.graphics.origin()
-  lovr.graphics.transform(self.parent.inverseCameraTransform)
-  lovr.graphics.translate(1.5, 0, -3)
-  
-  lovr.graphics.setColor(1,1,1,0.3)
-  lovr.graphics.setShader()
-  lovr.graphics.plane("fill", 0, 0, 0, 1.6, 1.5)
-
-  lovr.graphics.translate(-0.75, 0.70, 0.01)
-  lovr.graphics.setColor(0,0,0,1.0)
-  local pen = {
-    x=0.0, y=0.0,
-    print= function(self, s, moveX, moveY)
-      lovr.graphics.print(s, self.x, self.y, 0, 0.05, 0,0,0,0,  0,"left")
-      self.x = self.x + moveX
-      self.y = self.y + moveY
-    end
-  }
-  pen:print("device", 0.3, 0.0)
-  pen:print("button", 0.3, 0.0)
-  pen:print("dwn?", 0.18, 0.0)
-  pen:print("touch?", 0.18, 0.0)
-  pen:print("wasP?", 0.18, 0.0)
-  pen:print("wasR?", 0.18, 0.0)
-  pen:print("x", 0.18, 0.0)
-  pen:print("y", 0.18, 0.0)
-  pen.y = pen.y - 0.07
-  pen.x = 0
-  for _, hand in ipairs(PoseEng.hands) do
-    pen:print(hand, 0.3, 0.0)
-    for _, button in ipairs(PoseEng.buttons) do
-      pen:print(button, 0.3, 0.0)
-      pen:print(tostring(self:isDown(hand, button)), 0.18, 0.0)
-      pen:print(tostring(self:isTouched(hand, button)), 0.18, 0.0)
-      pen:print(tostring(self:wasPressed(hand, button)), 0.18, 0.0)
-      pen:print(tostring(self:wasReleased(hand, button)), 0.18, 0.0)
-      if button == "grip" or button == "trigger" or button == "thumbstick" or button == "touchpad" then
-        local x, y = self:getAxis(hand, button)
-        pen:print(tostring(x), 0.18, 0.0)
-        pen:print(tostring(y), 0.18, 0.0)
-      end
-      pen.y = pen.y - 0.07
-      pen.x = 0.3
-    end
-    pen.x = 0
-  end
-
-  lovr.graphics.pop()
-end
-
 function PoseEng:onFocus(focused)
   self.isFocused = focused
 end
