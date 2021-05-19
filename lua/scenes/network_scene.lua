@@ -436,6 +436,52 @@ function NetworkScene:after_onDraw()
   lovr.graphics.pop()
 end
 
+function NetworkScene:onKeyPress(key)
+  if not self.active then
+    return route_terminate
+  end
+
+end
+
+function NetworkScene:onKeyReleased(key)
+  if not self.active then
+    return route_terminate
+  end
+end
+
+function NetworkScene:onTextInput(key)
+  if not self.active then
+    return route_terminate
+  end
+end
+function NetworkScene:onMouseMoved(key)
+  if not self.active then
+    return route_terminate
+  end
+end
+function NetworkScene:onMousePressed(key)
+  if not self.active then
+    return route_terminate
+  end
+end
+function NetworkScene:onPress(key)
+  if not self.active then
+    return route_terminate
+  end
+end
+function NetworkScene:onMouseReleased(key)
+  if not self.active then
+    return route_terminate
+  end
+end
+function NetworkScene:onFileDrop(key)
+  if not self.active then
+    return route_terminate
+  end
+end
+
+
+
 function NetworkScene:onUpdate(dt)
   if not self.active then
     return route_terminate
