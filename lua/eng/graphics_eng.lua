@@ -116,7 +116,7 @@ function GraphicsEng:onDraw()
     
     -- Collect all the objects to sort and draw
     local objects = self.renderObjects
-    
+    local headEntityId = self.parent.head_id
     local count = 0
     -- enteties
     -- TODO: Use a managed list instead based on added/removed componets
@@ -152,7 +152,7 @@ function GraphicsEng:onDraw()
                     -- TODO: This is stupid expensive for what it does. Move to somewhere
                     if context.view.nr == 1 then
                         local parent = entity:getParent()
-                        if parent and parent.id == self.parent.head_id then
+                        if parent and parent.id == headEntityId then
                             return
                         end
                     end
@@ -169,8 +169,14 @@ function GraphicsEng:onDraw()
                         end
                         model:animate(name, lovr.timer.getTime())
                     end
-                  
-                    model:draw(transform)
+
+                    if material.color then
+                        lovr.graphics.setColor(table.unpack(material.color))
+                        model:draw(transform)
+                        lovr.graphics.setColor(1,1,1,1)
+                    else
+                        model:draw(transform)
+                    end
                 end
             }
         end
