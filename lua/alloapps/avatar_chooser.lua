@@ -3,6 +3,7 @@ local ui = require("alloui.ui")
 local pretty = require("pl.pretty")
 local class = require("pl.class")
 local tablex = require("pl.tablex")
+local math = require("lovr.math")
 local EmbeddedApp = require("alloapps.embedded_app")
 
 class.BodyPart(ui.View)
@@ -19,12 +20,7 @@ function BodyPart:specification()
       children = {
         {
           transform = {
-            matrix = { -- 180 deg rotation around y to compensate for models not being aligned in alloverse coordinate space
-              -0.9999988079071,0,-0.0015925480984151,0,
-              0,1,0,0,
-              0.0015925480984151,0,-0.9999988079071,0,
-              0,0,0,1
-            },
+            matrix = {math.mat4(0,0,0, 3.14, 0, 1, 0):unpack(true)},
           },
           geometry= {
             type= "hardcoded-model",

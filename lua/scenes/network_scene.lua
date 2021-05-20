@@ -112,12 +112,7 @@ function NetworkScene:avatarSpec(avatarName)
               name = assets["avatars/"..avatarName.."/left-hand"]:id()
             },
             transform = {
-              matrix = { -- 180 deg rotation around y to compensate for models not being aligned to alloverse coordinate space
-                -0.9999988079071,0,-0.0015925480984151,0,
-                0,1,0,0,
-                0.0015925480984151,0,-0.9999988079071,0,
-                0,0,0,1
-              },
+              matrix = {lovr.math.mat4(0,0,0, 3.14, 0, 1, 0):unpack(true)},
             },
           },
         },
@@ -133,12 +128,7 @@ function NetworkScene:avatarSpec(avatarName)
               name = assets["avatars/"..avatarName.."/right-hand"]:id()
             },
             transform = {
-              matrix = { -- 180 deg rotation around y to compensate for models not being aligned to alloverse coordinate space
-                -0.9999988079071,0,-0.0015925480984151,0,
-                0,1,0,0,
-                0.0015925480984151,0,-0.9999988079071,0,
-                0,0,0,1
-              },
+              matrix = {lovr.math.mat4(0,0,0, 3.14, 0, 1, 0):unpack(true)},
             },
           }
         },
@@ -154,12 +144,7 @@ function NetworkScene:avatarSpec(avatarName)
               name = assets["avatars/"..avatarName.."/head"]:id()
             },
             transform = {
-              matrix = { -- 180 deg rotation around y to compensate for models not being aligned to alloverse coordinate space
-                -0.9999988079071,0,-0.0015925480984151,0,
-                0,1,0,0,
-                0.0015925480984151,0,-0.9999988079071,0,
-                0,0,0,1
-              },
+              matrix = {lovr.math.mat4(0,0,0, 3.14, 0, 1, 0):unpack(true)},
             },
           },
         },
@@ -175,12 +160,7 @@ function NetworkScene:avatarSpec(avatarName)
               name = assets["avatars/"..avatarName.."/torso"]:id()
             },
             transform = {
-              matrix = { -- 180 deg rotation around y to compensate for models not being aligned to alloverse coordinate space
-                -0.9999988079071,0,-0.0015925480984151,0,
-                0,1,0,0,
-                0.0015925480984151,0,-0.9999988079071,0,
-                0,0,0,1
-              },
+              matrix = {lovr.math.mat4(0,0,0, 3.14, 0, 1, 0):unpack(true)}
             },
           },
           {
