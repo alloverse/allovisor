@@ -460,7 +460,6 @@ function GraphicsEng:createMesh(geom, old_geom)
             min = newVec3(minx, miny, minz),
             max = newVec3(maxx, maxy, maxz)
         }
-        print(aabb.min, aabb.max)
         self.aabb_for_model[mesh] = aabb
     end
 
