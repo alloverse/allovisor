@@ -13,22 +13,12 @@ function BodyPart:_init(bounds, avatarName, partName, poseName)
   self.partName = partName
   self.poseName = poseName
   self.followingId = nil
+  self.modelview = self:addSubview(ui.ModelView())
+  self.modelview.bounds:rotate(3.14159, 0, 1, 0)
 end
 
 function BodyPart:specification()
-  local mySpec = tablex.union(View.specification(self), {
-      children = {
-        {
-          transform = {
-            matrix = {math.mat4(0,0,0, 3.14, 0, 1, 0):unpack(true)},
-          },
-          geometry= {
-            type= "hardcoded-model",
-            name= "avatars/" .. self.avatarName .. "/" .. self.partName
-          },
-        },
-      },
-  })
+  local mySpec = View.specification(self)
   if self.followingId then
     mySpec.intent= {
       actuate_pose= self.poseName,
@@ -40,34 +30,38 @@ end
 
 function BodyPart:setAvatar(avatarName)
   self.avatarName = avatarName
-  if self:isAwake() then
-    local spec = self:specification()
-    self:updateComponents(spec)
-  end
+
+  local avatarsRoot = "/assets/models/avatars"
+  self.modelview:setAsset(Asset.LovrFile(avatarsRoot.."/"..self.avatarName.."/"..self.partName..".glb"))
 end
 
 function BodyPart:follow(avatar)
   self.followingId = avatar.id
-  if self:isAwake() then
-    self:updateComponents({self:specification().intent})
-  end
+  self:markAsDirty("intent")
 end
 
-function BodyPart:updateOther(eid)
+function BodyPart:updateOther(e)
   local newSpec = {
-    geometry= self:specification().geometry
+    geometry= self.modelview:specification().geometry
   }
   if self.app and self.entity then
-    self.app.client:sendInteraction({
-      sender_entity_id = self.entity.id,
-      receiver_entity_id = "place",
-      body = {
-          "change_components",
-          eid,
-          "add_or_change", newSpec,
-          "remove", {}
-      }
-    })
+    local matchingBodyPartIndex = tablex.find_if(e:getChildren(), function(child)
+      print(child.id, child.components.geometry and child.components.geometry.type)
+      return child.components.geometry and child.components.geometry.type=="asset"
+    end)
+    if matchingBodyPartIndex then
+      print("Avatar chooser modifying user's", self.poseName, "to", self.avatarName)
+      self.app.client:sendInteraction({
+        sender_entity_id = self.entity.id,
+        receiver_entity_id = "place",
+        body = {
+            "change_components",
+            e:getChildren()[matchingBodyPartIndex].id,
+            "add_or_change", newSpec,
+            "remove", {}
+        }
+      })
+    end
   end
 end
 
@@ -201,20 +195,16 @@ function AvatarChooser:onComponentAdded(key, comp)
       part:follow(self.actuatingFor)
     end
   end
-  if key == "intent" and comp.actuate_pose ~= "root" then
-    local entity = comp.getEntity()
-
-    table.insert(self.poseEnts[comp.actuate_pose], entity.id)
+  local entity = comp:getEntity()
+  if key == "intent" and comp.actuate_pose ~= "root" and entity.components.ui == nil then
+    self.poseEnts[comp.actuate_pose][entity.id] = entity
   end
 end
 
 function AvatarChooser:onComponentRemoved(key, comp)
   if key == "intent" then
     local entity = comp.getEntity()
-    local idx = tablex.find(self.poseEnts[comp.actuate_pose], entity.id)
-    if idx ~= -1 then
-      table.remove(self.poseEnts[comp.actuate_pose], idx)
-    end
+    self.poseEnts[comp.actuate_pose][entity.id] = nil
   end
 end
 function AvatarChooser:onInteraction(interaction, body, receiver, sender)
@@ -237,8 +227,8 @@ function AvatarChooser:showAvatar(avatarName)
   for _, part in ipairs(self.parts) do
     part:setAvatar(self.avatarName)
     
-    for _, other in ipairs(self.poseEnts[part.poseName]) do
-      part:updateOther(other)
+    for eid, e in pairs(self.poseEnts[part.poseName]) do
+      part:updateOther(e)
     end
   end
 end
