@@ -46,14 +46,16 @@ int main(int argc, char** argv)
     AskMicrophonePermission();
   #endif
 
+  const char *defaultArgv = (char*[]){
+    argv[0],
+    "lua"
+  };
+
   if (argc == 1)
   {
     printf("using bundled assets\n");
     argc = 2;
-    argv = (char*[]){
-      argv[0],
-      "lua"
-    };
+    argv = defaultArgv;
   }
 
   int status;
