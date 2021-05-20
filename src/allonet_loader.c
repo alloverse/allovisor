@@ -46,7 +46,7 @@ int main(int argc, char** argv)
     AskMicrophonePermission();
   #endif
 
-  const char *defaultArgv = (char*[]){
+  char *defaultArgv[] = {
     argv[0],
     "lua"
   };
