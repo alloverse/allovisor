@@ -195,7 +195,7 @@ function GraphicsEng:onDraw()
     end
   
     -- clear eventual old objects
-    for j = count, #objects do
+    for j = count + 1, #objects do
         objects[j] = nil
     end
   
