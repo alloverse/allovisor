@@ -120,8 +120,8 @@ function GraphicsEng:onDraw()
     local count = 0
     -- enteties
     -- TODO: Use a managed list instead based on added/removed componets
-    for id, entity in pairs(self.client.state.entities) do
-        local model = self.models_for_eids[entity.id]
+    for eid, entity in pairs(self.client.state.entities) do
+        local model = self.models_for_eids[eid]
         if model then
             count = count + 1
             -- Default material property is basically plastic
@@ -134,9 +134,8 @@ function GraphicsEng:onDraw()
             local material_alpha = material and material.color and type(material.color[4]) == "number" and material.color[4] or 1
             local hasTransparency = material and material.hasTransparency or material_alpha < 1
             local transform = newMat4(entity.components.transform:getMatrix())
-            assert(entity.id, "must have an id")
             objects[count] = {
-                id = id,
+                id = eid,
                 visible = true,
                 AABB = aabbForModel(self, model, transform),
                 position = newVec3(transform:mul(vec3())),
@@ -157,8 +156,6 @@ function GraphicsEng:onDraw()
                             return
                         end
                     end
-                    graphics.push()
-                    graphics.transform(transform)
 
                     -- Is this reeeeally the right place to handle animations at all?
                     -- TODO: some hack so this it only run for entities that needs it
@@ -173,8 +170,7 @@ function GraphicsEng:onDraw()
                         model:animate(name, lovr.timer.getTime())
                     end
                   
-                    model:draw()
-                    graphics.pop()
+                    model:draw(transform)
                 end
             }
         end
