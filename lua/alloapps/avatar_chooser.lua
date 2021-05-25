@@ -165,10 +165,9 @@ function AvatarChooser:_createUI()
   self.avatarNameTag.texture = AvatarChooser.assets.nameTag
   self.avatarNameTag.hasTransparency = true
   self.avatarNameTagLabel = ui.Label {
-    bounds= ui.Bounds(0, 0, 0,   0.5, 0.04, 0.001),
+    bounds= ui.Bounds(0, 0, 0,   0.16, 0.062, 0.001),
     text= "My Name",
-    lineheight= 0.04,
-    fitToWidth= self.avatarNameTag.bounds.size.width - 0.04 -- 2cm padding on the left & right
+    fitToWidth= true
   }
   self.avatarNameTagLabel.color = {0.21484375,0.20703125,0.30078125,1}
 
