@@ -77,6 +77,20 @@ function GraphicsEng:onLoad()
   self.renderer.drawSkybox = true
   -- self.renderer.debug = "distance"
 
+  local videoTextures = {}
+  self.videoTextures = videoTextures
+  self.client.delegates.onVideo = function(track, pixels, width, height)
+    print("video", track, pixels, width, height)
+        local tex = videoTextures[track]
+        if not tex then 
+            tex = lovr.graphics.newTexture(width, height, 1, {
+                mipmaps = false,
+                format = "rgba"
+            })
+            videoTextures[track] = tex
+        end
+        tex:replacePixels(pixels)
+  end
 
   self.testModels = {}
   local houseAssetNames = lovr.filesystem.getDirectoryItems("assets/models/testing")
