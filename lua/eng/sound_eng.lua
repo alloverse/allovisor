@@ -85,6 +85,12 @@ function SoundEng:onLoad()
   end
 
   if not self.parent.isMenu then
+    local micSettings = Store.singleton():load("currentMic")
+    if micSettings and micSettings.status ~= "pending" then
+      -- engine just got instantiated so persisted settings are lying. 
+      micSettings.status = "pending"
+      Store.singleton():save("currentMic", micSettings, true)
+    end
     self.unsub = Store.singleton():listen("currentMic", function(micSettings)
       if micSettings and micSettings.status == "pending" then
         self:useMic(micSettings.name)
@@ -204,10 +210,10 @@ end
 
 function SoundEng:onUpdate(dt)
   if self.client == nil then return end
-  if not self.parent.active then return end
+  if not self.parent.active then return end 
 
-  while self.captureStream and self.captureStream:getDuration("samples") >= 960 do
-    local sd = self.captureStream:read(self.captureBuffer, 960)
+  while self.mic and self.mic.captureStream:getDuration("frames") >= 960 do
+    local sd = self.mic.captureStream:read(self.captureBuffer, 960)
     if self.track_id then
       self.client:sendAudio(self.track_id, sd:getBlob():getString())
     end
