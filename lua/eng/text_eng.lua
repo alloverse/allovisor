@@ -71,7 +71,6 @@ function TextEng:onDraw()
 
         -- backwards compatibility
         if type(text.fitToWidth) == "number" then
-          print("fitToWidth is a number, (", text.fitToWidth, ")for Label:", text.string, ". Running backwards compatibility...")
           text.width = text.fitToWidth
           text.fitToWidth = true
         end
@@ -92,7 +91,6 @@ function TextEng:onDraw()
         if text.wrap then
           -- backwards compatibility
           if type(text.wrap) == "number" then
-            print("wrap is a number, (", text.wrap, ") for Label:", text.string, ". Running backwards compatibility...")
             text.width = text.wrap
             text.wrap = true
           end
