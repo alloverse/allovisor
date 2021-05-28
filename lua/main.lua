@@ -109,8 +109,35 @@ function _asyncLoad()
     end
     error(threadname.." didn't start in time")
   end
+
   storeThread = lovr.thread.newThread("lib/lovr-store-thread.lua")
   storeThread:start()
+  Store.singleton():registerDefaults{
+    recentPlaces = {
+      {name="Sandbox", url="alloplace://sandbox.places.alloverse.com"},
+      {name="Nevyn's place", url="alloplace://nevyn.places.alloverse.com"}
+    },
+    debug= false,
+    showOverlay= true,
+    avatarName= "female",
+    username= "",
+  }
+  if lovr.audio then
+    local capDevs = lovr.audio.getDevices("capture")
+    local defaultCandidate = nil
+    for k, v in ipairs(capDevs) do 
+      v.id = nil 
+      if v.default or string.find(v.name, "default") or string.find(v.name, "Default") or defaultCandidate == nil then
+        defaultCandidate = v.name
+      end
+    end
+    print("Available microphone/capture audio devices:", pretty.write(capDevs), "uuh", pretty.write(Store.singleton():load("currentMic")), "yeah")
+    Store.singleton():save("availableCaptureDevices", capDevs)
+    if Store.singleton():load("currentMic") == nil and defaultCandidate then
+      print("Setting default mic candidate", defaultCandidate)
+      Store.singleton():save("currentMic", {name= defaultCandidate, status="pending"}, true)
+    end
+  end
   
 	menuServerThread = lovr.thread.newThread("threads/menuserv_main.lua")
   menuServerThread:start()
@@ -195,23 +222,6 @@ function _asyncLoadResume()
         mouse.setHidden(hidden)
       end
     }
-  end
-
-  if lovr.audio then
-    local capDevs = lovr.audio.getDevices("capture")
-    local defaultCandidate = nil
-    for k, v in ipairs(capDevs) do 
-      v.id = nil 
-      if v.default or string.find(v.name, "default") or string.find(v.name, "Default") or defaultCandidate == nil then
-        defaultCandidate = v.name
-      end
-    end
-    print("Available microphone/capture audio devices:", pretty.write(capDevs))
-    Store.singleton():save("availableCaptureDevices", capDevs)
-    if Store.singleton():load("currentMic") == nil and defaultCandidate then
-      print("Setting default mic candidate", defaultCandidate)
-      Store.singleton():save("currentMic", {name= defaultCandidate, status="pending"}, true)
-    end
   end
 end
 

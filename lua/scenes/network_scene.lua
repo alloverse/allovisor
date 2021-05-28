@@ -184,9 +184,9 @@ function NetworkScene:avatarSpec(avatarName)
                 text = {
                   string = self.displayName,
                   height = 0.66,
-                  wrap = 0,
                   halign = "center",
-                  fitToWidth = 0.16
+                  width = 0.16,
+                  fitToWidth = true
                 },
                 material = {
                   color = {0.21484375,0.20703125,0.30078125,1}

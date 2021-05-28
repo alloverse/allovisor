@@ -49,7 +49,7 @@ function SoundEng:_openMic(micName)
 
   local mic = {
     name= micName,
-    captureBuffer = lovr.data.newSound(960, "i16", "mono", 48000, "stream"),
+    captureBuffer = lovr.data.newBlob(960*2, "captureBuffer"),
     captureStream = lovr.data.newSound(0.5*48000, "i16", "mono", 48000, "stream"),
   }
 
@@ -85,6 +85,12 @@ function SoundEng:onLoad()
   end
 
   if not self.parent.isMenu then
+    local micSettings = Store.singleton():load("currentMic")
+    if micSettings and micSettings.status ~= "pending" then
+      -- engine just got instantiated so persisted settings are lying. 
+      micSettings.status = "pending"
+      Store.singleton():save("currentMic", micSettings, true)
+    end
     self.unsub = Store.singleton():listen("currentMic", function(micSettings)
       if micSettings and micSettings.status == "pending" then
         self:useMic(micSettings.name)
@@ -217,12 +223,13 @@ end
 
 function SoundEng:onUpdate(dt)
   if self.client == nil then return end
-  if not self.parent.active then return end
+  if not self.parent.active then return end 
 
-  while self.captureStream and self.captureStream:getDuration("samples") >= 960 do
-    local sd = self.captureStream:read(self.captureBuffer, 960)
+  while self.mic and self.mic.captureStream:getFrameCount() >= 960 do
+    local count = self.mic.captureStream:getFrames(self.mic.captureBuffer, 960)
+    assert(count == 960)
     if self.track_id then
-      self.client:sendAudio(self.track_id, sd:getBlob():getString())
+      self.client:sendAudio(self.track_id, self.mic.captureBuffer:getString())
     end
   end
 

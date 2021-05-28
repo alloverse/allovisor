@@ -27,17 +27,6 @@ function NetMenuScene:_init(menuServerPort)
   self.apps = {}
   self.visible = true
 
-  Store.singleton():registerDefaults{
-    recentPlaces = {
-      {name="Sandbox", url="alloplace://sandbox.places.alloverse.com"},
-      {name="Nevyn's place", url="alloplace://nevyn.places.alloverse.com"}
-    },
-    debug= false,
-    showOverlay= true,
-    avatarName= "female",
-    username= "",
-  }
-
   self:setupAvatars()
   self:updateDisplayName()
   self:super()
