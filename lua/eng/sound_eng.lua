@@ -168,7 +168,11 @@ function SoundEng:onHeadAdded(head)
     type = "request",
     sender_entity_id = self.parent.head_id,
     receiver_entity_id = "place",
-    body = {"allocate_track", "audio", 48000, 1, "opus"}
+    body = {"allocate_track", "audio", "opus", {
+      sample_rate= 48000, 
+      channel_count= 1,
+      channel_layout= "mono",
+    }}
   }, function (response, body) 
     if body[2] == "ok" then
       self.track_id = body[3]
