@@ -251,6 +251,7 @@ elseif(APPLE)
 elseif(ANDROID)
 
     add_library(visorlib STATIC)
+    add_dependencies(visorlib allovisor_version_header)
 
     list(REMOVE_ITEM ALLO_SOURCES src/desktop_main.c)
 
