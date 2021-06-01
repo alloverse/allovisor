@@ -1,15 +1,18 @@
 #include "allovisor_version.h"
-#define str(s) #s
+
+#define STR_VALUE(arg)      #arg
+#define STR(name) STR_VALUE(name)
+
 
 const char *GetAllovisorVersion()
 {
-    return str(ALLOVISOR_VERSION);
+    return STR(ALLOVISOR_VERSION);
 }
 const char *GetAllovisorNumericVersion()
 {
-    return str(ALLOVISOR_NUMERIC_VERSION);
+    return STR(ALLOVISOR_NUMERIC_VERSION);
 }
 const char *GetAllovisorGitHash()
 {
-    return str(ALLOVISOR_HASH);
+    return STR(ALLOVISOR_HASH);
 }

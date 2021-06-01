@@ -1,6 +1,7 @@
 #!/bin/sh
 set -e
 
+SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 OUT_DIR="$1"
 VERSION_H="$OUT_DIR/allovisor_version.h"
 VERSION_TXT="$OUT_DIR/allovisor_version.txt"
@@ -8,7 +9,7 @@ PRODUCT="ALLOVISOR"
 
 mkdir -p "${OUT_DIR}"
 
-VERSION=`git describe --abbrev=7 --long | sed "y/-/./"`
+VERSION=`cd $SCRIPT_DIR; git describe --abbrev=7 --long | sed "y/-/./"`
 SHORTVERSION=`echo $VERSION | cut -f 1-3 -d "."`
 MAJORVERSION=`echo $VERSION | cut -f 1 -d "."`
 HASH=`echo $VERSION | cut -f 4 -d "."`

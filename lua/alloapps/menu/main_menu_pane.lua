@@ -44,11 +44,36 @@ function MainMenuPane:_init(menu)
       halign = "left"
     }
     self:addSubview(self.messageLabel)
+
+    self.versionLabel = ui.Label{
+      bounds = ui.Bounds(-0.09, -0.71, 0.01,     1.4, 0.07, 0.1),
+      text = "ver. unknown",
+      color = {0.5, 0.5, 0.5, 1},
+      halign = "left"
+    }
+    self:addSubview(self.versionLabel)
+    self:updateVersionLabel()
   
     local logo = ui.Surface(ui.Bounds(-0.65, 0.8, 0.01, 0.2, 0.2, 0.2))
     logo:setTexture(MainMenuPane.assets.logo)
     logo.hasTransparency = true
     self:addSubview(logo)
+end
+
+local ffi = require("ffi")
+ffi.cdef[[
+  const char *GetAllonetVersion();
+  const char *GetAllonetNumericVersion();
+  const char *GetAllonetGitHash();
+  int GetAllonetProtocolVersion();
+  const char *GetAllovisorVersion();
+  const char *GetAllovisorNumericVersion();
+  const char *GetAllovisorGitHash();
+]]
+
+function MainMenuPane:updateVersionLabel()
+  local versionString = string.format("App version: %s\nNetwork version: %s", ffi.string(ffi.C.GetAllovisorVersion()), ffi.string(ffi.C.GetAllonetVersion()))
+  self.versionLabel:setText(versionString)
 end
 
 return MainMenuPane

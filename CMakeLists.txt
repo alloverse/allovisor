@@ -169,6 +169,8 @@ elseif(APPLE)
         ${ALLO_ICON}
     )
 
+    set_property(TARGET ${APP_NAME} PROPERTY ENABLE_EXPORTS 1) # for get_version
+
     add_dependencies(${APP_NAME} allovisor_version_header)
 
     find_library(AVFOUNDATION_LIBRARY NAMES AVFoundation)
@@ -267,7 +269,11 @@ elseif(ANDROID)
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_PROPERTY:lovr,BINARY_DIR>/lovr.apk ${CMAKE_CURRENT_BINARY_DIR}/${APKNAME}
     )
 elseif(UNIX)
-    add_executable(Alloverse ${ALLO_SOURCES})
+    add_executable(
+      Alloverse 
+      ${ALLO_SOURCES}
+    )
+    set_property(TARGET Alloverse PROPERTY ENABLE_EXPORTS 1) # for get_version
     target_link_libraries(Alloverse ${ALLO_LINK_LIBS})
     add_dependencies(Alloverse allovisor_version_header)
     target_compile_options(Alloverse PRIVATE -Wall -Wextra -pedantic)
