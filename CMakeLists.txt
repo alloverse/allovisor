@@ -161,7 +161,7 @@ elseif(APPLE)
 
     set(APP_NAME Alloverse)
 
-    list(APPEND ALLO_SOURCES src/allomac.m)
+    list(APPEND ${ALLO_SOURCES} src/allomac.m)
 
     # Setup the executable
     add_executable (${APP_NAME} MACOSX_BUNDLE 
@@ -253,7 +253,7 @@ elseif(ANDROID)
     list(REMOVE_ITEM ALLO_SOURCES src/desktop_main.c)
 
     target_sources(visorlib PUBLIC
-      $ALLO_SOURCES
+      ${ALLO_SOURCES}
     )
 
     # Force-load allonet into lovr exe
