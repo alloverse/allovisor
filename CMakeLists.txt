@@ -249,15 +249,12 @@ elseif(APPLE)
     # Pack it up
     include(CPack)
 elseif(ANDROID)
-
-    add_library(visorlib STATIC)
-    add_dependencies(visorlib allovisor_version_header)
-
     list(REMOVE_ITEM ALLO_SOURCES src/desktop_main.c)
 
-    target_sources(visorlib PUBLIC
+    add_library(visorlib STATIC
       ${ALLO_SOURCES}
     )
+    add_dependencies(visorlib allovisor_version_header)
 
     # Force-load allonet into lovr exe
     target_link_libraries(lovr "-Wl,--whole-archive" allonet visorlib "-Wl,--no-whole-archive" "-ldl")
