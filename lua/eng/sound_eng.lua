@@ -190,19 +190,7 @@ function SoundEng:onDebugDraw()
     end
     audio.ping = false
 
-    if not self.materials then self.materials = {} end
-
-    local mat = self.materials[track_id]
-    local tex = self.parent.engines.graphics.videoTextures[track_id]
-    if tex then
-      mat = lovr.graphics.newMaterial(tex)
-      self.materials[track_id] = mat
-    end
-    print("TEX", tex, mat)
-    lovr.graphics.setColor(1,1,1,1)
-
     lovr.graphics.sphere(
-      mat,
       x, y, z,
       0.1,
       0, 0, 1, 0 -- rot

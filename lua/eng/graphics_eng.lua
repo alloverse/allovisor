@@ -77,19 +77,12 @@ function GraphicsEng:onLoad()
   self.renderer.drawSkybox = true
   -- self.renderer.debug = "distance"
 
-  local videoTextures = {}
-  self.videoTextures = videoTextures
+  local videoMedia = {}
+  self.videoMedia = videoMedia
   self.client.delegates.onVideo = function(track, pixels, width, height)
-    print("video", track, pixels, width, height)
-        local tex = videoTextures[track]
-        if not tex then 
-            tex = lovr.graphics.newTexture(width, height, 1, {
-                mipmaps = false,
-                format = "rgba"
-            })
-            videoTextures[track] = tex
-        end
-        tex:replacePixels(pixels)
+    local media = videoMedia[track]
+    if not media then return end -- noone wants this
+    media.texture:replacePixels(pixels)
   end
 
   self.testModels = {}
@@ -98,7 +91,7 @@ function GraphicsEng:onLoad()
     self:loadHardcodedModel('testing/'..name, function(m) 
       table.insert(self.testModels, m)
     end)
-end
+  end
 end
 
 function GraphicsEng:aabbForModel(model, transform)
@@ -235,6 +228,12 @@ function GraphicsEng:loadComponentModel(component, old_component)
     end)
   elseif component.type == "inline" then 
     self.models_for_eids[eid] = self:createMesh(component, old_component)
+    for trackId, media in pairs(self.videoMedia) do
+      if media.eid == eid then
+        print("assigning video media to mesh")
+        self.models_for_eids[eid]:setMaterial(media.material)
+      end
+    end
   elseif component.type == "asset" then
     local cached = self.parent.engines.assets:getAsset(component.name, function (asset)
       if asset then 
@@ -373,6 +372,32 @@ function GraphicsEng:onComponentAdded(component_key, component)
     self:loadComponentMaterial(component, nil)
   elseif component_key == "environment" then
     self:loadEnvironment(component)
+  elseif component_key == "live_media" then
+    if component.type == "video" then
+      local media = self.videoMedia[component.track_id]
+      print("media component was added")
+      pretty.dump(component)
+      if not media then
+        media = {
+          texture = lovr.graphics.newTexture(component.metadata.width, component.metadata.height, 1, {
+            mipmaps = false,
+            format = "rgba"
+          }),
+          material = lovr.graphics.newMaterial()
+        }
+        media.material:setTexture(media.texture)
+        self.videoMedia[component.track_id] = media
+        local eid = component.getEntity().id
+        local model = self.models_for_eids[eid]
+        self.materials_for_eids[eid] = media.material
+        media.entity = eid
+        if model and model.setMaterial then
+          model:setMaterial(media.material)
+        end
+        print(model)
+        pretty.dump(media)
+      end
+    end
   end
 end
 
@@ -387,6 +412,10 @@ function GraphicsEng:onComponentChanged(component_key, component, old_component)
     self:loadComponentMaterial(component, old_component)
   elseif component_key == "environment" then
     self:loadEnvironment(component)
+  elseif component_key == "live_media" then
+    if component.type == "video" then
+      print("Video media was altered")
+    end
   end
 end
 
@@ -402,6 +431,10 @@ function GraphicsEng:onComponentRemoved(component_key, component)
     self.materials_for_eids[eid] = nil
   elseif component_key == "environment" then
     self:loadEnvironment(component, true)
+  elseif component_key == "live_media" then
+    if component.type == "video" then
+      self.videoMedia[component.track_id] = nil
+    end
   end
 end
 
