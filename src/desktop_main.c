@@ -16,7 +16,6 @@
 #include <lualib.h>
 
 extern int luaopen_liballonet(lua_State* L);
-extern bool AskMicrophonePermission(void);
 extern void AlloPlatformInit();
 
 extern const char *GetAllovisorVersion();
@@ -47,7 +46,6 @@ int main(int argc, char** argv)
   
   #if __APPLE__
     AlloPlatformInit();
-    AskMicrophonePermission();
   #endif
 
   char *defaultArgv[] = {
