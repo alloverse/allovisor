@@ -18,6 +18,8 @@ SET(LOVR_BUILD_SHARED ON CACHE BOOL "Always build lovr as library")
 SET(LOVR_SYMBOL_VISIBILITY "default" CACHE STRING "Declare bravery")
 SET(LOVR_BUILD_BUNDLE ON CACHE BOOL "Always build lovr bundle on mac")
 SET(LOVR_ENABLE_ENET OFF CACHE BOOL "Disable Lovr enet since allonet embeds its own")
+SET(LOVR_BUILD_WITH_EXPORTED_INTERNALS ON CACHE BOOL "Expose Lovr internals")
+
 set(ALLONET_USE_LUA ON CACHE BOOL "Request Lua bridge")
 if(APPLE OR ANDROID)
   set(ALLONET_BUILD_STATIC ON CACHE BOOL "Always build allonet static")
