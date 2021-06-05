@@ -34,9 +34,12 @@ else()
 endif()
 
 # Versioning
+# crazy relative-path hack courtesy of running bash on windows and having mixed path types...
+file(RELATIVE_PATH GENERATE_VERSION_SH ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/generate-version.sh)
 add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/include/allovisor_version.h
-	COMMAND bash ${CMAKE_CURRENT_SOURCE_DIR}/generate-version.sh ${CMAKE_CURRENT_BINARY_DIR}/include
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+	COMMAND bash ${GENERATE_VERSION_SH} include
 )
 add_custom_target(
     allovisor_version_header ALL
