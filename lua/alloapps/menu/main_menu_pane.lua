@@ -71,8 +71,11 @@ ffi.cdef[[
   const char *GetAllovisorGitHash();
 ]]
 
+local AllonetC = ffi.os == 'Windows' and ffi.load('allonet') or ffi.C
+local VisorC = ffi.C
+
 function MainMenuPane:updateVersionLabel()
-  local versionString = string.format("App version: %s\nNetwork version: %s", ffi.string(ffi.C.GetAllovisorVersion()), ffi.string(ffi.C.GetAllonetVersion()))
+  local versionString = string.format("App version: %s\nNetwork version: %s", ffi.string(VisorC.GetAllovisorVersion()), ffi.string(AllonetC.GetAllonetVersion()))
   self.versionLabel:setText(versionString)
 end
 
