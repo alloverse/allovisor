@@ -316,6 +316,9 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
   end
 
   local apply = function(texture)
+    if self.materials_for_eids[eid] then 
+      return -- ugly but if it already has a material then it's probably a video and we want that instead...
+    end
     mat:setTexture(texture)
     self.materials_for_eids[eid] = mat
     -- apply the material to matching mesh, if loaded
@@ -414,7 +417,28 @@ function GraphicsEng:onComponentChanged(component_key, component, old_component)
     self:loadEnvironment(component)
   elseif component_key == "live_media" then
     if component.type == "video" then
+      local media = self.videoMedia[component.track_id]
+      if not media then
+        media = {
+          material = lovr.graphics.newMaterial()
+        }
+        self.videoMedia[component.track_id] = media
+        local eid = component.getEntity().id
+        local model = self.models_for_eids[eid]
+        self.materials_for_eids[eid] = media.material
+        media.entity = eid
+        if model and model.setMaterial then
+          model:setMaterial(media.material)
+        end
+      end
+      media.texture = lovr.graphics.newTexture(component.metadata.width, component.metadata.height, 1, {
+        mipmaps = false,
+        format = "rgba"
+      })
+      media.material:setTexture(media.texture)
       print("Video media was altered")
+      pretty.dump(component)
+      pretty.dump(media)
     end
   end
 end
@@ -433,7 +457,14 @@ function GraphicsEng:onComponentRemoved(component_key, component)
     self:loadEnvironment(component, true)
   elseif component_key == "live_media" then
     if component.type == "video" then
+      local media = self.videoMedia[component.track_id]
+      self.materials_for_eids[eid] = nil
       self.videoMedia[component.track_id] = nil
+
+      local model = self.models_for_eids[eid]
+      if model and model.setMaterial then
+        model:setMaterial(nil)
+      end
     end
   end
 end
