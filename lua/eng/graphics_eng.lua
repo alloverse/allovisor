@@ -227,12 +227,11 @@ function GraphicsEng:loadComponentModel(component, old_component)
       self.models_for_eids[eid] = model
     end)
   elseif component.type == "inline" then 
-    self.models_for_eids[eid] = self:createMesh(component, old_component)
-    for trackId, media in pairs(self.videoMedia) do
-      if media.eid == eid then
-        print("assigning video media to mesh for", eid)
-        self.models_for_eids[eid]:setMaterial(media.material)
-      end
+    local model = self:createMesh(component, old_component)
+    self.models_for_eids[eid] = model
+    local material = self.materials_for_eids[eid]
+    if material and model.setMaterial then
+      model:setMaterial(material)
     end
   elseif component.type == "asset" then
     local cached = self.parent.engines.assets:getAsset(component.name, function (asset)
@@ -324,9 +323,6 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
   end
 
   local apply = function(texture)
-    if self.materials_for_eids[eid] then 
-      return -- ugly but if it already has a material then it's probably a video and we want that instead...
-    end
     mat:setTexture(texture)
     self.materials_for_eids[eid] = mat
     -- apply the material to matching mesh, if loaded
