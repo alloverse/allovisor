@@ -309,7 +309,15 @@ end
 -- @tparam component component The component to load a material for
 -- @tparam component old_component not used
 function GraphicsEng:loadComponentMaterial(component, old_component)
-  local eid = component.getEntity().id
+  local ent = component.getEntity()
+  local eid = ent.id
+
+  if ent.components.live_media then
+    print("not overriding video material with static material")
+    return
+  end
+
+
   local mat = graphics.newMaterial()
   if component.color ~= nil then
     mat:setColor("diffuse", component.color[1], component.color[2], component.color[3], component.color[4])
@@ -393,7 +401,7 @@ function GraphicsEng:onComponentAdded(component_key, component)
         local eid = component.getEntity().id
         local model = self.models_for_eids[eid]
         self.materials_for_eids[eid] = media.material
-        media.entity = eid
+        media.eid = eid
         if model and model.setMaterial then
           model:setMaterial(media.material)
         end
@@ -426,7 +434,7 @@ function GraphicsEng:onComponentChanged(component_key, component, old_component)
         local eid = component.getEntity().id
         local model = self.models_for_eids[eid]
         self.materials_for_eids[eid] = media.material
-        media.entity = eid
+        media.eid = eid
         if model and model.setMaterial then
           model:setMaterial(media.material)
         end
