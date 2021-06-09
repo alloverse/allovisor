@@ -230,7 +230,7 @@ function GraphicsEng:loadComponentModel(component, old_component)
     self.models_for_eids[eid] = self:createMesh(component, old_component)
     for trackId, media in pairs(self.videoMedia) do
       if media.eid == eid then
-        print("assigning video media to mesh")
+        print("assigning video media to mesh for", eid)
         self.models_for_eids[eid]:setMaterial(media.material)
       end
     end
@@ -313,7 +313,7 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
   local eid = ent.id
 
   if ent.components.live_media then
-    print("not overriding video material with static material")
+    print("not overriding video material with static material for", eid)
     return
   end
 
@@ -377,6 +377,7 @@ end
 -- @tparam string component_key The component type
 -- @tparam component component The new component
 function GraphicsEng:onComponentAdded(component_key, component)
+  local eid = component.getEntity().id
   if component_key == "geometry" then
     self:loadComponentModel(component, nil)
   elseif component_key == "material" then
@@ -386,7 +387,7 @@ function GraphicsEng:onComponentAdded(component_key, component)
   elseif component_key == "live_media" then
     if component.type == "video" then
       local media = self.videoMedia[component.track_id]
-      print("media component was added")
+      print("media component was added for", eid)
       pretty.dump(component)
       if not media then
         media = {
@@ -398,7 +399,6 @@ function GraphicsEng:onComponentAdded(component_key, component)
         }
         media.material:setTexture(media.texture)
         self.videoMedia[component.track_id] = media
-        local eid = component.getEntity().id
         local model = self.models_for_eids[eid]
         self.materials_for_eids[eid] = media.material
         media.eid = eid
@@ -417,6 +417,7 @@ end
 -- @tparam component component The new component state
 -- @tparam component old_component The previous component state
 function GraphicsEng:onComponentChanged(component_key, component, old_component)
+  local eid = component.getEntity().id
   if component_key == "geometry" then
     self:loadComponentModel(component, old_component)
   elseif component_key == "material" then
@@ -431,7 +432,6 @@ function GraphicsEng:onComponentChanged(component_key, component, old_component)
           material = lovr.graphics.newMaterial()
         }
         self.videoMedia[component.track_id] = media
-        local eid = component.getEntity().id
         local model = self.models_for_eids[eid]
         self.materials_for_eids[eid] = media.material
         media.eid = eid
@@ -444,7 +444,7 @@ function GraphicsEng:onComponentChanged(component_key, component, old_component)
         format = "rgba"
       })
       media.material:setTexture(media.texture)
-      print("Video media was altered")
+      print("Video media was altered for", eid)
       pretty.dump(component)
       pretty.dump(media)
     end
@@ -468,7 +468,7 @@ function GraphicsEng:onComponentRemoved(component_key, component)
       local media = self.videoMedia[component.track_id]
       self.materials_for_eids[eid] = nil
       self.videoMedia[component.track_id] = nil
-
+      print("Removing video media for", eid)
       local model = self.models_for_eids[eid]
       if model and model.setMaterial then
         model:setMaterial(nil)
