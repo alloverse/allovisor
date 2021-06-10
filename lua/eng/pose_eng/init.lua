@@ -55,6 +55,7 @@ function PoseEng:_init()
   self.fakeKeyboardEvents = {}
   self.capturedControls = {}
   self.mousePitch = 0
+  self.lastAxisEvent = 0
   self.focus = {
     entity= nil,
     type= nil

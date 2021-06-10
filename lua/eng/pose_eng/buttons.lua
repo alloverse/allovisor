@@ -59,6 +59,11 @@ function PoseEng:routeButtonEvents()
 end
 
 function PoseEng:routeAxisEvents()
+  -- don't send axis events faster than 20hz
+  local now = lovr.timer.getTime()
+  if now < self.lastAxisEvent + (1/20.0) then return end
+  self.lastAxisEvent = now
+
   for handIndex, hand in ipairs(PoseEng.hands) do
     local ray = self.handRays[handIndex]
     for _, axis in ipairs(PoseEng.axis) do
