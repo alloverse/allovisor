@@ -1,7 +1,7 @@
 namespace("pose_eng", "alloverse")
 
 local HandRay = classNamed("HandRay")
-function HandRay:_init()
+function HandRay:_init(device)
   self.isPointing = true
   self.highlightedEntity = nil
   self.selectedEntity = nil
@@ -13,6 +13,7 @@ function HandRay:_init()
   self.hand = nil -- hand entity
   self.grabber_from_entity_transform = lovr.math.newMat4()
   self.rayLength = 1
+  self.device = device
 
   local cursorTexture = lovr.graphics.newTexture("assets/textures/cursor-default.png", {})
   self.cursorMaterial = lovr.graphics.newMaterial(cursorTexture)

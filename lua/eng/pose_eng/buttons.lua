@@ -46,14 +46,60 @@ end
 function PoseEng:routeButtonEvents()
   if not self.previousButtonStates then return end
   for handIndex, hand in ipairs(PoseEng.hands) do
+    local ray = self.handRays[handIndex]
     for _, button in ipairs(PoseEng.buttons) do
       if not self.previousButtonStates[hand][button] and self.currentButtonStates[hand][button] then
-        self.parent:route("onButtonPressed", hand, button)
+        self:_buttonPressed(ray.handEntity, hand, button)
       end
       if self.previousButtonStates[hand][button] and not self.currentButtonStates[hand][button] then
-        self.parent:route("onButtonReleased", hand, button)
+        self:_buttonReleased(ray.handEntity, hand, button)
       end
     end
+  end
+end
+
+function PoseEng:routeAxisEvents()
+  for handIndex, hand in ipairs(PoseEng.hands) do
+    local ray = self.handRays[handIndex]
+    for _, axis in ipairs(PoseEng.axis) do
+      local capturer = self.capturedControls[hand..axis]
+      if capturer then
+        self.client:sendInteraction({
+          type = "one-way",
+          sender = ray.handEntity,
+          receiver = capturer,
+          body = {"captured_axis", hand, axis, {self:getAxis(hand, axis, true)}}
+        })
+      end
+    end
+  end
+end
+
+function PoseEng:_buttonPressed(handEntity, hand, button)
+  local capturer = self.capturedControls[hand..button]
+  if capturer then
+    self.client:sendInteraction({
+      type = "one-way",
+      sender = handEntity,
+      receiver = capturer,
+      body = {"captured_button_pressed", hand, button}
+    })
+  else
+    self.parent:route("onButtonPressed", hand, button)
+  end
+end
+
+function PoseEng:_buttonReleased(handEntity, hand, button)
+  local capturer = self.capturedControls[hand..button]
+  if capturer then
+    self.client:sendInteraction({
+      type = "one-way",
+      sender = handEntity,
+      receiver = capturer,
+      body = {"captured_button_released", hand, button}
+    })
+  else
+    self.parent:route("onButtonReleased", hand, button)
   end
 end
 
@@ -92,12 +138,14 @@ end
 function PoseEng:isDown(device, button)
   if self.parent.active == false then return false end
   if not self.currentButtonStates then return false end
+  if self.capturedControls[device..button] then return false end
   return self.currentButtonStates[device][button]
 end
 
 function PoseEng:wasPressed(device, button)
   if self.parent.active == false then return false end
   if not self.currentButtonStates then return false end
+  if self.capturedControls[device..button] then return false end
   local was = self.previousButtonStates and self.previousButtonStates[device][button] or false
   return not was and self:isDown(device, button)
 end
@@ -105,6 +153,7 @@ end
 function PoseEng:wasReleased(device, button)
   if self.parent.active == false then return false end
   if not self.currentButtonStates then return false end
+  if self.capturedControls[device..button] then return false end
   local was = self.previousButtonStates and self.previousButtonStates[device][button] or false
   return was and not self:isDown(device, button)
 end
@@ -133,8 +182,9 @@ end
 -- If a controller is available, use the input from it.
 -- If a keyboard is available, also use that input to emulate
 -- the left hand's stick.
-function PoseEng:getAxis(device, axis)
+function PoseEng:getAxis(device, axis, evenIfOverridden)
   if self.parent.active == false then return 0.0, 0.0 end
+  if self.capturedControls[device..axis] and not evenIfOverridden then return 0.0, 0.0 end
 
   local x, y = 0, 0
   if lovr.headset then

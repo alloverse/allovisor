@@ -43,15 +43,17 @@ PoseEng = classNamed("PoseEng", Ent)
 
 PoseEng.hands = {"hand/left", "hand/right"}
 PoseEng.buttons = {"trigger", "thumbstick", "touchpad", "grip", "menu", "a", "b", "x", "y", "proximity"}
+PoseEng.axis = {"trigger", "thumbstick", "touchpad", "grip"}
 
 function PoseEng:_init()
   self.yaw = 0.0
-  self.handRays = {HandRay(), HandRay()}
+  self.handRays = {HandRay("hand/left"), HandRay("hand/right")}
   self.isFocused = true
   self.mvp = lovr.math.newMat4()
   self.oldMousePos = lovr.math.newVec2()
   self.fakeMousePos = lovr.math.newVec2()
   self.fakeKeyboardEvents = {}
+  self.capturedControls = {}
   self.mousePitch = 0
   self.focus = {
     entity= nil,
@@ -94,6 +96,7 @@ function PoseEng:onUpdate(dt)
   end
 
   self:routeButtonEvents()
+  self:routeAxisEvents()
 end
 
 function PoseEng:onDraw()
@@ -369,20 +372,10 @@ function PoseEng:grabForDevice(handIndex, device)
 
   if previouslyHeld ~= ray.heldEntity then
     if previouslyHeld then
-      self.client:sendInteraction({
-        type = "one-way",
-        sender = ray.handEntity,
-        receiver_entity_id = previouslyHeld.id,
-        body = {"grabbing", false}
-      })
+      self:_endGrab(ray.device, ray.handEntity, previouslyHeld)
     end
     if ray.heldEntity then
-      self.client:sendInteraction({
-        type = "one-way",
-        sender = ray.handEntity,
-        receiver_entity_id = ray.heldEntity.id,
-        body = {"grabbing", true}
-      })
+      self:_startGrab(ray.device, ray.handEntity, ray.heldEntity)
     end
   end
 
@@ -408,6 +401,39 @@ function PoseEng:grabForDevice(handIndex, device)
     }
   end
 end
+
+function PoseEng:_startGrab(device, hand, held)
+  self.client:sendInteraction({
+    type = "one-way",
+    sender = hand,
+    receiver_entity_id = held.id,
+    body = {"grabbing", true}
+  })
+
+  local grabbable = held.components.grabbable
+  if grabbable and grabbable.capture_controls then
+    for _, button in ipairs(grabbable.capture_controls) do
+      if button ~= "grip" then
+        self.capturedControls[device..button] = held
+      end
+    end
+  end
+end
+
+function PoseEng:_endGrab(device, hand, previouslyHeld)
+  self.client:sendInteraction({
+    type = "one-way",
+    sender = hand,
+    receiver_entity_id = previouslyHeld.id,
+    body = {"grabbing", false}
+  })
+  for devicebutton, holder in pairs(self.capturedControls) do
+    if holder == previouslyHeld then
+      self.capturedControls[devicebutton] = nil
+    end
+  end
+end
+
 
 function PoseEng:updatePointing(hand_pose, ray, handIndex)
   -- Find the  hand whose parent is my avatar and whose pose is hand_pose
