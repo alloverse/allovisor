@@ -350,10 +350,10 @@ function PoseEng:grabForDevice(handIndex, device)
     ray.heldEntity = nil
 
   -- started holding grip button while something is highlighted?
-  elseif ray.heldEntity == nil and gripStrength > requiredGripStrength and ray.highlightedEntity then
+  elseif ray.heldEntity == nil and gripStrength > requiredGripStrength and ray.highlightedEntity and ray.highlightedEntity.components.grabbable then
     ray.heldEntity = ray.highlightedEntity
 
-    local targetHandTransform = ray.heldEntity.components.grabbable and ray.heldEntity.components.grabbable.target_hand_transform
+    local targetHandTransform = ray.heldEntity.components.grabbable.target_hand_transform
     if targetHandTransform then
       targetHandTransform = lovr.math.mat4(unpack(targetHandTransform))
       ray.grabber_from_entity_transform:set(targetHandTransform)
