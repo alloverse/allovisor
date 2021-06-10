@@ -6,7 +6,10 @@ cmake_policy(SET CMP0068 NEW)
 cmake_policy(SET CMP0042 NEW) # make @rpath default
 
 # Vars defining the contents of the Alloverse target across platforms
-SET(ALLO_SOURCES src/allonet_loader.c)
+SET(ALLO_SOURCES 
+  src/desktop_main.c # removed later if android
+  src/get_version.c
+)
 SET(ALLO_LINK_LIBS lovr allonet)
 SET(ALLO_LUA_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lua)
 
@@ -15,6 +18,8 @@ SET(LOVR_BUILD_SHARED ON CACHE BOOL "Always build lovr as library")
 SET(LOVR_SYMBOL_VISIBILITY "default" CACHE STRING "Declare bravery")
 SET(LOVR_BUILD_BUNDLE ON CACHE BOOL "Always build lovr bundle on mac")
 SET(LOVR_ENABLE_ENET OFF CACHE BOOL "Disable Lovr enet since allonet embeds its own")
+SET(LOVR_BUILD_WITH_EXPORTED_INTERNALS ON CACHE BOOL "Expose Lovr internals")
+
 set(ALLONET_USE_LUA ON CACHE BOOL "Request Lua bridge")
 if(APPLE OR ANDROID)
   set(ALLONET_BUILD_STATIC ON CACHE BOOL "Always build allonet static")
@@ -27,6 +32,19 @@ if(WIN32)
 else()
   set(LOVR_USE_OCULUS OFF CACHE BOOL "Turn off Oculus on non-windows")
 endif()
+
+# Versioning
+# crazy relative-path hack courtesy of running bash on windows and having mixed path types...
+file(RELATIVE_PATH GENERATE_VERSION_SH ${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR}/generate-version.sh)
+add_custom_command(
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/include/allovisor_version.h
+  WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+	COMMAND bash ${GENERATE_VERSION_SH} include
+)
+add_custom_target(
+    allovisor_version_header ALL
+    DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/include/allovisor_version.h
+)
 
 if(ANDROID)
     SET(BUILD_SHARED_LIBS OFF CACHE BOOL "Default to static linking, otherwise libluajit becomes dynamic??")
@@ -72,6 +90,7 @@ add_subdirectory (deps/allonet)
 
 # Build settings that go after add_subdirectory (i e only applies
 # to these targets, not dependencies' targets)
+include_directories(src ${CMAKE_CURRENT_BINARY_DIR}/include)
 include_directories(deps/lovr/src deps/lovr/src/modules)
 include_directories(deps/lovr/deps/luajit/src ${CMAKE_BINARY_DIR}/deps/lovr/luajit)
 
@@ -80,6 +99,7 @@ include_directories(deps/lovr/deps/luajit/src ${CMAKE_BINARY_DIR}/deps/lovr/luaj
 if(WIN32)
     add_executable(Alloverse ${ALLO_SOURCES})
     target_link_libraries(Alloverse ${ALLO_LINK_LIBS})
+    add_dependencies(Alloverse allovisor_version_header)
     target_compile_options(Alloverse PRIVATE /W4)
 
     add_custom_command(
@@ -146,12 +166,17 @@ elseif(APPLE)
 
     set(APP_NAME Alloverse)
 
+    list(APPEND ALLO_SOURCES src/allomac.m)
+
     # Setup the executable
     add_executable (${APP_NAME} MACOSX_BUNDLE 
         ${ALLO_SOURCES}
-        src/allomac.m
         ${ALLO_ICON}
     )
+
+    set_property(TARGET ${APP_NAME} PROPERTY ENABLE_EXPORTS 1) # for get_version
+
+    add_dependencies(${APP_NAME} allovisor_version_header)
 
     find_library(AVFOUNDATION_LIBRARY NAMES AVFoundation)
 
@@ -229,8 +254,15 @@ elseif(APPLE)
     # Pack it up
     include(CPack)
 elseif(ANDROID)
+    list(REMOVE_ITEM ALLO_SOURCES src/desktop_main.c)
+
+    add_library(visorlib STATIC
+      ${ALLO_SOURCES}
+    )
+    add_dependencies(visorlib allovisor_version_header)
+
     # Force-load allonet into lovr exe
-    target_link_libraries(lovr "-Wl,--whole-archive" allonet "-Wl,--no-whole-archive" "-ldl")
+    target_link_libraries(lovr "-Wl,--whole-archive" allonet visorlib "-Wl,--no-whole-archive" "-ldl")
 
     # TODO: modify manifest with app name etc...
     add_custom_target(
@@ -240,8 +272,13 @@ elseif(ANDROID)
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_PROPERTY:lovr,BINARY_DIR>/lovr.apk ${CMAKE_CURRENT_BINARY_DIR}/${APKNAME}
     )
 elseif(UNIX)
-    add_executable(Alloverse ${ALLO_SOURCES})
+    add_executable(
+      Alloverse 
+      ${ALLO_SOURCES}
+    )
+    set_property(TARGET Alloverse PROPERTY ENABLE_EXPORTS 1) # for get_version
     target_link_libraries(Alloverse ${ALLO_LINK_LIBS})
+    add_dependencies(Alloverse allovisor_version_header)
     target_compile_options(Alloverse PRIVATE -Wall -Wextra -pedantic)
     set_target_properties(Alloverse PROPERTIES
       RUNTIME_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/bin"

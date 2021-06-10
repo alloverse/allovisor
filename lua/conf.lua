@@ -40,6 +40,7 @@ function lovr.conf(t)
   t.window.width = 3008/2
   t.window.height = 1692/2
   t.window.fullscreen = false
+  t.window.resizable = true
 
   t.math.globals = true
 

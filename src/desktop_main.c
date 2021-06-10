@@ -16,8 +16,11 @@
 #include <lualib.h>
 
 extern int luaopen_liballonet(lua_State* L);
-extern bool AskMicrophonePermission(void);
 extern void AlloPlatformInit();
+
+extern const char *GetAllovisorVersion();
+extern const char *GetAllovisorNumericVersion();
+extern const char *GetAllovisorGitHash();
 
 // call from gdb to print lua stack
 void allo_printstacks(lua_State* L)
@@ -43,7 +46,6 @@ int main(int argc, char** argv)
   
   #if __APPLE__
     AlloPlatformInit();
-    AskMicrophonePermission();
   #endif
 
   char *defaultArgv[] = {
