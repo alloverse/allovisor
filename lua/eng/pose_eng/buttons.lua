@@ -122,6 +122,8 @@ function PoseEng:updateButton(device, button)
     down = down or self:isKeyboardButtonPressed("escape")
   elseif button == "x" and device == "hand/left" and self.keyboard then
     down = down or self:isKeyboardButtonPressed("lshift") or self:isKeyboardButtonPressed("rshift")
+  elseif button == "y" and device == "hand/left" and self.keyboard then
+    down = down or self:isKeyboardButtonPressed("lctrl") or self:isKeyboardButtonPressed("lctrl")
   end
   self.currentButtonStates[device][button] = down
 end
