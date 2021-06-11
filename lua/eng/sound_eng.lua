@@ -193,6 +193,7 @@ function SoundEng:onDebugDraw()
       lovr.graphics.setColor(1.0, 0.0, audio.ping and 1.0 or 0.2, 0.5)
     end
     audio.ping = false
+
     lovr.graphics.sphere(
       x, y, z,
       0.1,
