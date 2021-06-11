@@ -66,11 +66,14 @@ absolute paths to lodr and lua that work on your computer to the ALloverse targe
     }
 ```
 
-### Linux
+### Linux (Debian/Ubuntu)
 
-1. `sudo apt install libpulse-dev cmake git glt-lfs build-essential xorg-dev libglfw3-dev libluajit-5.1-dev libphysfs-dev libopenal-dev libode-dev libccd-dev libenet-dev llvm clang` or something like that
+Clone this repo, and in your working compy...
+
+1. Install [Git LFS](https://git-lfs.github.com/)
+2. `sudo apt update; sudo apt install libpulse-dev cmake git git-lfs build-essential xorg-dev libglfw3-dev libluajit-5.1-dev libphysfs-dev libopenal-dev libode-dev libccd-dev libenet-dev llvm clang` or something like that
 2. `mkdir build; cd build; cmake ..`
-3. `make Alloverse; and ./Alloverse ../deps/lodr ../lua`
+3. `make Alloverse && ./bin/Alloverse ../deps/lodr ../lua`
 
 Random things:
 
