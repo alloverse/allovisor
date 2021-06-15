@@ -241,6 +241,8 @@ end
 function SoundEng:onComponentAdded(component_key, component)
   if component_key == "sound_effect" then
     self:onSoundEffectAdded(component)
+  elseif component_key == "live_media" then 
+    self:onLiveMediaAdded(component)
   end
 end
 
@@ -256,6 +258,11 @@ function SoundEng:onComponentRemoved(component_key, component)
   elseif component_key == "sound_effect" then
     self:onSoundEffectRemoved(component)
   end
+end
+
+function SoundEng:onLiveMediaAdded(component)
+  local trackId = component.track_id
+  self:sendMediaTrackSubscriptionInteraction(trackId, true)
 end
 
 function SoundEng:onLiveMediaRemoved(component)
@@ -361,6 +368,28 @@ function SoundEng:sourceFromAsset(asset, callback)
     else
       print("Failed to parse sound data for " .. asset:id())
     end
+  end)
+end
+
+--- Subscribe or unsubscribe to a media track
+function SoundEng:sendMediaTrackSubscriptionInteraction(track_id, subscribe)
+    assert(track_id and subscribe)
+    self.client:sendInteraction({
+        type = "request",
+        sender_entity_id = self.parent.head_id,
+        receiver_entity_id = "place",
+        body = {
+            "media_track",
+            track_id,
+            subscribe and "subscribe" or "unsubscribe",
+        }
+    }, function (response, body)
+        if body[2] == "ok" then
+            self.track_id = body[3]
+            print("Our head was allocated track ", self.track_id)
+        else
+        print("Failed to allocate track:", pretty.write(body))
+        end
   end)
 end
 
