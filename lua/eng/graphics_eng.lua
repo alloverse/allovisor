@@ -393,6 +393,8 @@ function GraphicsEng:onComponentAdded(component_key, component)
           }),
           material = lovr.graphics.newMaterial()
         }
+        media.texture:setWrap('clamp', 'clamp')
+        media.texture:setFilter('nearest', 0)
         media.material:setTexture(media.texture)
         self.videoMedia[component.track_id] = media
         local model = self.models_for_eids[eid]
