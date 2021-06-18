@@ -33,6 +33,16 @@ jobs:
     inputs:
       pathtoPublish: '$(Build.ArtifactStagingDirectory)'
       artifactName: Alloverse_visor-Mac-x64
+  - task: S3Upload@1
+    inputs:
+      awsCredentials: 'aws-ci'
+      regionName: 'eu-north-1'
+      bucketName: 'alloverse-downloads-prod'
+      globExpressions: '**/*.dmg'
+      targetFolder: 'visor'
+      filesAcl: 'public-read'
+      sourceFolder: '$(Build.ArtifactStagingDirectory)'
+      flattenFolders: true
 
 - job: Windows
   pool:
@@ -62,7 +72,16 @@ jobs:
     inputs:
       pathtoPublish: '$(Build.ArtifactStagingDirectory)'
       artifactName: Alloverse_visor-Windows-x64
-
+  - task: S3Upload@1
+    inputs:
+      awsCredentials: 'aws-ci'
+      regionName: 'eu-north-1'
+      bucketName: 'alloverse-downloads-prod'
+      sourceFolder: '$(Build.ArtifactStagingDirectory)'
+      flattenFolders: true
+      globExpressions: '**/*.exe'
+      targetFolder: 'visor'
+      filesAcl: 'public-read'
 
 - job: OculusQuest
   pool:
@@ -107,7 +126,16 @@ jobs:
     inputs:
       pathtoPublish: '$(Build.ArtifactStagingDirectory)'
       artifactName: Alloverse_visor-Quest
-
+  - task: S3Upload@1
+    inputs:
+      awsCredentials: 'aws-ci'
+      regionName: 'eu-north-1'
+      bucketName: 'alloverse-downloads-prod'
+      globExpressions: '**/*.apk'
+      targetFolder: 'visor'
+      filesAcl: 'public-read'
+      sourceFolder: '$(Build.ArtifactStagingDirectory)'
+      flattenFolders: true
 
 # - job: Pico
 #   pool:
@@ -152,3 +180,13 @@ jobs:
 #     inputs:
 #       pathtoPublish: '$(Build.ArtifactStagingDirectory)'
 #       artifactName: Alloverse_visor-Pico
+#  - task: S3Upload@1
+#    inputs:
+#      awsCredentials: 'aws-ci'
+#      regionName: 'eu-north-1'
+#      bucketName: 'alloverse-downloads-prod'
+#      globExpressions: '**/*.apk'
+#      targetFolder: 'visor'
+#      filesAcl: 'public-read'
+#      sourceFolder: '$(Build.ArtifactStagingDirectory)'
+#      flattenFolders: true
