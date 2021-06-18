@@ -20,6 +20,7 @@ jobs:
   - script: make package; rm -rf _CPack_Packages
     workingDirectory: build
     displayName: "Make"
+  - script: bash rename-builds.sh
   - task: CopyFiles@2
     displayName: "Stage artifacts"
     inputs:
@@ -60,6 +61,7 @@ jobs:
       createLogFile: true
       solution: 'build\PACKAGE.vcxproj'
       configuration: MinSizeRel # Hangs in CreateWindow in Release????
+  - script: bash rename-builds.sh
   - task: CopyFiles@2
     displayName: "Stage artifacts"
     inputs:
@@ -115,6 +117,7 @@ jobs:
   - script: env VERBOSE=1 make Alloverse
     workingDirectory: build
     displayName: "Make"
+  - script: bash rename-builds.sh
   - task: CopyFiles@2
     displayName: "Stage artifacts"
     inputs:
@@ -169,6 +172,7 @@ jobs:
 #   - script: env VERBOSE=1 make Alloverse
 #     workingDirectory: build
 #     displayName: "Make"
+#   - script: bash rename-builds.sh
 #   - task: CopyFiles@2
 #     displayName: "Stage artifacts"
 #     inputs:
