@@ -2,7 +2,7 @@
 set -e
 
 VERSION=`cat build/include/allovisor_version.txt | xargs echo -n`
-INSTALLERFILE=`find build -name "*.exe" -or -name "*.dmg" -or -name "*.apk"`
+INSTALLERFILE=`find build -name "*0.2.0*.exe" -or -name "*0.2.0*.dmg" -or -name "*0.2.0*.apk"`
 
 if [ -z "$INSTALLERFILE" ];
 then
