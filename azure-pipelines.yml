@@ -21,6 +21,7 @@ jobs:
     workingDirectory: build
     displayName: "Make"
   - script: bash rename-builds.sh
+    displayName: "Rename builds"
   - task: CopyFiles@2
     displayName: "Stage artifacts"
     inputs:
@@ -62,6 +63,7 @@ jobs:
       solution: 'build\PACKAGE.vcxproj'
       configuration: MinSizeRel # Hangs in CreateWindow in Release????
   - script: bash rename-builds.sh
+    displayName: "Rename builds"
   - task: CopyFiles@2
     displayName: "Stage artifacts"
     inputs:
@@ -118,6 +120,7 @@ jobs:
     workingDirectory: build
     displayName: "Make"
   - script: bash rename-builds.sh
+    displayName: "Rename builds"
   - task: CopyFiles@2
     displayName: "Stage artifacts"
     inputs:
@@ -173,6 +176,7 @@ jobs:
 #     workingDirectory: build
 #     displayName: "Make"
 #   - script: bash rename-builds.sh
+#     displayName: "Rename builds"
 #   - task: CopyFiles@2
 #     displayName: "Stage artifacts"
 #     inputs:
