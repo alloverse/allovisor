@@ -13,6 +13,7 @@ namespace("networkscene", "alloverse")
 local tablex = require "pl.tablex"
 local pretty = require "pl.pretty"
 local Client = require "alloui.client"
+local ui = require("alloui.ui")
 local Asset = require("lib.alloui.lua.alloui.asset")
 local AlloAvatar = require("lib.alloavatar")
 
@@ -36,16 +37,13 @@ function NetworkScene:_init(displayName, url, avatarName, isSpectatorCamera)
 
   self.displayName = displayName
   self.isSpectatorCamera = isSpectatorCamera
+
   local assets = AlloAvatar:loadAssets()
-  local avatar = self:avatarSpec(avatarName)
+  self.avatarView = AlloAvatar(nil, self.displayName, avatarName)
 
   -- turn this off to fall back to make server decide where visors can move
   self.useClientAuthoritativePositioning = true
-  if self.useClientAuthoritativePositioning then
-    avatar.intent = {
-      actuate_pose = "root"
-    }
-  end
+  self.avatarView.useClientAuthoritativePositioning = true
 
   -- base transform for all other engines
   self.cameraTransform = lovr.math.newMat4()
@@ -56,6 +54,8 @@ function NetworkScene:_init(displayName, url, avatarName, isSpectatorCamera)
   local threadedClient = allonet.create(true)
   self.url = url
   self.client = Client(url, displayName, threadedClient)
+  self.app = ui.App(self.client)
+  self.app.mainView = self.avatarView
   
   self.active = true
   self.isOverlayScene = false
@@ -64,17 +64,25 @@ function NetworkScene:_init(displayName, url, avatarName, isSpectatorCamera)
   self.standardDt = 1.0/40.0
   self.client.delegates.onEntityAdded = function(e) self:route("onEntityAdded", e) end
   self.client.delegates.onEntityRemoved = function(e) self:route("onEntityRemoved", e) end
-  self.client.delegates.onComponentAdded = function(k, v) self:route("onComponentAdded", k, v) end
+  self.client.delegates.onComponentAdded = function(k, v) 
+    self.app:onComponentAdded(k, v)
+    self:route("onComponentAdded", k, v) 
+  end
   self.client.delegates.onComponentChanged = function(k, v, old) self:route("onComponentChanged", k, v, old) end
   self.client.delegates.onComponentRemoved = function(k, v) self:route("onComponentRemoved", k, v) end
-  self.client.delegates.onInteraction = function(inter, body, receiver, sender) self:route("onInteraction", inter, body, receiver, sender) end
+  self.client.delegates.onInteraction = function(inter, body, receiver, sender) 
+    self.app:onInteraction(inter, body, receiver, sender)
+    self:route("onInteraction", inter, body, receiver, sender) 
+  end
   self.client.delegates.onDisconnected =  function(code, message) self:route("onDisconnect", code, message) end
 
   self.assetManager = Asset.Manager(self.client.client)
   self.assetManager:add(assets, true)
-  if self.client:connect(avatar) == false then
-    self:onDisconnect(1003, "Failed to connect")
+  local ok, error = pcall(self.app.connect, self.app)
+  if not ok  then
+    self:onDisconnect(1003, error)
   end
+  
   self:super()
 end
 
@@ -83,9 +91,7 @@ function NetworkScene:avatarSpec(avatarName)
     return self:cameraSpec()
   end
 
-  self.avatarView = AlloAvatar()
-  self.avatarView.displayName = self.displayName
-  self.avatarView.avatarName = avatarName
+  
   local avatar = self.avatarView:specification()
   return avatar
 end
@@ -353,7 +359,7 @@ function NetworkScene:onUpdate(dt)
   end
   local atStartOfPoll = lovr.timer.getTime()
   if self.client then
-    self.client:poll(self.standardDt)
+    self.app:runOnce(self.standardDt)
     if self.client == nil then
       return route_terminate
     end

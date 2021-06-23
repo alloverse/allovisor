@@ -1,5 +1,7 @@
 local ui = require("alloui.ui")
 local class = require("pl.class")
+local tablex = require("pl.tablex")
+local pretty = require("pl.pretty")
 class.AlloAvatar(ui.View)
 
 AlloAvatar.assets = {
@@ -28,55 +30,69 @@ function AlloAvatar.loadAssets()
 end
 
 
-function AlloAvatar:_init(bounds)
-    self.displayName = ""
-    self.avatarName = ""
+function AlloAvatar:_init(bounds, displayName, avatarName)
+    self:super(bounds)
+    self.displayName = displayName
+    self.avatarName = avatarName
+
+    self.leftHand = self:addSubview(AlloBodyPart(nil, avatarName, "hand/left", "left-hand"))
+    if lovr.headset ~= nil and lovr.headset.getDriver() ~= "desktop" then
+        -- right hand can't be simulated in desktop
+        self.rightHand = self:addSubview(AlloBodyPart(nil, avatarName, "hand/right", "right-hand"))
+    end
+    self.torso = self:addSubview(AlloBodyPart(nil, avatarName, "torso", "torso"))
+    self.torso.displayName = displayName
+    self.head = self:addSubview(AlloBodyPart(nil, avatarName, "head", "head"))
 end
 
-
 function AlloAvatar:specification()
-    local torso = self:bodyPartSpec("torso", "torso")
-    table.insert(torso.children, self:nameTagSpec())
-
-    local spec = {
+    local spec = tablex.union(View.specification(self), {
         visor = {
           display_name = self.displayName,
         },
-        children = {
-            self:bodyPartSpec("hand/left", "left-hand"),
-            self:bodyPartSpec("hand/right", "right-hand"),
-            self:bodyPartSpec("head", "head"),
-            torso
+    })
+    if self.useClientAuthoritativePositioning then
+        spec.intent = {
+          actuate_pose = "root"
         }
-    }
-
-    if lovr.headset == nil or lovr.headset.getDriver() == "desktop" then
-        table.remove(spec.children, 2) -- remove right hand as it can't be simulated
     end
-    
     return spec
 end
 
-function AlloAvatar:bodyPartSpec(poseName, partName)
-    return {
+class.AlloBodyPart(ui.View)
+function AlloBodyPart:_init(bounds, avatarName, poseName, partName)
+    self:super(bounds)
+    self.avatarName = avatarName
+    self.poseName = poseName
+    self.partName = partName
+end
+
+function AlloBodyPart:specification()
+    local spec = tablex.union(View.specification(self), {
         intent = {
-            actuate_pose = poseName
+            actuate_pose = self.poseName
         },
         children = {
             {
                 geometry = {
                     type = "asset",
-                    name = AlloAvatar.assets["avatars/"..self.avatarName.."/"..partName]:id()
+                    name = AlloAvatar.assets["avatars/"..self.avatarName.."/"..self.partName]:id()
                 },
                 transform = {
                     matrix = {lovr.math.mat4(0,0,0, 3.14, 0, 1, 0):unpack(true)},
                 },
             },
         },
-    }
+    })
+    
+    if self.partName == "torso" then
+        table.insert(spec.children, self:nameTagSpec())
+    end
+    return spec
 end
 
-function AlloAvatar:nameTagSpec()
+-- todo: make it regular alloui
+function AlloBodyPart:nameTagSpec()
     return {
         geometry = {
             type = "inline",
@@ -109,5 +125,6 @@ function AlloAvatar:nameTagSpec()
         }
     }
 end
+
 
 return AlloAvatar
