@@ -132,7 +132,7 @@ function PoseEng:updateButton(device, button)
   elseif button == "a" and device == "hand/right" and self.keyboard then
     down = down or self:isKeyboardButtonPressed(",") or self:isKeyboardButtonPressed("x")
   elseif button == "b" and device == "hand/right" and self.keyboard then
-    down = down or self:isKeyboardButtonPressed(".") or self:isKeyboardButtonPressed("c")
+    down = down or self:isKeyboardButtonPressed(".") or self:isKeyboardButtonPressed("m")
   end
   self.currentButtonStates[device][button] = down
 end

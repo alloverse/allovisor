@@ -17,7 +17,19 @@ function SoundEng:_init()
   self.effects = {}
   self.track_id = 0
   self.mic = nil
+  self.isMuted = false
   self:super()
+end
+
+function SoundEng:onButtonPressed(hand, button)
+  if button == "b" then
+    self.isMuted = not self.isMuted
+    if self.isMuted then
+      print("SoundEng: soft-muted microphone")
+    else
+      print("SoundEng: soft-unmuted microphone")
+    end
+  end
 end
 
 function SoundEng:useMic(micName)
@@ -220,7 +232,7 @@ function SoundEng:onUpdate(dt)
   while self.mic and self.mic.captureStream:getFrameCount() >= 960 do
     local count = self.mic.captureStream:getFrames(self.mic.captureBuffer, 960)
     assert(count == 960)
-    if self.track_id then
+    if self.track_id and not self.isMuted then
       self.client:sendAudio(self.track_id, self.mic.captureBuffer:getString())
     end
   end
