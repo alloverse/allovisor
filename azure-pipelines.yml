@@ -4,7 +4,9 @@
 # https://aka.ms/yaml
 
 variables:
-  isMain: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
+  - name: 
+    value: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
+  - group: hooks-passwords
 
 jobs:
 - job: Mac
@@ -48,10 +50,15 @@ jobs:
       filesAcl: 'public-read'
       sourceFolder: '$(Build.ArtifactStagingDirectory)'
       flattenFolders: true
-  - bash: publish-build.sh mac 
+  - bash: bash publish-build.sh mac 
     condition: and(succeeded(), eq(variables.isMain, true))
     env: 
-      PUBLISHING_SECRET: $(PublishingSecret)
+      PUBLISHING_SECRET: $(variables.PublishingSecret)
+
+
+
+
+
 
 - job: Windows
   pool:
@@ -93,10 +100,14 @@ jobs:
       globExpressions: '**/*.exe'
       targetFolder: 'visor'
       filesAcl: 'public-read'
-  - bash: publish-build.sh windows
+  - bash: bash publish-build.sh windows
     condition: and(succeeded(), eq(variables.isMain, true))
     env: 
-      PUBLISHING_SECRET: $(PublishingSecret)
+      PUBLISHING_SECRET: $(variables.PublishingSecret)
+
+
+
+
 
 - job: OculusQuest
   pool:
@@ -153,10 +164,10 @@ jobs:
       filesAcl: 'public-read'
       sourceFolder: '$(Build.ArtifactStagingDirectory)'
       flattenFolders: true
-  - bash: publish-build.sh quest
+  - bash: bash publish-build.sh quest
     condition: and(succeeded(), eq(variables.isMain, true))
     env: 
-      PUBLISHING_SECRET: $(PublishingSecret)
+      PUBLISHING_SECRET: $(variables.PublishingSecret)
 
 # - job: Pico
 #   pool:
