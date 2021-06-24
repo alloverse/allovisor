@@ -3,6 +3,9 @@
 # Add steps that build, run tests, deploy, and more:
 # https://aka.ms/yaml
 
+variables:
+  isMain: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
+
 jobs:
 - job: Mac
   pool:
@@ -45,6 +48,10 @@ jobs:
       filesAcl: 'public-read'
       sourceFolder: '$(Build.ArtifactStagingDirectory)'
       flattenFolders: true
+  - bash: publish-build.sh mac 
+    condition: and(succeeded(), eq(variables.isMain, true))
+    env: 
+      PUBLISHING_SECRET: $(PublishingSecret)
 
 - job: Windows
   pool:
@@ -86,6 +93,10 @@ jobs:
       globExpressions: '**/*.exe'
       targetFolder: 'visor'
       filesAcl: 'public-read'
+  - bash: publish-build.sh windows
+    condition: and(succeeded(), eq(variables.isMain, true))
+    env: 
+      PUBLISHING_SECRET: $(PublishingSecret)
 
 - job: OculusQuest
   pool:
@@ -142,6 +153,10 @@ jobs:
       filesAcl: 'public-read'
       sourceFolder: '$(Build.ArtifactStagingDirectory)'
       flattenFolders: true
+  - bash: publish-build.sh quest
+    condition: and(succeeded(), eq(variables.isMain, true))
+    env: 
+      PUBLISHING_SECRET: $(PublishingSecret)
 
 # - job: Pico
 #   pool:
