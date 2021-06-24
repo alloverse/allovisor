@@ -50,10 +50,11 @@ jobs:
       filesAcl: 'public-read'
       sourceFolder: '$(Build.ArtifactStagingDirectory)'
       flattenFolders: true
-  - bash: bash publish-build.sh mac 
+  - bash: bash publish-build.sh mac
+    displayName: "Publish build to site"
     condition: and(succeeded(), eq(variables.isMain, true))
     env: 
-      PUBLISHING_SECRET: $(variables.PublishingSecret)
+      PUBLISHING_SECRET: $(PublishingSecret)
 
 
 
@@ -101,9 +102,10 @@ jobs:
       targetFolder: 'visor'
       filesAcl: 'public-read'
   - bash: bash publish-build.sh windows
+    displayName: "Publish build to site"
     condition: and(succeeded(), eq(variables.isMain, true))
     env: 
-      PUBLISHING_SECRET: $(variables.PublishingSecret)
+      PUBLISHING_SECRET: $(PublishingSecret)
 
 
 
@@ -165,9 +167,10 @@ jobs:
       sourceFolder: '$(Build.ArtifactStagingDirectory)'
       flattenFolders: true
   - bash: bash publish-build.sh quest
+    displayName: "Publish build to site"
     condition: and(succeeded(), eq(variables.isMain, true))
     env: 
-      PUBLISHING_SECRET: $(variables.PublishingSecret)
+      PUBLISHING_SECRET: $(PublishingSecret)
 
 # - job: Pico
 #   pool:
