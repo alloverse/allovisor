@@ -39,7 +39,7 @@ function NetworkScene:_init(displayName, url, avatarName, isSpectatorCamera)
   self.isSpectatorCamera = isSpectatorCamera
 
   local assets = AlloAvatar:loadAssets()
-  self.avatarView = AlloAvatar(nil, self.displayName, avatarName)
+  self.avatarView = AlloAvatar(nil, self.displayName, avatarName, self)
 
   -- turn this off to fall back to make server decide where visors can move
   self.useClientAuthoritativePositioning = true

@@ -23,13 +23,18 @@ end
 
 function SoundEng:onButtonPressed(hand, button)
   if button == "b" then
-    self.isMuted = not self.isMuted
-    if self.isMuted then
-      print("SoundEng: soft-muted microphone")
-    else
-      print("SoundEng: soft-unmuted microphone")
-    end
+    self:setMuted(not self.isMuted)
   end
+end
+
+function SoundEng:setMuted(newMuted)
+  self.isMuted = newMuted
+  if self.isMuted then
+    print("SoundEng: soft-muted microphone")
+  else
+    print("SoundEng: soft-unmuted microphone")
+  end
+  Store.singleton():save("micMuted", self.isMuted, false)
 end
 
 function SoundEng:useMic(micName)
