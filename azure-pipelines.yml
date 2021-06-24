@@ -4,7 +4,7 @@
 # https://aka.ms/yaml
 
 variables:
-  - name: 
+  - name: isMain
     value: $[eq(variables['Build.SourceBranch'], 'refs/heads/master')]
   - group: hooks-passwords
 
