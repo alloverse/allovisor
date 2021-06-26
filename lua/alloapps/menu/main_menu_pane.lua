@@ -54,10 +54,19 @@ function MainMenuPane:_init(menu)
     self:addSubview(self.versionLabel)
     self:updateVersionLabel()
   
-    local logo = ui.Surface(ui.Bounds(-0.65, 0.8, 0.01, 0.2, 0.2, 0.2))
-    logo:setTexture(MainMenuPane.assets.logo)
-    logo.hasTransparency = true
-    self:addSubview(logo)
+    self.logo = ui.Surface(ui.Bounds(-0.65, 0.8, 0.01, 0.2, 0.2, 0.2))
+    self.logo:setTexture(MainMenuPane.assets.logo)
+    self.logo.hasTransparency = true
+    self:addSubview(self.logo)
+    self.logo:doWhenAwake(function()
+      self.logo:addPropertyAnimation(ui.PropertyAnimation{
+        path= "transform.matrix.rotation.y",
+        to= 3.14159*2,
+        duration = 8.0,
+        repeats= true,
+        easing= "quadInOut",
+      })
+    end)
 end
 
 local ffi = require("ffi")
