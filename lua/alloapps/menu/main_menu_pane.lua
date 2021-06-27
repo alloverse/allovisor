@@ -60,11 +60,13 @@ function MainMenuPane:_init(menu)
     self:addSubview(self.logo)
     self.logo:doWhenAwake(function()
       self.logo:addPropertyAnimation(ui.PropertyAnimation{
-        path= "transform.matrix.rotation.y",
-        to= 3.14159*2,
-        duration = 8.0,
-        repeats= true,
-        easing= "quadInOut",
+        path= "transform.matrix.rotation",
+        start_at = self.app:now() + 0.0,
+        from= {-3.14159,  0,1,0},
+        to=   {0,         0,1,0},
+        duration = 6.0,
+        repeats= false,
+        easing= "expInOut",
       })
     end)
 end
