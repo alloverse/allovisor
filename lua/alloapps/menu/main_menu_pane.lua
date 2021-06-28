@@ -62,11 +62,12 @@ function MainMenuPane:_init(menu)
       self.logo:addPropertyAnimation(ui.PropertyAnimation{
         path= "transform.matrix.rotation.y",
         start_at = self.app:now() + 1.0,
-        from= 0,
-        to=   3.14159*2,
-        duration = 6.0,
-        repeats= false,
-        easing= "expInOut",
+        from= -0.2,
+        to=   0.2,
+        duration = 2.0,
+        repeats= true,
+        autoreverses= true,
+        easing= "elasticOut",
       })
     end)
 end
