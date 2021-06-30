@@ -17,6 +17,32 @@ function BodyPart:_init(bounds, avatarName, partName, poseName)
   self.modelview.bounds:rotate(3.14159, 0, 1, 0)
 end
 
+function BodyPart:awake()
+  View.awake(self)
+  if self.partName == "torso" then
+    self:addPropertyAnimation(ui.PropertyAnimation{
+      path= "transform.matrix.translation.y",
+      from= 1.15,
+      to=   1.155,
+      duration = 2.2,
+      repeats= true,
+      autoreverses= true,
+      easing= "sineInOut",
+    })
+  elseif self.partName == "head" then
+    self:addPropertyAnimation(ui.PropertyAnimation{
+      path= "transform.matrix.translation.y",
+      start_at = self.app:now() + 0.4,
+      from= 1.64,
+      to=   1.645,
+      duration = 2.2,
+      repeats= true,
+      autoreverses= true,
+      easing= "sineInOut",
+    })
+  end
+end
+
 function BodyPart:specification()
   local mySpec = View.specification(self)
   if self.followingId then
