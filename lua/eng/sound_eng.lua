@@ -279,7 +279,12 @@ end
 
 function SoundEng:onLiveMediaAdded(component)
   local trackId = component.track_id
-  self:sendMediaTrackSubscriptionInteraction(trackId, true)
+  if trackId ~= self.track_id then
+    print("SoundEng: subscribing to ", trackId)
+    self:sendMediaTrackSubscriptionInteraction(trackId, true)
+  else
+    print("SoundEng: not subscribing to own audio channel", trackId)
+  end
 end
 
 function SoundEng:onLiveMediaRemoved(component)
@@ -402,10 +407,9 @@ function SoundEng:sendMediaTrackSubscriptionInteraction(track_id, subscribe)
         }
     }, function (response, body)
         if body[2] == "ok" then
-            self.track_id = body[3]
-            print("Our head was allocated track ", self.track_id)
+            print("SoundEng: Subscribed to ", track_id)
         else
-        print("Failed to allocate track:", pretty.write(body))
+          print("SoundEng: Failed to subscribe to track", track_id, ":", pretty.write(body))
         end
   end)
 end
