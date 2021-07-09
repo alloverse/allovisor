@@ -99,7 +99,7 @@ function AssetsEng:onFileDrop(path)
             local asset = Asset.File(path)
             local _, _, filename = string.find(path, "([^/\\]+)$")
 
-            self.parent.engines.graphics.assetManager:add(asset, true)
+            self.assetManager:add(asset, true)
             -- Send interaction to hilighted entity
             
             self.client:sendInteraction({
