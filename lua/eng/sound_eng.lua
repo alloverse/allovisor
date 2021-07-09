@@ -282,12 +282,19 @@ end
 
 function SoundEng:onLiveMediaAdded(component)
   local trackId = component.track_id
-  if trackId ~= self.track_id then
-    print("SoundEng: subscribing to ", trackId)
-    self:sendMediaTrackSubscriptionInteraction(trackId, true)
-  else
-    print("SoundEng: not subscribing to own audio channel", trackId)
-  end
+  -- XXX HACK there's a race condition where allocate_track's response is slower than
+  -- the state stream returning the component. So, we wait a bit before subscribing
+  -- so we can almost REALLY know whether the new track is ours or not.
+  -- Of course, this is still a race condition and if interaction response is slower than
+  -- 500ms we'll still accidentally subscribe to our own media stream.
+  self.parent.app:scheduleAction(0.5, false, function()
+    if trackId ~= self.track_id then
+      print("SoundEng: subscribing to ", trackId)
+      self:sendMediaTrackSubscriptionInteraction(trackId, true)
+    else
+      print("SoundEng: not subscribing to own audio channel", trackId)
+    end
+  end)
 end
 
 function SoundEng:onLiveMediaRemoved(component)
