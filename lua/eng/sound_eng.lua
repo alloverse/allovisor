@@ -133,6 +133,9 @@ function SoundEng:onAudio(track_id, samples)
       position = {0,0,0},
       bitrate = 0.0,
     }
+    if self.parent.isSpectatorCamera then
+      audio.source:setEffectEnabled("attenuation", false)
+    end
     self.audio[track_id] = audio
   end
 

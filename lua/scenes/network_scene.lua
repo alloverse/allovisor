@@ -39,7 +39,7 @@ function NetworkScene:_init(displayName, url, avatarName, isSpectatorCamera)
   self.isSpectatorCamera = isSpectatorCamera
 
   local assets = AlloAvatar:loadAssets()
-  self.avatarView = AlloAvatar(nil, self.displayName, avatarName, self)
+  self.avatarView = AlloAvatar(nil, self.displayName, avatarName, self, isSpectatorCamera)
 
   -- turn this off to fall back to make server decide where visors can move
   self.useClientAuthoritativePositioning = true
@@ -84,45 +84,6 @@ function NetworkScene:_init(displayName, url, avatarName, isSpectatorCamera)
   end
   
   self:super()
-end
-
-function NetworkScene:avatarSpec(avatarName)
-  if self.isSpectatorCamera then
-    return self:cameraSpec()
-  end
-
-  
-  local avatar = self.avatarView:specification()
-  return avatar
-end
-
-function NetworkScene:cameraSpec()
-  local avatarName = "animal"
-  return {
-    visor = {
-      display_name = self.displayName,
-    },
-    children = {
-      {
-        intent = {
-          actuate_pose = "hand/left"
-        }
-      },
-      {
-        geometry = {
-          type = "asset",
-          name = AlloAvatar.assets["avatars/"..avatarName.."/head"]:id()
-        },
-        material= {
-          shader_name= "pbr"
-        },
-        intent = {
-          actuate_pose = "head"
-        }
-      },
-    }
-  }
-  
 end
 
 function NetworkScene:onLoad()

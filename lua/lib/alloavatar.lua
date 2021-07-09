@@ -32,22 +32,22 @@ function AlloAvatar.loadAssets()
 end
 
 
-function AlloAvatar:_init(bounds, displayName, avatarName, net)
+function AlloAvatar:_init(bounds, displayName, avatarName, net, isCamera)
     self:super(bounds)
     self.displayName = displayName
     self.avatarName = avatarName
     self.net = net
-
-    self.leftHand = self:addSubview(AlloBodyPart(nil, avatarName, "hand/left", "left-hand"))
-    if lovr.headset ~= nil and lovr.headset.getDriver() ~= "desktop" then
-        -- right hand can't be simulated in desktop
-        self.rightHand = self:addSubview(AlloBodyPart(nil, avatarName, "hand/right", "right-hand"))
+    if not isCamera then
+        self.leftHand = self:addSubview(AlloBodyPart(nil, avatarName, "hand/left", "left-hand"))
+        if lovr.headset ~= nil and lovr.headset.getDriver() ~= "desktop" then
+            -- right hand can't be simulated in desktop
+            self.rightHand = self:addSubview(AlloBodyPart(nil, avatarName, "hand/right", "right-hand"))
+        end
+        self.torso = self:addSubview(AlloBodyPart(nil, avatarName, "torso", "torso"))
+        self.torso.displayName = displayName
+        self.watchHud = self.leftHand:addSubview(self:makeWatchHud())
     end
-    self.torso = self:addSubview(AlloBodyPart(nil, avatarName, "torso", "torso"))
-    self.torso.displayName = displayName
     self.head = self:addSubview(AlloBodyPart(nil, avatarName, "head", "head"))
-
-    self.watchHud = self.leftHand:addSubview(self:makeWatchHud())
 end
 
 function AlloAvatar:sleep()
