@@ -18,10 +18,17 @@ function OptionsPane:_init(menu)
 
     self.audioButton = ui.Button(ui.Bounds(0, -0.2, 0.01,     1.4, 0.2, 0.15))
     self.audioButton.label.text = "Audio settings..."
-    self.audioButton.onActivated = function() 
+    self.audioButton.onActivated = function()
         self.nav:push(AudioPane(menu))
     end
     self:addSubview(self.audioButton)
+
+    self.graphicsButton = ui.Button(ui.Bounds(0, -0.5, 0.01,     1.4, 0.2, 0.15))
+    self.graphicsButton.label.text = "Graphics settings..."
+    self.graphicsButton.onActivated = function()
+        self.nav:push(AudioPane(menu))
+    end
+    self:addSubview(self.graphicsButton)
 end
 
 function OptionsPane:awake()
