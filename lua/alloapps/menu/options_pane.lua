@@ -2,6 +2,7 @@ local ui = require("alloui.ui")
 local pretty = require("pl.pretty")
 local class = require("pl.class")
 local AudioPane = require("alloapps.menu.audio_pane")
+local GraphicsPane = require("alloapps.menu.graphics_pane")
 
 class.OptionsPane(ui.Surface)
 function OptionsPane:_init(menu)
@@ -26,7 +27,7 @@ function OptionsPane:_init(menu)
     self.graphicsButton = ui.Button(ui.Bounds(0, -0.5, 0.01,     1.4, 0.2, 0.15))
     self.graphicsButton.label.text = "Graphics settings..."
     self.graphicsButton.onActivated = function()
-        self.nav:push(AudioPane(menu))
+        self.nav:push(GraphicsPane(menu))
     end
     self:addSubview(self.graphicsButton)
 end
@@ -58,7 +59,4 @@ function OptionsPane:sleep()
     Surface.sleep(self)
 end
 
-
 return OptionsPane
-
-

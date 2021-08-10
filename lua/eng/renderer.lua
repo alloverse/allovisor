@@ -90,7 +90,9 @@ end
 --  }
 -- }
 function Renderer:render(objects, options)
-    local context = options or {}
+    local context = options or {
+        enableReflections = true,
+    }
     context.sourceObjects = objects
     context.stats = {
         views = 0, -- number of passes rendered
@@ -362,7 +364,7 @@ function Renderer:prepareObjects(context)
         end)
 
         local lastCubemapFrame = self.lastCubemapFrame or 0
-        if context.frame.cubemapDepth >= context.frame.cubemapLimit.maxDepth or (context.frame.nr - lastCubemapFrame) < context.frame.cubemapLimit.minFrameDistance then
+        if context.enableReflections == false or context.frame.cubemapDepth >= context.frame.cubemapLimit.maxDepth or (context.frame.nr - lastCubemapFrame) < context.frame.cubemapLimit.minFrameDistance then
             view.objects.needsCubemap = OrderedMap()
         else
             self.lastCubemapFrame = context.frame.nr
@@ -452,8 +454,8 @@ function Renderer:drawContext(context)
     lovr.graphics.setShader(self.shader)
 
     -- Generate cubemaps where needed
-    local cubemapsEnabled = context.frame.cubemapLimit.max > 0
-    if cubemapsEnabled then 
+    local cubemapsEnabled = context.enableReflections and context.frame.cubemapLimit.max > 0
+    if cubemapsEnabled then
         for id, object in view.objects.needsCubemap:iter() do
             if self:shouldGenerateCubemap(object, context) then 
                 self:generateCubemap(object, context)

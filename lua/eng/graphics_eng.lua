@@ -12,6 +12,7 @@ local alloPbrShader = require "shader/alloPbrShader"
 local loader = require "lib.async-loader"
 local util = require("lib.util")
 local Asset = require("lib.alloui.lua.alloui.asset")
+local Store = require("lib.lovr-store")
 
 local GraphicsEng = classNamed("GraphicsEng", Ent)
 
@@ -211,7 +212,8 @@ function GraphicsEng:onDraw()
         local headPosition = self.parent:getHead().components.transform:getMatrix():mul(vec3())
         self.renderStats = self.renderer:render(objects, {
             drawAABB = self.drawAABBs,
-            cameraPosition = newVec3(headPosition)
+            cameraPosition = newVec3(headPosition),
+            enableReflections = Store.singleton():load("graphics.reflections"),
         })
     end
 end
