@@ -119,7 +119,8 @@ function PoseEng:onDraw()
 end
 
 function PoseEng:onFocus(focused)
-  self.isFocused = focused
+  self.isFocused = true 
+  -- this isn't set to _focused_ because of reasons documented in onFileDrop
 end
 
 function PoseEng:isTracked(device)
@@ -616,6 +617,20 @@ end
 function PoseEng:onKeyPress(code, scancode, repetition)
   if code == "escape" then
     self:defocus()
+  end
+end
+
+function PoseEng:onFileDrop(key)
+  -- file drop is likely to happen when app is in background, so let's do a once-over update of hand position
+  -- (which is hidden when backgrounded) before AssetsEngine runs into this file drop.
+  -- TODO: This doesn't work, because pointing is using the _hand entity's location_ to calculate the
+  -- handray, which is likely a frame or two off due to network latency :S So, try this again when
+  -- hand has locally interpolated location. (or maybe we just need to trigger a simulate() here?)
+  -- In any case, meanwhile I'm going to set isFocused to always be true.
+  if not self.isFocused then
+    self.isFocused = true
+    self:onUpdate(0.01)
+    self.isFocused = false
   end
 end
 
