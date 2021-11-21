@@ -155,7 +155,10 @@ function PoseEng:getPose(device)
     elseif device == "torso" then
       pose:translate(self:getPose("head"):mul(lovr.math.vec3())):translate(0, -0.485, 0.04)
     elseif device == "hand/left" then
-      pose:translate(-0.18, 1.45, -0.0)
+      pose:translate(-0.18, 1.50, -0.35)
+      pose:rotate(-3.1416/4, 0,1,0):translate(0,0,-0.05)
+    elseif device == "hand/right" then
+      pose:translate( 0.18, 1.45, -0.0)
       local ava = self.parent:getAvatar()
       if lovr.mouse and self.mouseInWorld and ava then
         local worldFromAvatar = ava.components.transform:getMatrix()
