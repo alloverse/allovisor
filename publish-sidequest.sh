@@ -17,6 +17,6 @@ curl -v -X POST \
     -H 'Content-Type: application/json' \
     -H 'Host: sdq.st' \
     -H 'cache-control: no-cache' \
-    -d '{
-    "url": "$URL"
-    }'
+    -d "{
+    \"url\": \"$URL\"
+    }"
