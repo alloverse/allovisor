@@ -49,8 +49,9 @@ add_custom_target(
 if(ANDROID)
     SET(BUILD_SHARED_LIBS OFF CACHE BOOL "Default to static linking, otherwise libluajit becomes dynamic??")
 
-    set(ALLONET_LINK_TINYCTHREAD OFF CACHE BOOL "lovr already has tinycthread, and on android that becomes duplicate symbols")
-    
+    set(ALLONET_THREADING_STRATEGY "force_use_tinycthread" CACHE STRING "lovr already has tinycthread, and on android that becomes duplicate symbols")
+    set(ALLONET_LINK_TINYCTHREAD OFF CACHE BOOL "lovr already has tinycthread, and on android that becomes duplicate symbols. Use this symbol in addition to ALLONET_THREADING_STRATEGY to be compatible with both main and x264 branch")
+
     SET(ANDROID_ASSETS ${ALLO_LUA_SOURCE_DIR})
     set(ANDROID_MANIFEST "${CMAKE_CURRENT_SOURCE_DIR}/src/android/AndroidManifest_${ANDROID_VARIANT}.xml" CACHE STRING "The AndroidManifest.xml file to use")
 
@@ -63,6 +64,8 @@ if(ANDROID)
     else()
         message(FATAL_ERROR "No ANDROID_VARIANT provided")
     endif()
+else()
+set(ALLONET_THREADING_STRATEGY "force_link_tinycthread" CACHE STRING "use tinycthread just to be consistent with android")
 endif()
 
 file(GLOB ALLO_LOVR_PLUGINS lovr-plugins/*)
