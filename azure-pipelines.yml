@@ -171,6 +171,11 @@ jobs:
     condition: and(succeeded(), eq(variables.isMain, true))
     env: 
       PUBLISHING_SECRET: $(PublishingSecret)
+  - bash: bash publish-sidequest.sh
+    displayName: "Publish build to SideQuest"
+    condition: and(succeeded(), eq(variables.isMain, true))
+    env: 
+      SIDEQUEST_TOKEN: $(SidequestToken)
 
 # - job: Pico
 #   pool:
