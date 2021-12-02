@@ -43,6 +43,8 @@ any lua source file. From `build`: `./Alloverse.app/Contents/MacOS/lovr ../deps/
 
 ### Windows
 
+1. Install Git from git-scm.com, and use the "Use Git and optional Unix tools from the Command Prompt" option.
+   The build environment for Alloverse uses some bash scripts, and bash must be in PATH.
 1. Install Visual Studio 2019, including "C++ CMake tools for Windows" which comes with "Desktop development with C++".
 2. Open the project folder in VS2019
 3. In the Solution Explorer, right-click CMakeLists.txt and select "Generate CMake cache for allovisor"
