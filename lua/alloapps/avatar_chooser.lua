@@ -32,7 +32,7 @@ function BodyPart:awake()
   elseif self.partName == "head" then
     self:addPropertyAnimation(ui.PropertyAnimation{
       path= "transform.matrix.translation.y",
-      start_at = self.app:now() + 0.4,
+      start_at = self.app:serverTime() + 0.4,
       from= 1.64,
       to=   1.645,
       duration = 2.2,

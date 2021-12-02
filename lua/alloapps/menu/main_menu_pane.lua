@@ -61,7 +61,7 @@ function MainMenuPane:_init(menu)
     self.logo:doWhenAwake(function()
       self.logo:addPropertyAnimation(ui.PropertyAnimation{
         path= "transform.matrix.rotation.y",
-        start_at = self.app:now() + 1.0,
+        start_at = self.app:serverTime() + 1.0,
         from= -0.2,
         to=   0.2,
         duration = 2.0,
