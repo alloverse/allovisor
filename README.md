@@ -28,16 +28,18 @@ When running from xcode the lua code will hot reload when any file in the lua fo
 If you're using Xcode 12.2 or newer, for now you'll have to opt into the old
 build system. Change `cmake -GXcode ..` to `cmake -Tbuildsystem=1 -GXcode ..`.
 
-#### make
+#### Linux/Make
 
 1. Install CMake 3.13.0 or newer
-2. `mkdir build && cd build && cmake ..` to prepare to build
-3. In build, `make Alloverse` to build `Alloverse.app`.
-4. You could now just double-click Alloverse.app, but then you'd need to recompile
-   for each change. Instead, you can start it from the command line together with
-   lodr to auto-reload whenever you change any lua source file. From `build`:
+2. `sudo apt install libavcodec-dev libavformat-dev libswscale-dev`
+3. `mkdir build && cd build && cmake ..` to prepare to build
+4. In build, `make Alloverse`
+5. Run with `./bin/Alloverse ../deps/lodr/ ../lua/`
 
-`./Alloverse.app/Contents/MacOS/lovr ../deps/lodr ../lua`
+If you're using Make on a Mac: You could now just double-click Alloverse.app, 
+but then you'd need to recompile for each change. Instead, you can start it from 
+the command line together with lodr to auto-reload whenever you change
+any lua source file. From `build`: `./Alloverse.app/Contents/MacOS/lovr ../deps/lodr ../lua`
 
 ### Windows
 
