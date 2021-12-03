@@ -90,7 +90,10 @@ This only works from a Mac or Linux machine.
 
 1. Install CMake version 3.15.4 exactly. (2.19.2 also works)
 2. Install Android Studio if you haven't already.
-3. In Android Studio's SDK manager under the SDK Platforms tab, install SDK for API levels 26 (Quest) and 27 (Pico). Also install NDK (side-by-side) from the SDK-Tools tab.
+3. Open the Android Studio's SDK manager and make sure the following is installed:
+    - "Android 10.0" (API level 29), for targeting Oculus Quest.
+    - "Android 8.1" (API level 27), for targeting Pico. 
+    - "NDK (side-by-side)", from the SDK-Tools tab.
 4. [Enable developer mode on your Quest](https://developer.oculus.com/documentation/quest/latest/concepts/mobile-device-setup-quest/).
 5. Add the android tools to your PATH
 ```
