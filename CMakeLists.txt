@@ -269,7 +269,9 @@ elseif(ANDROID)
     # Force-load allonet into lovr exe
     target_link_libraries(lovr "-Wl,--whole-archive" allonet visorlib "-Wl,--no-whole-archive" "-ldl")
 
-    # TODO: modify manifest with app name etc...
+    # Add the requisite libraries to the apk bundling
+    file(COPY ${LIBAV_DLLS} DESTINATION deps/lovr/raw/lib/${ANDROID_ABI})
+
     add_custom_target(
         Alloverse ALL
         DEPENDS lovr buildAPK
@@ -281,7 +283,7 @@ elseif(UNIX)
       Alloverse 
       ${ALLO_SOURCES}
     )
-    set_property(TARGET Alloverse PROPERTY ENABLE_EXPORTS 1) # for get_version
+    set_property(TARGET Alloverse PROPERTY ENABLE_EXPORTS 1) # for get_version from lua
     target_link_libraries(Alloverse ${ALLO_LINK_LIBS})
     add_dependencies(Alloverse allovisor_version_header)
     target_compile_options(Alloverse PRIVATE -Wall -Wextra -pedantic)
@@ -316,4 +318,7 @@ elseif(UNIX)
     move_lib(${LOVR_OPENVR})
     move_lib(${LOVR_MSDF})
     move_lib(${LOVR_OCULUS_AUDIO})
+    add_custom_command(TARGET Alloverse POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBAV_DLLS} ${CMAKE_BINARY_DIR}/bin
+    )
 endif()
