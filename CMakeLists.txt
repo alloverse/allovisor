@@ -151,7 +151,7 @@ if(WIN32)
     install(FILES $<TARGET_FILE:opus> DESTINATION . COMPONENT Alloverse)
     install(FILES $<TARGET_FILE:allonet> DESTINATION . COMPONENT Alloverse)
     install(FILES $<TARGET_FILE:lovr> DESTINATION . COMPONENT Alloverse)
-    install(FILES ${LIBAV_DLLS} . COMPONENT Alloverse)
+    install(FILES ${LIBAV_DLLS} DESTINATION . COMPONENT Alloverse)
 
 elseif(APPLE)
     set(INSTALL_NAME_DIR .)
