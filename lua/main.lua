@@ -22,6 +22,13 @@ package.cpath = cpath
 local util = require "lib.util"
 allonet = nil
 allonet = util.load_allonet()
+local ffi = require 'ffi'
+
+ffi.cdef [[
+  void visor_media_init(void);
+]]
+ffi.C.visor_media_init()
+
 
 local dragndrop = require("lib.lovr-dragndrop")
 Store = require("lib.lovr-store")

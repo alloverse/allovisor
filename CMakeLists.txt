@@ -9,8 +9,9 @@ cmake_policy(SET CMP0042 NEW) # make @rpath default
 SET(ALLO_SOURCES 
   src/desktop_main.c # removed later if android
   src/get_version.c
+  src/media.c
 )
-SET(ALLO_LINK_LIBS lovr allonet)
+SET(ALLO_LINK_LIBS lovr allonet allonet_av)
 SET(ALLO_LUA_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lua)
 
 # Build settings that need to go before add_subdirectory
@@ -94,6 +95,7 @@ add_subdirectory (deps/allonet)
 # Build settings that go after add_subdirectory (i e only applies
 # to these targets, not dependencies' targets)
 include_directories(src ${CMAKE_CURRENT_BINARY_DIR}/include)
+include_directories(src deps/allonet/include deps/allonet/lib)
 include_directories(deps/lovr/src deps/lovr/src/modules)
 include_directories(deps/lovr/deps/luajit/src ${CMAKE_BINARY_DIR}/deps/lovr/luajit)
 
@@ -113,6 +115,7 @@ if(WIN32)
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:openvr_api64> ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:msdfgen> ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:opus> ${CMAKE_CURRENT_BINARY_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:allonet_av> ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:allonet> ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:lovr> ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy ${LIBAV_DLLS} ${CMAKE_CURRENT_BINARY_DIR}
@@ -150,6 +153,7 @@ if(WIN32)
     install(FILES $<TARGET_FILE:msdfgen> DESTINATION . COMPONENT Alloverse)
     install(FILES $<TARGET_FILE:opus> DESTINATION . COMPONENT Alloverse)
     install(FILES $<TARGET_FILE:allonet> DESTINATION . COMPONENT Alloverse)
+    install(FILES $<TARGET_FILE:allonet_av> DESTINATION . COMPONENT Alloverse)
     install(FILES $<TARGET_FILE:lovr> DESTINATION . COMPONENT Alloverse)
     install(FILES ${LIBAV_DLLS} DESTINATION . COMPONENT Alloverse)
 
@@ -268,7 +272,7 @@ elseif(ANDROID)
     add_dependencies(visorlib allovisor_version_header)
 
     # Force-load allonet into lovr exe
-    target_link_libraries(lovr "-Wl,--whole-archive" allonet visorlib "-Wl,--no-whole-archive" "-ldl")
+    target_link_libraries(lovr "-Wl,--whole-archive" allonet allonet_av visorlib "-Wl,--no-whole-archive" "-ldl")
 
     # Add the requisite libraries to the apk bundling
     file(COPY ${LIBAV_DLLS} DESTINATION deps/lovr/raw/lib/${ANDROID_ABI})
@@ -313,6 +317,7 @@ elseif(UNIX)
     endfunction()
     move_lib(lovr)
     move_lib(allonet)
+    move_lib(allonet_av)
     move_lib(${LOVR_GLFW})
     move_lib(${LOVR_LUA})
     move_lib(${LOVR_ODE})
