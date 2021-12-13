@@ -119,9 +119,9 @@ function PoseEng:updateButton(device, button)
   if lovr.headset then
     down = down or lovr.headset.isDown(device, button)
   end
-  if device == "hand/left" and button == "trigger" then
+  if device == "hand/right" and button == "trigger" then
     down = down or (self.mouseIsDown and self.mouseMode == "interact")
-  elseif device == "hand/left" and button == "grip" then
+  elseif device == "hand/right" and button == "grip" then
     down = down or self:getAxis(device, button) > 0.5
   elseif button == "menu" and device == "hand/left" and self.keyboard then
     down = down or self:isKeyboardButtonPressed("escape")
@@ -212,7 +212,7 @@ function PoseEng:getAxis(device, axis, evenIfOverridden)
       elseif self:isKeyboardButtonPressed("e") then
         x = 1
       end
-    elseif device == "hand/left" and axis == "grip" and x == 0 then
+    elseif device == "hand/right" and axis == "grip" and x == 0 then
       x = self.rightMouseIsDown and 1.0 or 0.0
     end
   end
