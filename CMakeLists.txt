@@ -239,6 +239,12 @@ elseif(APPLE)
     move_lib(msdfgen)
     move_lib(ode)
     move_lib(openvr_api)
+    message( "LibAV DLLs: ${LIBAV_DLLS}" )
+    add_custom_command(TARGET Alloverse POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy
+      ${LIBAV_DLLS}
+      $<TARGET_FILE_DIR:Alloverse>/
+    )
     
     # Add the target to install package
     install(TARGETS ${APP_NAME} 
@@ -323,7 +329,7 @@ elseif(UNIX)
     move_lib(${LOVR_ODE})
     move_lib(${LOVR_OPENVR})
     move_lib(${LOVR_MSDF})
-    move_lib(${LOVR_OCULUS_AUDIO})
+    r(${LOVR_OCULUS_AUDIO})
     add_custom_command(TARGET Alloverse POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBAV_DLLS} ${CMAKE_BINARY_DIR}/bin
     )
