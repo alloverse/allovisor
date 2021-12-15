@@ -3,7 +3,7 @@
   xmlns:android="http://schemas.android.com/apk/res/android"
 	package="com.alloverse.visor"
 	android:versionCode="5"
-	android:versionName="0.5.81" 
+	android:versionName="0.5.84" 
   android:installLocation="auto" > <!-- Version code must be updated with each new upload to the App Labs -->
 
   <uses-sdk android:minSdkVersion="23" android:targetSdkVersion="29"/>
@@ -24,7 +24,15 @@
     <meta-data android:name="com.oculus.supportedDevices" android:value="quest|quest2"/>
     <meta-data android:name="com.oculus.intent.category.VR" android:value="vr_only"/>
 
-    <activity android:name="org.lovr.app.Activity" android:excludeFromRecents="true">
+    <activity 
+      android:name="org.lovr.app.Activity" 
+      android:excludeFromRecents="true"
+      android:screenOrientation="landscape"
+      android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
+      android:configChanges="density|keyboard|keyboardHidden|navigation|orientation|screenLayout|screenSize|uiMode"
+      android:launchMode="singleTask"
+      android:resizeableActivity="false"
+    >
       <meta-data android:name="android.app.lib_name" android:value="lovr"/>
       <meta-data android:name="com.oculus.vr.focusaware" android:value="true"/>
       
