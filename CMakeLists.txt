@@ -175,6 +175,7 @@ elseif(APPLE)
     set_source_files_properties(${ALLO_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 
     set(APP_NAME Alloverse)
+    set(CMAKE_XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS "--deep")
 
     list(APPEND ALLO_SOURCES src/allomac.m)
 
