@@ -1,4 +1,27 @@
-<?xml version="1.0" encoding="utf-8"?>
+
+<manifest xmlns:android="http://schemas.android.com/apk/res/android" package="com.alloverse.visor"
+android:versionCode="1" android:versionName="0.5.89" android:installLocation="auto">
+
+  <application android:label="Alloverse" android:debuggable="false">
+    <meta-data android:name="com.oculus.intent.category.VR" android:value="vr_only"/>
+    <meta-data android:name="com.oculus.supportedDevices" android:value="quest|quest2"/>
+    <activity android:screenOrientation="landscape"
+        android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
+        android:configChanges="density|keyboard|keyboardHidden|navigation|orientation|screenLayout|screenSize|uiMode"
+        android:launchMode="singleTask"
+        android:resizeableActivity="false"
+        android:excludeFromRecents="true">
+    </activity>
+  </application>
+
+  <uses-sdk android:minSdkVersion="26"/>
+  <uses-feature android:glEsVersion="0x00030001" />
+  <uses-feature android:name="android.hardware.vr.headtracking" android:required="true" android:version="1" />
+
+</manifest>
+
+
+<!-- <?xml version="1.0" encoding="utf-8"?>
 
 <manifest 
   xmlns:android="http://schemas.android.com/apk/res/android"
@@ -40,9 +63,7 @@
 	</application>
 
 
-
-
-  <uses-sdk android:minSdkVersion="23" android:targetSdkVersion="29"/>
+  <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="29"/>
 
 	<uses-feature android:glEsVersion="0x00030001" android:required="true"/>
   <uses-feature android:name="android.hardware.vr.headtracking" android:required="true" android:version="1" />
@@ -55,4 +76,4 @@
 	<uses-permission android:name="com.oculus.permission.HAND_TRACKING" />
 	<!-- <uses-permission android:name="oculus.permission.handtracking"/> -->
 
-</manifest>
+</manifest> -->
