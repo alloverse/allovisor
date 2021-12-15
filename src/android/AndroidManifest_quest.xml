@@ -12,7 +12,6 @@
     <meta-data android:name="com.oculus.supportedDevices" android:value="quest|quest2"/>
     <meta-data android:name="com.oculus.intent.category.VR" android:value="vr_only"/>
 
-    <activity android:name="org.lovr.app.Activity" android:excludeFromRecents="true">
     <activity 
       android:name="org.lovr.app.Activity" 
       android:excludeFromRecents="true"
