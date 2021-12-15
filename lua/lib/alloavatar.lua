@@ -66,10 +66,19 @@ function AlloAvatar:specification()
 end
 
 function AlloAvatar:makeWatchHud()
-    local muteButton = ui.Button(
-        ui.Bounds(-0.09, 0.00, 0.04,   0.03, 0.02, 0.010):rotate(-3.14/2, 0,-1,0)
+    local hudRoot = ui.View(
+        ui.Bounds(-0.09, 0.00, 0.04,   0.00, 0.00, 0.00):rotate(-3.14/2, 0,-1,0)
     )
+
+    local muteButton = hudRoot:addSubview(self:makeMuteButton())
     
+    return hudRoot
+end
+
+function AlloAvatar:makeMuteButton()
+    local muteButton = ui.Button(
+        ui.Bounds(0, 0.00, 0.00,   0.03, 0.02, 0.010)
+    )
     muteButton.label.fitToWidth = true
     muteButton.onActivated = function()
         local soundEng = self.net.engines.sound
@@ -100,7 +109,21 @@ function AlloAvatar:makeWatchHud()
         self.isMuted = isMuted
         updateLooks()
     end)
-    return muteButton
+end
+
+function AlloAvatar:onInteraction(inter, body, sender)
+    if body[1] == "add_wrist_widget" then
+        local widget_eid = body[2]
+        self.app.client:getEntity(widget_eid, function(widget)
+            self:addWristWidget(widget_)
+        end
+    else
+        View.onInteraction(self, inter, body, sender)
+    end
+end
+
+function AlloAvatar:addWristWidget(entity)
+
 end
 
 class.AlloBodyPart(ui.View)
