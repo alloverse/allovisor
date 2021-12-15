@@ -5,18 +5,26 @@ android:versionCode="1" android:versionName="0.5.89" android:installLocation="au
   <application android:label="Alloverse" android:debuggable="false">
     <meta-data android:name="com.oculus.intent.category.VR" android:value="vr_only"/>
     <meta-data android:name="com.oculus.supportedDevices" android:value="quest|quest2"/>
-    <activity android:screenOrientation="landscape"
-        android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
-        android:configChanges="density|keyboard|keyboardHidden|navigation|orientation|screenLayout|screenSize|uiMode"
-        android:launchMode="singleTask"
-        android:resizeableActivity="false"
-        android:excludeFromRecents="true">
+    <activity 
+      android:name="org.lovr.app.Activity"
+      android:screenOrientation="landscape"
+      android:theme="@android:style/Theme.Black.NoTitleBar.Fullscreen"
+      android:configChanges="density|keyboard|keyboardHidden|navigation|orientation|screenLayout|screenSize|uiMode"
+      android:launchMode="singleTask"
+      android:resizeableActivity="false"
+      android:excludeFromRecents="true">
     </activity>
   </application>
 
   <uses-sdk android:minSdkVersion="26"/>
   <uses-feature android:glEsVersion="0x00030001" />
   <uses-feature android:name="android.hardware.vr.headtracking" android:required="true" android:version="1" />
+
+  	<uses-permission android:name="android.permission.INTERNET" />
+	  <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
+    <uses-permission android:name="com.oculus.permission.HAND_TRACKING" />
 
 </manifest>
 
@@ -28,17 +36,13 @@ android:versionCode="1" android:versionName="0.5.89" android:installLocation="au
 	package="com.alloverse.visor"
 	android:versionCode="5"
 	android:versionName="0.5.84" 
-  android:installLocation="auto" > <!-- Version code must be updated with each new upload to the App Labs -->
+  android:installLocation="auto" >
 
-
-
-	<application android:allowBackup="false" android:label="Alloverse" android:extractNativeLibs="false" android:debuggable="false"> <!-- Versions built for App Labs requires android:debuggable to be false -->
+	<application android:allowBackup="false" android:label="Alloverse" android:extractNativeLibs="false" android:debuggable="false">
 		
     <meta-data android:name="com.oculus.intent.category.VR" android:value="vr_only"/>
     <meta-data android:name="com.oculus.supportedDevices" android:value="quest|quest2"/>
-    
     <meta-data android:name="com.samsung.android.vr.application.mode" android:value="vr_only"/>
-    
 
     <activity 
       android:name="org.lovr.app.Activity" 
@@ -54,14 +58,11 @@ android:versionCode="1" android:versionName="0.5.89" android:installLocation="au
       
       <intent-filter>
         <action android:name="android.intent.action.MAIN"/>
-        <category android:name="android.intent.category.INFO"/> <!-- Versions built for App Labs requires INFO instead of VR + LAUNCHER -->
-        <!-- <category android:name="com.oculus.intent.category.VR"/>
-        <category android:name="android.intent.category.LAUNCHER"/> -->
+        <category android:name="android.intent.category.INFO"/>
       </intent-filter>
     </activity>
 
 	</application>
-
 
   <uses-sdk android:minSdkVersion="26" android:targetSdkVersion="29"/>
 
@@ -74,6 +75,5 @@ android:versionCode="1" android:versionName="0.5.89" android:installLocation="au
 	<uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
   <uses-permission android:name="android.permission.RECORD_AUDIO" />
 	<uses-permission android:name="com.oculus.permission.HAND_TRACKING" />
-	<!-- <uses-permission android:name="oculus.permission.handtracking"/> -->
 
 </manifest> -->
