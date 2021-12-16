@@ -9,8 +9,9 @@ cmake_policy(SET CMP0042 NEW) # make @rpath default
 SET(ALLO_SOURCES 
   src/desktop_main.c # removed later if android
   src/get_version.c
+  src/media.c
 )
-SET(ALLO_LINK_LIBS lovr allonet)
+SET(ALLO_LINK_LIBS lovr allonet allonet_av)
 SET(ALLO_LUA_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lua)
 
 # Build settings that need to go before add_subdirectory
@@ -94,6 +95,7 @@ add_subdirectory (deps/allonet)
 # Build settings that go after add_subdirectory (i e only applies
 # to these targets, not dependencies' targets)
 include_directories(src ${CMAKE_CURRENT_BINARY_DIR}/include)
+include_directories(src deps/allonet/include deps/allonet/lib)
 include_directories(deps/lovr/src deps/lovr/src/modules)
 include_directories(deps/lovr/deps/luajit/src ${CMAKE_BINARY_DIR}/deps/lovr/luajit)
 
@@ -113,8 +115,10 @@ if(WIN32)
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:openvr_api64> ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:msdfgen> ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:opus> ${CMAKE_CURRENT_BINARY_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:allonet_av> ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:allonet> ${CMAKE_CURRENT_BINARY_DIR}
         COMMAND ${CMAKE_COMMAND} -E copy $<TARGET_FILE:lovr> ${CMAKE_CURRENT_BINARY_DIR}
+        COMMAND ${CMAKE_COMMAND} -E copy ${LIBAV_DLLS} ${CMAKE_CURRENT_BINARY_DIR}
     )
 
     set(CPACK_GENERATOR "NSIS")
@@ -140,6 +144,7 @@ if(WIN32)
     set(CMAKE_INSTALL_SYSTEM_RUNTIME_DESTINATION ".")
     include (InstallRequiredSystemLibraries)
     message( "Runtime installation files: ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS}" )
+    message( "LibAV DLLs: ${LIBAV_DLLS}" )
     install(DIRECTORY lua DESTINATION . COMPONENT Alloverse)
     install(FILES $<TARGET_FILE:glfw> DESTINATION . COMPONENT Alloverse)
     install(FILES $<TARGET_FILE:libluajit> DESTINATION . COMPONENT Alloverse)
@@ -148,7 +153,9 @@ if(WIN32)
     install(FILES $<TARGET_FILE:msdfgen> DESTINATION . COMPONENT Alloverse)
     install(FILES $<TARGET_FILE:opus> DESTINATION . COMPONENT Alloverse)
     install(FILES $<TARGET_FILE:allonet> DESTINATION . COMPONENT Alloverse)
+    install(FILES $<TARGET_FILE:allonet_av> DESTINATION . COMPONENT Alloverse)
     install(FILES $<TARGET_FILE:lovr> DESTINATION . COMPONENT Alloverse)
+    install(FILES ${LIBAV_DLLS} DESTINATION . COMPONENT Alloverse)
 
 elseif(APPLE)
     set(INSTALL_NAME_DIR .)
@@ -168,6 +175,7 @@ elseif(APPLE)
     set_source_files_properties(${ALLO_ICON} PROPERTIES MACOSX_PACKAGE_LOCATION Resources)
 
     set(APP_NAME Alloverse)
+    set(CMAKE_XCODE_ATTRIBUTE_OTHER_CODE_SIGN_FLAGS "--deep")
 
     list(APPEND ALLO_SOURCES src/allomac.m)
 
@@ -232,6 +240,12 @@ elseif(APPLE)
     move_lib(msdfgen)
     move_lib(ode)
     move_lib(openvr_api)
+    message( "LibAV DLLs: ${LIBAV_DLLS}" )
+    add_custom_command(TARGET Alloverse POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy
+      ${LIBAV_DLLS}
+      $<TARGET_FILE_DIR:Alloverse>/
+    )
     
     # Add the target to install package
     install(TARGETS ${APP_NAME} 
@@ -265,9 +279,11 @@ elseif(ANDROID)
     add_dependencies(visorlib allovisor_version_header)
 
     # Force-load allonet into lovr exe
-    target_link_libraries(lovr "-Wl,--whole-archive" allonet visorlib "-Wl,--no-whole-archive" "-ldl")
+    target_link_libraries(lovr "-Wl,--whole-archive" allonet allonet_av visorlib "-Wl,--no-whole-archive" "-ldl")
 
-    # TODO: modify manifest with app name etc...
+    # Add the requisite libraries to the apk bundling
+    file(COPY ${LIBAV_DLLS} DESTINATION deps/lovr/raw/lib/${ANDROID_ABI})
+
     add_custom_target(
         Alloverse ALL
         DEPENDS lovr buildAPK
@@ -279,7 +295,7 @@ elseif(UNIX)
       Alloverse 
       ${ALLO_SOURCES}
     )
-    set_property(TARGET Alloverse PROPERTY ENABLE_EXPORTS 1) # for get_version
+    set_property(TARGET Alloverse PROPERTY ENABLE_EXPORTS 1) # for get_version from lua
     target_link_libraries(Alloverse ${ALLO_LINK_LIBS})
     add_dependencies(Alloverse allovisor_version_header)
     target_compile_options(Alloverse PRIVATE -Wall -Wextra -pedantic)
@@ -308,10 +324,14 @@ elseif(UNIX)
     endfunction()
     move_lib(lovr)
     move_lib(allonet)
+    move_lib(allonet_av)
     move_lib(${LOVR_GLFW})
     move_lib(${LOVR_LUA})
     move_lib(${LOVR_ODE})
     move_lib(${LOVR_OPENVR})
     move_lib(${LOVR_MSDF})
-    move_lib(${LOVR_OCULUS_AUDIO})
+    r(${LOVR_OCULUS_AUDIO})
+    add_custom_command(TARGET Alloverse POST_BUILD
+      COMMAND ${CMAKE_COMMAND} -E copy ${LIBAV_DLLS} ${CMAKE_BINARY_DIR}/bin
+    )
 endif()

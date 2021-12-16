@@ -46,7 +46,7 @@ function MainMenuPane:_init(menu)
     self:addSubview(self.messageLabel)
 
     self.versionLabel = ui.Label{
-      bounds = ui.Bounds(-0.09, -0.71, 0.01,     1.4, 0.07, 0.1),
+      bounds = ui.Bounds(-0.09, -0.80, 0.01,     1.4, 0.05, 0.1),
       text = "ver. unknown",
       color = {0.5, 0.5, 0.5, 1},
       halign = "left"
@@ -88,6 +88,7 @@ local VisorC = ffi.C
 
 function MainMenuPane:updateVersionLabel()
   local versionString = string.format("App version: %s\nNetwork version: %s", ffi.string(VisorC.GetAllovisorVersion()), ffi.string(AllonetC.GetAllonetVersion()))
+  versionString = versionString.."\n\nThis software uses libraries from the FFmpeg project under the LGPLv2.1.\nSee https://docs.alloverse.com/licenses for all OSS licenses used."
   self.versionLabel:setText(versionString)
 end
 

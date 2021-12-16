@@ -29,7 +29,6 @@ end
 
 function SceneManager:onUpdate()  
   if lovr.headset then
-    print("lovr.headset")
     if lovr.headset.wasPressed("hand/left", "menu") then
       self:toggleMenu()
     end
