@@ -330,7 +330,7 @@ elseif(UNIX)
     move_lib(${LOVR_ODE})
     move_lib(${LOVR_OPENVR})
     move_lib(${LOVR_MSDF})
-    r(${LOVR_OCULUS_AUDIO})
+    move_lib(${LOVR_OCULUS_AUDIO})
     add_custom_command(TARGET Alloverse POST_BUILD
       COMMAND ${CMAKE_COMMAND} -E copy ${LIBAV_DLLS} ${CMAKE_BINARY_DIR}/bin
     )
