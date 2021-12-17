@@ -21,12 +21,13 @@ function PhysicsEng:onUpdate(dt)
   
   for eid, collider in pairs(self.colliders) do
     local entity = collider:getUserData()
+    local comp = entity.components.collider
     local matrix = entity.components.transform:getMatrix()
     
     matrix:translate(
-      entity.components.collider.x or 0, 
-      entity.components.collider.y or 0, 
-      entity.components.collider.z or 0
+      comp.x or 0, 
+      comp.y or 0, 
+      comp.z or 0
     )
     
     local x, y, z, sx, sy, sz, a, ax, ay, az = matrix:unpack()
@@ -35,6 +36,8 @@ function PhysicsEng:onUpdate(dt)
       print("HOOPS broken matrix", pretty.write({matrix:unpack(true)}))
     else
       collider:setPose(x, y, z, a, ax, ay, az)
+      local boxShape = collider:getShapes()[1]
+      boxShape:setDimensions(comp.width * sx, comp.height * sy, comp.depth * sz)
     end
   end
 
