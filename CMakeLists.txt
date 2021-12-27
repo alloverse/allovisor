@@ -10,7 +10,7 @@ SET(ALLO_SOURCES
   src/desktop_main.c # removed later if android
   src/get_version.c
   src/media.c
-)
+ "src/util.h")
 SET(ALLO_LINK_LIBS lovr allonet allonet_av)
 SET(ALLO_LUA_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lua)
 

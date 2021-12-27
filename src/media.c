@@ -1,6 +1,7 @@
 #include <allonet/allonet.h>
+#include "util.h"
 
-void visor_media_init()
+ALLOVISOR_EXPORT void visor_media_init()
 {
     allo_libav_initialize();
 }
