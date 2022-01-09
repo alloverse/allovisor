@@ -51,6 +51,8 @@ local rightHandIndex = 2
 function PoseEng:_init()
   self.yaw = 0.0
   self.handRays = {HandRay("hand/left"), HandRay("hand/right")}
+  -- don't point with the fake left hand
+  if not lovr.headset then self.handRays[leftHandIndex].isPointing = false end
   self.isFocused = true
   self.mvp = lovr.math.newMat4()
   self.oldMousePos = lovr.math.newVec2()
@@ -454,6 +456,8 @@ function PoseEng:updatePointing(hand_pose, ray, handIndex)
   end)
 
   if hand_id == nil then return end
+
+  if not ray.isPointing then return end
 
   
   local hand = self.client.state.entities[hand_id]
