@@ -200,6 +200,9 @@ function _asyncLoadResume()
 		local iny = - ( y * flat.height / flat.pixheight - flat.height/2 ) -- GLFW has flipped y-coord
     ent.root:route("onRelease", lovr.math.vec2(inx, iny)) -- ui2 compat
   end
+  lovr.handlers["wheelmoved"] = function(horizontal, vertical)
+    ent.root:route("onMouseScrolled", horizontal, vertical)
+  end
 
   lovr.handlers["filedrop"] = function(path)
     ent.root:route("onFileDrop", path)

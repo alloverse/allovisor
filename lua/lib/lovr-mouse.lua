@@ -139,4 +139,11 @@ function mouse.setCursor(cursor)
   C.glfwSetCursor(window, cursor)
 end
 
+C.glfwSetScrollCallback(window, function(target, x, y)
+  if target == window then
+    local scale = mouse.getScale()
+    lovr.event.push('wheelmoved', x*scale, y*scale)
+  end
+end)
+
 return mouse

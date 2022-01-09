@@ -28,6 +28,12 @@ function PoseEng:onFakeKeyboardEvent(key, down)
   self.fakeKeyboardEvents[key] = down and down or nil
 end
 
+function PoseEng:onMouseScrolled(horiz, vert)
+  local secondsOfMovementPerUnitOfScroll = 0.04
+  self.accumulatedScroll.x = self.accumulatedScroll.x + horiz * secondsOfMovementPerUnitOfScroll
+  self.accumulatedScroll.y = self.accumulatedScroll.y + vert * secondsOfMovementPerUnitOfScroll
+end
+
 
 -------------
 -- goes through all the buttons on the controllers and stores
@@ -172,6 +178,10 @@ end
 function PoseEng:updateSimulatedSticks(dt)
   if not self.keyboard then return end
   if not self.keyboardLeftStick then self.keyboardLeftStick = lovr.math.newVec2() end
+  if not self.keyboardRightStick then 
+    self.keyboardRightStick = lovr.math.newVec2()
+    self.accumulatedScroll = lovr.math.newVec2()
+  end
 
   local stickSpeed = 1.0
   local lerpAmount = 8
@@ -180,12 +190,33 @@ function PoseEng:updateSimulatedSticks(dt)
     lerpAmount = 4
   end
   
+  -- left stick is controlled by holding the wasd keys. it's lerp'd to simulate pushing on the stick and give a gentle start.
   local xDest = self:isKeyboardButtonPressed("d") and stickSpeed or (self:isKeyboardButtonPressed("a") and -stickSpeed or 0)
   local yDest = self:isKeyboardButtonPressed("w") and stickSpeed or (self:isKeyboardButtonPressed("s") and -stickSpeed or 0)
   local dest = lovr.math.vec2(xDest, yDest)
   self.keyboardLeftStick:lerp(dest, dt*lerpAmount)
   if math.abs(self.keyboardLeftStick.x) + math.abs(self.keyboardLeftStick.y) < 0.01 then
     self.keyboardLeftStick:set(0,0)
+  end
+
+  -- right stick is controlled with scroll wheel, to let you move things depth-wise while holding them.
+  -- since wheel is instant but we're emulating a momentary input, we use an accumulator that is emptied with dt.
+  xDest = 0
+  if self.accumulatedScroll.x ~= 0 then
+    xDest = self.accumulatedScroll.x > 0 and 1 or -1
+    -- drain horizontal (go towards 0 by dt amount)
+    self.accumulatedScroll.x = math.abs(self.accumulatedScroll.x) > dt and self.accumulatedScroll.x - xDest * dt or 0
+  end
+  yDest = 0
+  if self.accumulatedScroll.y ~= 0 then
+    yDest = self.accumulatedScroll.y > 0 and 1 or -1
+    -- drain vertical (go towards 0 by dt amount)
+    self.accumulatedScroll.y = math.abs(self.accumulatedScroll.y) > dt and self.accumulatedScroll.y - yDest * dt or 0
+  end
+  dest = lovr.math.vec2(xDest, yDest)
+  self.keyboardRightStick:lerp(dest, dt*lerpAmount)
+  if math.abs(self.keyboardRightStick.x) + math.abs(self.keyboardRightStick.y) < 0.01 then
+    self.keyboardRightStick:set(0,0)
   end
 end
 
@@ -211,6 +242,9 @@ function PoseEng:getAxis(device, axis, evenIfOverridden)
         x = -1
       elseif self:isKeyboardButtonPressed("e") then
         x = 1
+      end
+      if x == 0 and y == 0 then
+        x, y = self.keyboardRightStick:unpack()
       end
     elseif device == "hand/right" and axis == "grip" and x == 0 then
       x = self.rightMouseIsDown and 1.0 or 0.0
