@@ -50,8 +50,16 @@ end
 
 function HandRay:draw()
   if not self.isPointing then return end
-  
+  lovr.graphics.push()
   if self.highlightedEntity then
+    
+    -- draw the UI scaled down if it's very near the hand, or it'll cover what we're highlighting
+    local distance = (self.to - self.from):length()
+    local scale = utils.clamp(distance, 0.1, 1)
+    lovr.graphics.transform(self.to)
+    lovr.graphics.scale(scale, scale, scale)
+    lovr.graphics.transform(lovr.math.mat4(self.to):invert())
+
     -- user is pointing at an interactive entity, draw highlight ray & cursor
     self:drawCursor()
     self:drawCone({1,1,0,1.0})
@@ -59,6 +67,7 @@ function HandRay:draw()
     -- user is not pointing at anything, draw the default ray
     self:drawCone({0,1,1,1.0})
   end
+  lovr.graphics.pop()
 end
 
 function HandRay:drawCone(color)
