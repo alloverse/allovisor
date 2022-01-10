@@ -3,6 +3,8 @@ local class = require("pl.class")
 local tablex = require("pl.tablex")
 local pretty = require("pl.pretty")
 local Store = require("lib.lovr-store")
+local vec3 = require("modules.vec3")
+local mat4 = require("modules.mat4")
 
 class.AlloAvatar(ui.View)
 
@@ -39,10 +41,7 @@ function AlloAvatar:_init(bounds, displayName, avatarName, net, isCamera)
     self.net = net
     if not isCamera then
         self.leftHand = self:addSubview(AlloBodyPart(nil, avatarName, "hand/left", "left-hand"))
-        if lovr.headset ~= nil and lovr.headset.getDriver() ~= "desktop" then
-            -- right hand can't be simulated in desktop
-            self.rightHand = self:addSubview(AlloBodyPart(nil, avatarName, "hand/right", "right-hand"))
-        end
+        self.rightHand = self:addSubview(AlloBodyPart(nil, avatarName, "hand/right", "right-hand"))
         self.torso = self:addSubview(AlloBodyPart(nil, avatarName, "torso", "torso"))
         self.torso.displayName = displayName
         self.watchHud = self.leftHand:addSubview(self:makeWatchHud())
@@ -69,10 +68,19 @@ function AlloAvatar:specification()
 end
 
 function AlloAvatar:makeWatchHud()
-    local muteButton = ui.Button(
-        ui.Bounds(-0.09, 0.00, 0.04,   0.03, 0.02, 0.010):rotate(-3.14/2, 0,-1,0)
+    local hudRoot = ui.View(
+        ui.Bounds(-0.09, 0.00, 0.04,   0.00, 0.00, 0.00):rotate(-3.14/2, 0,-1,0)
     )
+
+    local muteButton = hudRoot:addSubview(self:makeMuteButton())
     
+    return hudRoot
+end
+
+function AlloAvatar:makeMuteButton()
+    local muteButton = ui.Button(
+        ui.Bounds(0, 0.00, 0.00,   0.03, 0.02, 0.010)
+    )
     muteButton.label.fitToWidth = true
     muteButton.onActivated = function()
         local soundEng = self.net.engines.sound
@@ -103,7 +111,58 @@ function AlloAvatar:makeWatchHud()
         self.isMuted = isMuted
         updateLooks()
     end)
+
     return muteButton
+end
+
+function AlloAvatar:onInteraction(inter, body, sender)
+    if body[1] == "add_wrist_widget" then
+        local widget_eid = body[2]
+        print("Got request to add widget eid", widget_eid)
+        self.app.client:getEntity(widget_eid, function(widget)
+            self:addWristWidget(widget, inter)
+        end)
+    else
+        View.onInteraction(self, inter, body, sender)
+    end
+end
+
+-- @param entity Entity to add to the wrist
+-- @param inter Interaction to reply to, or nil if none
+function AlloAvatar:addWristWidget(widgetEntity, inter)
+    local hud = self.watchHud
+    local otherWidgets = self.watchHud.entity.children
+    -- todo: find the leftmost widget, not the "last" widget (the list isn't sorted)
+    local lastWidget = otherWidgets[#otherWidgets]
+    local lastPos = mat4.new(lastWidget.components.transform.matrix)
+    local newPos = mat4.translate(mat4.new(), lastPos, vec3.new(-0.03, 0, 0))
+    newPos._m = nil -- so that it becomes a normal array that can be passed as json
+    local changes = {
+        relationships= {
+            parent= hud.entity.id
+        },
+        transform= {
+            matrix= newPos
+        }
+    }
+    self.app.client:sendInteraction({
+        sender_entity_id = self.entity.id,
+        receiver_entity_id = "place",
+        body = {
+            "change_components",
+            widgetEntity.id,
+            "add_or_change", changes,
+            "remove", {}
+        }
+    }, function(resp, body)
+        if body[2] == "ok" then
+            print("Added wrist widget", widgetEntity.id, "from", inter.sender_entity_id)
+            inter:respond({"add_wrist_widget", "ok"})
+        else
+            print("FAILED to add wrist widget", widgetEntity.id, "from", inter.sender_entity_id, ":", pretty.write(body))
+            inter:respond({"add_wrist_widget", "failed"})
+        end
+    end)
 end
 
 class.AlloBodyPart(ui.View)

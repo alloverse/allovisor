@@ -49,6 +49,8 @@ function HandRay:getColor()
 end
 
 function HandRay:draw()
+  if not self.isPointing then return end
+  
   if self.highlightedEntity then
     -- user is pointing at an interactive entity, draw highlight ray & cursor
     self:drawCursor()

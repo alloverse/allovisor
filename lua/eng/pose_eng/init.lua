@@ -45,9 +45,14 @@ PoseEng.hands = {"hand/left", "hand/right"}
 PoseEng.buttons = {"trigger", "thumbstick", "touchpad", "grip", "menu", "a", "b", "x", "y", "proximity"}
 PoseEng.axis = {"trigger", "thumbstick", "touchpad", "grip"}
 
+local leftHandIndex = 1
+local rightHandIndex = 2
+
 function PoseEng:_init()
   self.yaw = 0.0
   self.handRays = {HandRay("hand/left"), HandRay("hand/right")}
+  -- don't point with the fake left hand
+  if not lovr.headset then self.handRays[leftHandIndex].isPointing = false end
   self.isFocused = true
   self.mvp = lovr.math.newMat4()
   self.oldMousePos = lovr.math.newVec2()
@@ -67,12 +72,12 @@ end
 --- Returns the primary highlighted entity
 -- @treturn Entity nil, or an entity highlighted by either left or right hand, depending on last active controller or user setting, and the hand ray that has the entity
 function PoseEng:highlightedEntity()
-  if self.handRays[2].highlightedEntity then 
-    return self.handRays[2].highlightedEntity, self.handRays[2]
+  if self.handRays[rightHandIndex].highlightedEntity then 
+    return self.handRays[rightHandIndex].highlightedEntity, self.handRays[rightHandIndex]
   end
 
-  if self.handRays[1].highlightedEntity then 
-    return self.handRays[1].highlightedEntity, self.handRays[1]
+  if self.handRays[leftHandIndex].highlightedEntity then 
+    return self.handRays[leftHandIndex].highlightedEntity, self.handRays[leftHandIndex]
   end
   
   return nil, nil
@@ -155,7 +160,10 @@ function PoseEng:getPose(device)
     elseif device == "torso" then
       pose:translate(self:getPose("head"):mul(lovr.math.vec3())):translate(0, -0.485, 0.04)
     elseif device == "hand/left" then
-      pose:translate(-0.18, 1.45, -0.0)
+      pose:translate(-0.18, 1.50, -0.35)
+      pose:rotate(-3.1416/4, 0,1,0):translate(0,0,-0.05)
+    elseif device == "hand/right" then
+      pose:translate( 0.18, 1.45, -0.0)
       local ava = self.parent:getAvatar()
       if lovr.mouse and self.mouseInWorld and ava then
         local worldFromAvatar = ava.components.transform:getMatrix()
@@ -243,7 +251,7 @@ function PoseEng:updateMouse()
 
   -- started clicking/dragging; choose mousing mode
   if not self.mouseIsDown and mouseIsDown then
-    if self.handRays[1].highlightedEntity or #letters.hands[1].highlightedNodes > 0 then
+    if self.handRays[rightHandIndex].highlightedEntity or #letters.hands[rightHandIndex].highlightedNodes > 0 then
       self.mouseMode = "interact"
     else
       self.mouseMode = "move"
@@ -282,10 +290,10 @@ function PoseEng:updateIntent(dt)
   -- XXX<nevyn> It'd be nice if we could have some ownership model, where grabbing "took ownership" of the
   --            stick so this code wouldn't have to hard-code whether it's allowed to use the sticks or not.
   -- Stick up-down is used to move entity, so stop moving user
-  if self.handRays[1].heldEntity ~= nil then 
+  if self.handRays[leftHandIndex].heldEntity ~= nil then 
     my = 0;
   end
-  if self.handRays[2].heldEntity ~= nil then
+  if self.handRays[rightHandIndex].heldEntity ~= nil then
     ty = 0;
   end
 
@@ -449,6 +457,8 @@ function PoseEng:updatePointing(hand_pose, ray, handIndex)
 
   if hand_id == nil then return end
 
+  if not ray.isPointing then return end
+
   
   local hand = self.client.state.entities[hand_id]
   if hand == nil then return end
@@ -607,9 +617,9 @@ function PoseEng:onComponentAdded(cname, component)
   local entity = component:getEntity()
   if cname == "intent" and entity.components.relationships and entity.components.relationships.parent == self.parent.avatar_id then
     if component.actuate_pose == "hand/left" then
-      self.handRays[1].handEntity = entity
+      self.handRays[leftHandIndex].handEntity = entity
     elseif component.actuate_pose == "hand/right" then
-      self.handRays[2].handEntity = entity
+      self.handRays[rightHandIndex].handEntity = entity
     end
   end
 end
