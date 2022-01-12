@@ -16,6 +16,9 @@ uniform float time;
 uniform float alloMetalness;
 uniform float alloRoughness;
 
+uniform sampler2D alloDiffuseTexture;
+uniform int alloDiffuseTextureSet;
+
 uniform int alloEnvironmentMapType; // 0: none, 1: cubemap, 2: spherical
 uniform sampler2D alloEnvironmentMapSpherical;
 uniform samplerCube alloEnvironmentMapCube;
@@ -165,7 +168,15 @@ vec4 color(vec4 graphicsColor, sampler2D image, vec2 uv) {
     debug(})
 
     // mapped values
-    vec4 diffuseColor = texture(lovrDiffuseTexture, lovrTexCoord) * lovrGraphicsColor * lovrVertexColor * lovrDiffuseColor;
+    vec4 diffuseColor = vec4(1);
+    if (alloDiffuseTextureSet == 0) {
+        diffuseColor = texture(lovrDiffuseTexture, lovrTexCoord);
+    } else {
+        diffuseColor = texture(alloDiffuseTexture, lovrTexCoord);
+    }
+    
+    diffuseColor = diffuseColor * lovrGraphicsColor * lovrVertexColor * lovrDiffuseColor;
+
     vec3 albedo = diffuseColor.rgb;
     vec4 emissive = texture(lovrEmissiveTexture, uv) * lovrEmissiveColor;
     float occlusion = texture(lovrOcclusionTexture, lovrTexCoord).r;
