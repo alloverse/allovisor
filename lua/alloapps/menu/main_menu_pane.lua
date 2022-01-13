@@ -6,7 +6,8 @@ local OptionsPane = require("alloapps.menu.options_pane")
 
 class.MainMenuPane(ui.Surface)
 MainMenuPane.assets = {
-  logo= Asset.LovrFile("assets/alloverse-logo.png")
+  logo= Asset.LovrFile("assets/alloverse-logo.png"),
+  arcade= Asset.LovrFile("assets/models/arcade.glb"),
 }
 function MainMenuPane:_init(menu)
     self.name = "main"
@@ -71,10 +72,10 @@ function MainMenuPane:_init(menu)
       })
     end)
 
-    local ad = self:addSubview(ui.Surface(ui.Bounds(0, 0, 0,    1, 0.7, 0.1):rotate(-0.4, 0,1,0):move(1.5,0,0)))
+    local ad = self:addSubview(ui.Surface(ui.Bounds(0, 0, 0,    1, 1.1, 0.1):rotate(-0.4, 0,1,0):move(1.5,0,0)))
     ad:setColor({1.0, 1.0, 0.9, 1.0})
     local adLabel = ad:addSubview(ui.Label{
-      bounds = ui.Bounds(0.0, 0.2, 0.01,     0.3, 0.1, 0.1),
+      bounds = ui.Bounds(0.0, 0.4, 0.01,     0.3, 0.1, 0.1),
       text = "Try our new\nretro arcade!",
       color = {0,0,0,1},
       halign = "center"
@@ -82,7 +83,6 @@ function MainMenuPane:_init(menu)
     adLabel:doWhenAwake(function()
       adLabel:addPropertyAnimation(ui.PropertyAnimation{
         path= "transform.matrix.translation.z",
-        start_at = self.app:serverTime() + 0.1,
         from= 0,
         to=   0.2,
         duration = 1.0,
@@ -91,7 +91,19 @@ function MainMenuPane:_init(menu)
         easing= "quadInOut",
       })
     end)
-    local adButton = ad:addSubview(ui.Button(ui.Bounds(0, -0.2, 0.01,     0.65, 0.2, 0.15)))
+
+    local adIcon = ad:addSubview(ui.ModelView(ui.Bounds(-0.02,-0.05,0.2, 0.1, 0.1, 0.1), MainMenuPane.assets.arcade))
+    adIcon:doWhenAwake(function()
+      adIcon:addPropertyAnimation(ui.PropertyAnimation{
+        path= "transform.matrix.rotation.y",
+        from= 0,
+        to=   6.28,
+        duration = 8.0,
+        repeats= true,
+      })
+    end)
+
+    local adButton = ad:addSubview(ui.Button(ui.Bounds(0, -0.4, 0.01,     0.65, 0.2, 0.15)))
     adButton.label.text = "Play~!"
     adButton.onActivated = function() 
       menu:actuate({"connect", "alloplace://arcade.places.alloverse.com"})
