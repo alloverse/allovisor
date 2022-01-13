@@ -132,6 +132,7 @@ function SoundEng:onAudio(track_id, samples)
       source = lovr.audio.newSource(soundData),
       position = {0,0,0},
       bitrate = 0.0,
+      playbackSpeed = 1.0,
     }
     if self.parent.isSpectatorCamera then
       audio.source:setEffectEnabled("attenuation", false)
@@ -222,7 +223,7 @@ function SoundEng:onDebugDraw()
 
     lovr.graphics.setShader()
     lovr.graphics.setColor(0.0, 0.0, 0.0, 1.0)
-    local s = string.format("Track #%d\n%.2fkBps\n%.2fs buffered", track_id, audio.bitrate/1024.0, audio.source:getDuration())
+    local s = string.format("Track #%d\n    %.2fkBps\n    %.2fs buffered\n     speed: %.2fx", track_id, audio.bitrate/1024.0, audio.source:getDuration(), audio.playbackSpeed)
     lovr.graphics.print(s, 
       x, y+0.15, z,
       0.07, --  scale
@@ -255,6 +256,40 @@ function SoundEng:onUpdate(dt)
     local matrix = self.head.components.transform:getMatrix()
     local x, y, z, sx, sy, sz, a, ax, ay, az = matrix:unpack()
     lovr.audio.setPose(x, y, z, a, ax, ay, az)
+  end
+
+  -- setSampleRate crashes so we can't use this :(
+  --self:updatePlaybackSpeeds(dt)
+end
+
+function SoundEng:updatePlaybackSpeeds(dt)
+  local rate = 0.15
+  for track_id, audio in pairs(self.audio) do
+    local cacheDuration = audio.source:getDuration()
+    local playbackSpeed = audio.playbackSpeed
+
+    if cacheDuration < 0.4 then
+      if playbackSpeed > 0.6 then
+        playbackSpeed = playbackSpeed - rate*dt
+      end
+    elseif cacheDuration > 1.5 then
+      if playbackSpeed < 1.4 then
+        playbackSpeed = playbackSpeed + rate*dt
+      end
+    elseif cacheDuration > 0.6 then
+      if math.abs(1.0 - playbackSpeed) < 0.02 then
+        playbackSpeed = 1.0
+      elseif playbackSpeed < 1.0 then
+        playbackSpeed = playbackSpeed + rate*dt
+      elseif playbackSpeed > 1.0 then
+        playbackSpeed = playbackSpeed - rate*dt
+      end
+    end
+    if audio.playbackSpeed ~= playbackSpeed then
+      audio.playbackSpeed = playbackSpeed
+      local sampleRate = playbackSpeed * 48000
+      audio.source:setSampleRate(sampleRate)
+    end
   end
 end
 
