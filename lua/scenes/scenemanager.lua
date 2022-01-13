@@ -22,17 +22,21 @@ function SceneManager:_init(menuServerPort)
 end
 
 function SceneManager:onKeyPress(code, scancode, repetition)
-  if code == "escape" then
+  if code == "escape" and self:_menuButtonIsAvailable() then
     self:toggleMenu()
   end
 end
 
 function SceneManager:onUpdate()  
   if lovr.headset then
-    if lovr.headset.wasPressed("hand/left", "menu") then
+    if lovr.headset.wasPressed("hand/left", "menu") and self:_menuButtonIsAvailable() then
       self:toggleMenu()
     end
   end
+end
+
+function SceneManager:_menuButtonIsAvailable()
+    return (not self.net) or self.net.engines.pose.capturedControls["hand/leftmenu"] == nil
 end
 
 function SceneManager:showPlace(...)
