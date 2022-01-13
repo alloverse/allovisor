@@ -258,25 +258,28 @@ function SoundEng:onUpdate(dt)
     lovr.audio.setPose(x, y, z, a, ax, ay, az)
   end
 
-  -- setSampleRate crashes so we can't use this :(
   --self:updatePlaybackSpeeds(dt)
 end
 
 function SoundEng:updatePlaybackSpeeds(dt)
-  local rate = 0.15
+  local rate = 0.2
+  -- todo: use some sort of stream scoring. if playback stops or we underrun, decrease the score
+  -- if playback has been continuous for x seconds, improve the score.
+  -- with a good score, aim to keep a smaller buffer so we get good latency.
+  -- with a bad score, aim to keep a bigger buffer
   for track_id, audio in pairs(self.audio) do
     local cacheDuration = audio.source:getDuration()
     local playbackSpeed = audio.playbackSpeed
 
-    if cacheDuration < 0.4 then
-      if playbackSpeed > 0.6 then
+    if cacheDuration < 0.1 then
+      if playbackSpeed > 0.8 then
         playbackSpeed = playbackSpeed - rate*dt
       end
-    elseif cacheDuration > 1.5 then
-      if playbackSpeed < 1.4 then
+    elseif cacheDuration > 0.5 then
+      if playbackSpeed < 1.2 then
         playbackSpeed = playbackSpeed + rate*dt
       end
-    elseif cacheDuration > 0.6 then
+    elseif cacheDuration > 0.1 then
       if math.abs(1.0 - playbackSpeed) < 0.02 then
         playbackSpeed = 1.0
       elseif playbackSpeed < 1.0 then
