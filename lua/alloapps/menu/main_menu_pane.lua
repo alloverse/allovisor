@@ -70,6 +70,32 @@ function MainMenuPane:_init(menu)
         easing= "elasticOut",
       })
     end)
+
+    local ad = self:addSubview(ui.Surface(ui.Bounds(0, 0, 0,    1, 0.7, 0.1):rotate(-0.4, 0,1,0):move(1.5,0,0)))
+    ad:setColor({1.0, 1.0, 0.9, 1.0})
+    local adLabel = ad:addSubview(ui.Label{
+      bounds = ui.Bounds(0.0, 0.2, 0.01,     0.3, 0.1, 0.1),
+      text = "Try our new\nretro arcade!",
+      color = {0,0,0,1},
+      halign = "center"
+    })
+    adLabel:doWhenAwake(function()
+      adLabel:addPropertyAnimation(ui.PropertyAnimation{
+        path= "transform.matrix.translation.z",
+        start_at = self.app:serverTime() + 0.1,
+        from= 0,
+        to=   0.2,
+        duration = 1.0,
+        repeats= true,
+        autoreverses= true,
+        easing= "quadInOut",
+      })
+    end)
+    local adButton = ad:addSubview(ui.Button(ui.Bounds(0, -0.2, 0.01,     0.65, 0.2, 0.15)))
+    adButton.label.text = "Play~!"
+    adButton.onActivated = function() 
+      menu:actuate({"connect", "alloplace://arcade.places.alloverse.com"})
+    end
 end
 
 local ffi = require("ffi")
