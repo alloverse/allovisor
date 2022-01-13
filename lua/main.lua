@@ -121,7 +121,8 @@ function _asyncLoad()
   storeThread:start()
   Store.singleton():registerDefaults{
     recentPlaces = {
-      {name="Sandbox", url="alloplace://sandbox.places.alloverse.com"},
+      {name="Alloverse Arcade", url="alloplace://arcade.places.alloverse.com"},
+      {name="Developer Sandbox", url="alloplace://sandbox.places.alloverse.com"},
       {name="Nevyn's place", url="alloplace://nevyn.places.alloverse.com"}
     },
     debug= false,
