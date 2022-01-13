@@ -150,7 +150,6 @@ function GraphicsEng:onDraw()
                 hasTransparency = hasTransparency,
                 hasReflection = true,
                 material = {
-                    diffuseTexture = material.diffuseTexture,
                     metalness = material.metalness or 0,
                     roughness = material.roughness or 1,
                 },
@@ -333,7 +332,6 @@ function GraphicsEng:loadComponentMaterial(component, old_component)
     if model and model.setMaterial then
       model:setMaterial(mat)
     end
-    component.diffuseTexture = texture
   end
   
   local textureName = component.texture or component.asset_texture
