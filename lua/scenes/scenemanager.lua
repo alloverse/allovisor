@@ -36,7 +36,10 @@ function SceneManager:onUpdate()
 end
 
 function SceneManager:_menuButtonIsAvailable()
-    return (not self.net) or self.net.engines.pose.capturedControls["hand/leftmenu"] == nil
+    if not self.net then return true end
+    if self.net.engines.pose.capturedControls["hand/leftmenu"] ~= nil then return false end
+    if self.net.engines.text.firstResponder ~= nil then return false end
+    return true
 end
 
 function SceneManager:showPlace(...)
