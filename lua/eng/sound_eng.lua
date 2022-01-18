@@ -290,8 +290,7 @@ function SoundEng:updatePlaybackSpeeds(dt)
     end
     if audio.playbackSpeed ~= playbackSpeed then
       audio.playbackSpeed = playbackSpeed
-      local sampleRate = playbackSpeed * 48000
-      audio.source:setSampleRate(sampleRate)
+      audio.source:setPlaybackRate(audio.playbackSpeed)
     end
   end
 end
