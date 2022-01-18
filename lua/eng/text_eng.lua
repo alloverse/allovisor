@@ -118,7 +118,7 @@ function TextEng:onDraw()
         0, 0, 0, 0,
         wrap,
         text.halign and text.halign or "center",
-        "middle"
+        text.valign and text.valign or "middle"
       )
 
       if text.insertionMarker then
