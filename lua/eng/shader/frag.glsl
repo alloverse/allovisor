@@ -158,6 +158,15 @@ vec4 color(vec4 graphicsColor, sampler2D image, vec2 uv) {
     vec3 viewDir = normalize(vCameraPositionWorld - vFragmentPos);
     vec3 V = viewDir;
     vec3 N = normalize(vNormal);
+
+      // mapped values
+    vec4 diffuseColor = vec4(1);
+    if (alloDiffuseTextureSet == 0) {
+        diffuseColor = texture(lovrDiffuseTexture, uv);
+    } else {
+        uv.y = -uv.y;
+        diffuseColor = texture(alloDiffuseTexture, uv);
+    }
     
     // Apply normalmap without tangent map
     debug(if (draw_normalMap > 0.) {)
@@ -167,21 +176,14 @@ vec4 color(vec4 graphicsColor, sampler2D image, vec2 uv) {
         }
     debug(})
 
-    // mapped values
-    vec4 diffuseColor = vec4(1);
-    if (alloDiffuseTextureSet == 0) {
-        diffuseColor = texture(lovrDiffuseTexture, lovrTexCoord);
-    } else {
-        diffuseColor = texture(alloDiffuseTexture, lovrTexCoord);
-    }
     
     diffuseColor = diffuseColor * lovrGraphicsColor * lovrVertexColor * lovrDiffuseColor;
 
     vec3 albedo = diffuseColor.rgb;
     vec4 emissive = texture(lovrEmissiveTexture, uv) * lovrEmissiveColor;
-    float occlusion = texture(lovrOcclusionTexture, lovrTexCoord).r;
-    float roughness = texture(lovrRoughnessTexture, lovrTexCoord).g * lovrRoughness * alloRoughness;
-    float metalness = texture(lovrMetalnessTexture, lovrTexCoord).b * lovrMetalness * alloMetalness;
+    float occlusion = texture(lovrOcclusionTexture, uv).r;
+    float roughness = texture(lovrRoughnessTexture, uv).g * lovrRoughness * alloRoughness;
+    float metalness = texture(lovrMetalnessTexture, uv).b * lovrMetalness * alloMetalness;
 
     #ifdef FLAG_debug
         float raw_roughness = roughness;
