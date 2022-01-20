@@ -505,14 +505,11 @@ function PoseEng:updatePointing(hand_pose, ray, handIndex)
   end
 
   if ray.highlightedEntity then
-    self.client:sendInteraction({
-      type = "one-way",
-      sender = ray.handEntity,
-      receiver_entity_id = ray.highlightedEntity.id,
-      body = {"point", {ray.from.x, ray.from.y, ray.from.z}, {ray.to.x, ray.to.y, ray.to.z}}
-    })
+    local sendAtFullFramerate = self:isDown(hand_pose, "trigger")
+    self:sendPointingEvent(ray, sendAtFullFramerate)
 
-    if ray.selectedEntity == nil and self:isDown(hand_pose, "trigger") and #letters.hands[handIndex].highlightedNodes == 0 then
+    local shouldSendPoke = (ray.selectedEntity == nil and self:isDown(hand_pose, "trigger") and #letters.hands[handIndex].highlightedNodes == 0)
+    if shouldSendPoke then
       ray:selectEntity(ray.highlightedEntity)
       self:pokeEntity(ray.selectedEntity, ray.handEntity)
     end
@@ -521,6 +518,21 @@ function PoseEng:updatePointing(hand_pose, ray, handIndex)
   if ray.selectedEntity and not self:isDown(hand_pose, "trigger") then
     self:endPokeEntity(ray.selectedEntity, ray.handEntity)
     ray:selectEntity(nil)
+  end
+end
+
+function PoseEng:sendPointingEvent(ray, forceSendNow)
+  local lastSentAt = ray.lastSentPointAt or 0
+  local now = lovr.timer.getTime()
+  local delta = now - lastSentAt
+  if forceSendNow or lastSentAt == 0 or delta > 1/10.0 then
+    self.client:sendInteraction({
+      type = "one-way",
+      sender = ray.handEntity,
+      receiver_entity_id = ray.highlightedEntity.id,
+      body = {"point", {ray.from.x, ray.from.y, ray.from.z}, {ray.to.x, ray.to.y, ray.to.z}}
+    })
+    ray.lastSentPointAt = now
   end
 end
 
