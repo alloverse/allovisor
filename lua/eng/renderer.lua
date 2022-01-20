@@ -23,6 +23,8 @@ function Renderer:_init()
         }
     }
 
+    self._blankTexture = lovr.graphics.newTexture(1,1,1)
+
     --- Stores some information of objects
     self.cache = {}
 
@@ -519,6 +521,7 @@ function Renderer:drawObject(object, context)
             send(shader, "alloDiffuseTextureSet", 1)
             send(shader, "alloDiffuseTexture", material.diffuseTexture)
         else 
+            send(shader, "alloDiffuseTexture", self._blankTexture)
             send(shader, "alloDiffuseTextureSet", 0)
         end
         
