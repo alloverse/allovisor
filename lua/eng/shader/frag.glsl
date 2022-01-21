@@ -18,6 +18,7 @@ uniform float alloRoughness;
 
 uniform sampler2D alloDiffuseTexture;
 uniform int alloDiffuseTextureSet;
+uniform vec3 alloUVScale;
 
 uniform int alloEnvironmentMapType; // 0: none, 1: cubemap, 2: spherical
 uniform sampler2D alloEnvironmentMapSpherical;
@@ -159,12 +160,13 @@ vec4 color(vec4 graphicsColor, sampler2D image, vec2 uv) {
     vec3 V = viewDir;
     vec3 N = normalize(vNormal);
 
-      // mapped values
+    uv = uv * alloUVScale.xy;
+
+    // mapped values
     vec4 diffuseColor = vec4(1);
     if (alloDiffuseTextureSet == 0) {
         diffuseColor = texture(lovrDiffuseTexture, uv);
     } else {
-        uv.y = -uv.y;
         diffuseColor = texture(alloDiffuseTexture, uv);
     }
     

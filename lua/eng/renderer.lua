@@ -319,6 +319,7 @@ function Renderer:prepareObjects(context)
                 renderObject.material.roughness = object.material.roughness or 1
                 renderObject.material.metalness = object.material.metalness or 1
                 renderObject.material.diffuseTexture = object.material.diffuseTexture
+                renderObject.material.uvScale = object.material.uvScale and {object.material.uvScale[1], object.material.uvScale[2], 1}
             else
                 renderObject.material = {
                     roughness = 1,
@@ -517,14 +518,14 @@ function Renderer:drawObject(object, context)
         local material = object.material
         send(shader, "alloMetalness", material.metalness or 1)
         send(shader, "alloRoughness", material.roughness or 1)
+        send(shader, "alloUVScale", material.uvScale or {1, 1, 1})
         if material.diffuseTexture then
             send(shader, "alloDiffuseTextureSet", 1)
             send(shader, "alloDiffuseTexture", material.diffuseTexture)
-        else 
+        else
             send(shader, "alloDiffuseTexture", self._blankTexture)
             send(shader, "alloDiffuseTextureSet", 0)
         end
-        
 
         local envMap = object.reflectionMap and object.reflectionMap.texture or self.defaultEnvironmentMap
 

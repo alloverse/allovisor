@@ -153,6 +153,7 @@ function GraphicsEng:onDraw()
                     diffuseTexture = material.diffuseTexture,
                     metalness = material.metalness or 0,
                     roughness = material.roughness or 1,
+                    uvScale = material.uvScale or {1, 1},
                 },
                 draw = function(object, context)
                     -- TODO: not nice with an inline closure but will be less expensive with a managed object list
