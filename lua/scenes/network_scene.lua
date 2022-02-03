@@ -74,7 +74,9 @@ function NetworkScene:_init(displayName, url, avatarName, isSpectatorCamera)
     self.app:onInteraction(inter, body, receiver, sender)
     self:route("onInteraction", inter, body, receiver, sender) 
   end
-  self.client.delegates.onDisconnected =  function(code, message) self:route("onDisconnect", code, message) end
+  self.client.delegates.onDisconnected =  function(code, message)
+    self:onDisconnect(code, message)
+  end
 
   self.assetManager = Asset.Manager(self.client.client)
   self.assetManager:add(assets, true)
@@ -151,6 +153,7 @@ function NetworkScene:onInteraction(interaction, body, receiver, sender)
     local place_name = body[3]
     print("Welcome to", place_name, ". You are", avatar_id)
     self.avatar_id = avatar_id
+    self.place_name = place_name
     self:lookForHead()
 
     ent.root:route("onNetConnected", self, self.url, place_name)
@@ -186,19 +189,22 @@ function NetworkScene:moveToOrigin()
 end
 
 function NetworkScene:onDisconnect(code, message)
-  print("disconnecting...")
-  if self.client then
-    self.client:disconnect(0)
-  end
-  self.client = nil
+  print("Network scene was disconnected from", self.place_name, code, message, ", tearing down...")
   if self.engines then
     for _, engine in pairs(self.engines) do
       engine.client = nil
+      if engine.onDisconnect then engine:onDisconnect() end
     end
+  end
+  local client = self.client
+  self.client = nil
+  if client then
+    -- this will destroy the client instance
+    client:disconnect(0)
   end
   local menu = lovr.scenes:transitionToMainMenu()
   menu:setMessage(message and message or "Disconnected.")
-  print("disconnected.")
+  print("Network scene finished disconnecting.")
   self:die()
 end
 
