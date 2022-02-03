@@ -428,6 +428,10 @@ function SoundEng:onDisconnect()
     lovr.audio.stop("capture")
     self.mic = nil
   end
+  for eid, voice in pairs(self.effects) do
+    voice.source:stop()
+  end
+  self.effects = {}
 end
 
 function SoundEng:sourceFromAsset(asset, callback)
