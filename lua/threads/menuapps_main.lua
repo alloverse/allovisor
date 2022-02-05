@@ -4,6 +4,7 @@ lovr = require 'lovr'
 lovr.filesystem = require 'lovr.filesystem'
 lovr.thread = require 'lovr.thread'
 lovr.timer = require 'lovr.timer'
+lovr.math = require 'lovr.math'
 
 local util = require "lib.util"
 local allonet = util.load_allonet()
