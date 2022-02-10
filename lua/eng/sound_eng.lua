@@ -273,6 +273,8 @@ function SoundEng:_measureMicVolume(buffer)
     self.micVolume = self.micVolume + math.abs(samples[i])
   end
   self.micVolume = self.micVolume / 960
+  local dB = 20 * math.log10(self.micVolume/32768)
+  self.parent.engines.stats.stats["mic volume"] = string.format("%02.2f dB", dB)
 end
 
 function SoundEng:updatePlaybackSpeeds(dt)
