@@ -5,6 +5,7 @@ namespace("networkscene", "alloverse")
 
 local pretty = require "pl.pretty"
 local util = require "lib.util"
+local ffi = require("ffi")
 
 local SoundEng = classNamed("SoundEng", Ent)
 
@@ -18,6 +19,7 @@ function SoundEng:_init()
   self.track_id = 0
   self.mic = nil
   self.isMuted = false
+  self.micVolume = 0
   self:super()
 end
 
@@ -242,7 +244,10 @@ function SoundEng:onUpdate(dt)
     local count = self.mic.captureStream:getFrames(self.mic.captureBuffer, 960)
     assert(count == 960)
     if self.track_id and not self.isMuted then
+      self:_measureMicVolume(self.mic.captureBuffer)
       self.client:sendAudio(self.track_id, self.mic.captureBuffer:getString())
+    else
+      self.micVolume = 0
     end
   end
 
@@ -259,6 +264,15 @@ function SoundEng:onUpdate(dt)
   end
 
   --self:updatePlaybackSpeeds(dt)
+end
+
+function SoundEng:_measureMicVolume(buffer)
+  self.micVolume = 0
+  local samples = ffi.cast("int16_t*", buffer:getPointer())
+  for i = 1, 960 do
+    self.micVolume = self.micVolume + math.abs(samples[i])
+  end
+  self.micVolume = self.micVolume / 960
 end
 
 function SoundEng:updatePlaybackSpeeds(dt)
