@@ -7,7 +7,7 @@ local Store = require("lib.lovr-store")
 class.AudioPane(ui.Surface)
 function AudioPane:_init(menu)
     self.menu = menu
-    self:super(ui.Bounds{size=ui.Size(1.6, 1.2, 0.1)})
+    self:super(ui.Bounds{size=ui.Size(1.6, 1.6, 0.1)})
     self:setColor({1,1,1,1})
 
     self.headerLabel = self:addSubview(ui.Label{
@@ -39,7 +39,7 @@ end
 function AudioPane:setAvailableMicrophones(mics)
 
     self.bounds.size.height = 0.4 * #mics
-    self:setBounds(self.bounds)
+    self:setBounds()
 
     self.headerLabel:setBounds(ui.Bounds(0.15, self.bounds.size.height/2-0.1, 0,   1.6, 0.08, 0.02))
 
@@ -49,7 +49,8 @@ function AudioPane:setAvailableMicrophones(mics)
     table.insert(mics, 1, {name= "Off"})
     for i, mic in ipairs(mics) do
         local micButton = ui.Button(ui.Bounds(0, self.bounds.size.height/2 - i*0.25 - 0.1, 0,   1.40, 0.2, 0.15))
-        micButton.label.lineheight = mic.default and 0.09 or 0.07
+        micButton.label.bounds.size.height = mic.default and 0.07 or 0.05
+        micButton.label.wrap = true
         micButton.label.text = mic.name
         micButton.onActivated = function()
             Store.singleton():save("currentMic", {name= mic.name, status="pending"}, true)
