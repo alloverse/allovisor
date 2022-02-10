@@ -203,3 +203,78 @@ See [the LDoc manual](https://stevedonovan.github.io/ldoc/manual/doc.md.html).
 * The UI in the NetMenuScene is drawn by real bona-fide `alloapps` running on their own
   thread called `menuapps_main`. These are also connected to the standalone server
   and have their own complete client-side state each.
+
+## Various code structure topics
+
+### Menu apps
+
+When the visor starts, a thread spawns to create a local place server that is used
+for local UI. 
+
+In main.lua:
+
+    menuServerThread = lovr.thread.newThread("threads/menuserv_main.lua")
+
+A NetworkScene is then started to connect to this menu server. So,
+there is NO local UI, all UI is networked, including the menu.
+
+Then, one more thread is spawned, where the menu UI apps can run completely
+independently from the main thread.
+
+In main.lua:
+
+    menuAppsThread = lovr.thread.newThread("threads/menuapps_main.lua")
+
+In this thread, two apps are started. Roughly:
+
+    local apps = {
+      require("alloapps.menu.app")(port),
+      require("alloapps.avatar_chooser")(port),
+    }
+
+    while running do
+      for _, app in ipairs(apps) do
+        app:update()
+      end
+      lovr.timer.sleep(1/20.0)
+    end
+
+The `menu.app` and `avatar_chooser` app are almost completely regular AlloUI apps, except they don't use boot or assist, but are instead managed
+by the above thread loop, plus a base class called `EmbeddedApp`:
+
+    class.EmbeddedApp()
+    function EmbeddedApp:_init(appname, port)
+      self.client = Client(
+        "alloplace://localhost:"..tostring(port)
+      )
+      self.app = ui.App(self.client)
+      self.app.mainView = self:createUI()
+    end
+
+    function EmbeddedApp:actuate(what)
+      self.app.client:sendInteraction({
+        sender_entity_id = self.app.mainView.entity.id,
+        receiver_entity_id = self.visor.id,
+        type = "oneway",
+        body = {
+            "menu_selection",
+            self.appname,
+            what
+        }
+      })
+    end
+
+Since these menu apps run on a separate thread, they can't use
+most Lovr APIs, and they can't modify variables inside the main
+thread's runtime. They have two ways of communicating with the main
+thread: interactions, and Store.
+
+**Interactions**: A menuapp can self:actuate(...), and that call
+will end up in `netmenu_scene`. This class will then take care
+of the "controller" part of that UI interaction, and set variables,
+change settings, connect to a remote server, etc.
+
+**Store**: `Store.singleton:save()`, `:load()` and `:listen()` are used
+to keep a global store of settings and shared variables between
+threads. These are used mostly for settings, but also carry some
+information between threads without having to use interactions.
