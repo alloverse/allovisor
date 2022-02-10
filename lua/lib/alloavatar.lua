@@ -87,6 +87,15 @@ function AlloAvatar:makeMuteButton()
         soundEng:setMuted(not soundEng.isMuted)
     end
 
+    local volumeLabel = ui.Label(
+        ui.Bounds(0,0,0,   0.03, 0.005, 0.010)
+        :scale(1, 2, 1)
+            :rotate(-3.14/2, 1,0,0)
+            :move(0, 0.003, 0.01)
+            
+    )
+    muteButton:addSubview(volumeLabel)
+
     function updateLooks()
         if not self.micStatus or self.micStatus.status == "pending" then
             muteButton:setColor({0.7, 0.7, 0.9, 1.0})
@@ -110,6 +119,10 @@ function AlloAvatar:makeMuteButton()
     self.unsub2 = Store.singleton():listen("micMuted", function(isMuted)
         self.isMuted = isMuted
         updateLooks()
+    end)
+    self.unsub3 = Store.singleton():listen("micVolume", function(micVolume)
+        if micVolume == nil then micVolume = "--" end
+        volumeLabel:setText(micVolume)
     end)
 
     return muteButton

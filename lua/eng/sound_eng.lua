@@ -32,6 +32,7 @@ end
 function SoundEng:setMuted(newMuted)
   self.isMuted = newMuted
   if self.isMuted then
+    self:_setMeasuredMicVolume(0)
     print("SoundEng: soft-muted microphone")
   else
     print("SoundEng: soft-unmuted microphone")
@@ -237,14 +238,16 @@ function SoundEng:onDebugDraw()
 end
 
 function SoundEng:onUpdate(dt)
-  if self.client == nil then return end
-  if not self.parent.active then return end 
+  if self.client == nil or not self.parent.active then
+    self:_setMeasuredMicVolume(0)
+    return
+  end
 
   while self.mic and self.mic.captureStream:getFrameCount() >= 960 do
     local count = self.mic.captureStream:getFrames(self.mic.captureBuffer, 960)
     assert(count == 960)
     if self.track_id and not self.isMuted then
-      self:_measureMicVolume(self.mic.captureBuffer)
+      self:_measureMicVolume()
       self.client:sendAudio(self.track_id, self.mic.captureBuffer:getString())
     else
       self.micVolume = 0
@@ -266,15 +269,30 @@ function SoundEng:onUpdate(dt)
   --self:updatePlaybackSpeeds(dt)
 end
 
-function SoundEng:_measureMicVolume(buffer)
-  self.micVolume = 0
+
+function SoundEng:_measureMicVolume()
+  local buffer = self.mic.captureBuffer
+  local vol = 0
   local samples = ffi.cast("int16_t*", buffer:getPointer())
   for i = 1, 960 do
-    self.micVolume = self.micVolume + math.abs(samples[i])
+    vol = vol + math.abs(samples[i])
   end
-  self.micVolume = self.micVolume / 960
-  local dB = 20 * math.log10(self.micVolume/32768)
-  self.parent.engines.stats.stats["mic volume"] = string.format("%02.2f dB", dB)
+  self:_setMeasuredMicVolume(vol / 960)
+end
+
+local lastReportedDbAt = 0
+local lastReportedDb = 0
+function SoundEng:_setMeasuredMicVolume(vol)
+  self.micVolume = vol
+  self.parent.engines.stats.stats["mic volume"] = dBString
+  if lovr.timer.getTime() > lastReportedDbAt + 0.25 or (vol == 0 and lastReportedDb ~= 0) then
+    lastReportedDbAt = lovr.timer.getTime()
+    lastReportedDb = vol
+
+    local dB = 20 * math.log10(vol/32768)
+    local dBString = string.format("%02.2f dB", dB)
+    Store.singleton():save("micVolume", dBString, false)
+  end
 end
 
 function SoundEng:updatePlaybackSpeeds(dt)
