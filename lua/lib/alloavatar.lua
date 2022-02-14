@@ -70,7 +70,6 @@ function AlloAvatar:makeWatchHud()
     local hudRoot = ui.View(
         ui.Bounds(-0.09, 0.00, 0.04,   0.00, 0.00, 0.00):rotate(-3.14/2, 0,-1,0)
     )
-    self.nextWidgetPos = mat4.new()
     return hudRoot
 end
 
@@ -88,12 +87,12 @@ function AlloAvatar:onInteraction(inter, body, sender)
 end
 
 function AlloAvatar:addWristWidgetFromInteraction(widgetEntity, inter)
-    self:addWristWidget(widgetEntity, function(status, error)
+    self:addWristWidget(widgetEntity, function(status, errorOrMatrix)
         if status == true then
             print("Added wrist widget", widgetEntity.id, "from", inter.sender_entity_id)
-            inter:respond({"add_wrist_widget", "ok"})
+            inter:respond({"add_wrist_widget", "ok", errorOrMatrix})
         else
-            print("FAILED to add wrist widget", widgetEntity.id, "from", inter.sender_entity_id, ":", error)
+            print("FAILED to add wrist widget", widgetEntity.id, "from", inter.sender_entity_id, ":", errorOrMatrix)
             inter:respond({"add_wrist_widget", "failed"})
         end
     end)
@@ -112,9 +111,10 @@ function AlloAvatar:addWristWidget(widgetEntity, callback)
     local otherWidgets = hud.entity.children
     -- todo: detect removed widgets and move the others into the free slots
     
+    local lastWidget = otherWidgets[#otherWidgets]
     local lastPos = mat4.new(lastWidget and lastWidget.components.transform.matrix or mat4.translate(mat4.new(), mat4.new(), vec3.new(0.03, 0, 0)))
-    local newPos = self.nextWidgetPos
-    self.nextWidgetPos = mat4.translate(mat4.new(), self.nextWidgetPos, vec3.new(-0.03, 0, 0))
+    local newPos = mat4.translate(mat4.new(), lastPos, vec3.new(-0.03, 0, 0))
+
     newPos._m = nil -- so that it becomes a normal array that can be passed as json
     local changes = {
         relationships= {
@@ -135,7 +135,7 @@ function AlloAvatar:addWristWidget(widgetEntity, callback)
         }
     }, function(resp, body)
         if body[2] == "ok" then
-            callback(true)
+            callback(true, newPos)
         else
             callback(false, pretty.write(body))
         end

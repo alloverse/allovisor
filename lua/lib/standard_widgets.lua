@@ -11,7 +11,7 @@ local Store = require("lib.lovr-store")
 class.StandardWidgets(Ent)
 
 function StandardWidgets:addAllWidgetsTo(avatar, netscene)
-    self.widgetsToAdd = {self.addMuteWidget}
+    self.widgetsToAdd = {self.addMuteWidget, self.addHelpWidget}
     self:_addNextWidget(avatar, netscene)
 end
 
@@ -26,10 +26,11 @@ end
 
 function StandardWidgets:_addWidget(avatar, netscene, view, cb)
     netscene.app:addRootView(view, function(view, ent)
-        avatar:addWristWidget(ent, function(ok, err)
+        avatar:addWristWidget(ent, function(ok, errorOrMatrix)
             if not ok then 
-                print("Failed to add standard widget:", err)
+                print("Failed to add standard widget:", errorOrMatrix)
             else
+                view.bounds.pose.transform = mat4.new(errorOrMatrix)
                 cb()
             end
         end)
@@ -121,7 +122,7 @@ end
 
 function StandardWidgets:addHelpWidget(avatar, netscene, cb)
     local widget = ui.Button(
-        ui.Bounds(0, 0.00, 0.00,   0.03, 0.02, 0.010)
+        ui.Bounds(0, 0.00, 0.00,   0.02, 0.02, 0.010)
     )
     widget.label.text = "Help"
     widget.label.fitToWidth = true
