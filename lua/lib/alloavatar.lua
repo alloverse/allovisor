@@ -2,7 +2,6 @@ local ui = require("alloui.ui")
 local class = require("pl.class")
 local tablex = require("pl.tablex")
 local pretty = require("pl.pretty")
-local Store = require("lib.lovr-store")
 local vec3 = require("modules.vec3")
 local mat4 = require("modules.mat4")
 
@@ -71,83 +70,48 @@ function AlloAvatar:makeWatchHud()
     local hudRoot = ui.View(
         ui.Bounds(-0.09, 0.00, 0.04,   0.00, 0.00, 0.00):rotate(-3.14/2, 0,-1,0)
     )
-
-    local muteButton = hudRoot:addSubview(self:makeMuteButton())
-    
     return hudRoot
 end
 
-function AlloAvatar:makeMuteButton()
-    local muteButton = ui.Button(
-        ui.Bounds(0, 0.00, 0.00,   0.03, 0.02, 0.010)
-    )
-    muteButton.label.fitToWidth = true
-    muteButton.onActivated = function()
-        local soundEng = self.net.engines.sound
-        soundEng:setMuted(not soundEng.isMuted)
-    end
-
-    local volumeLabel = ui.Label(
-        ui.Bounds(0,0,0,   0.03, 0.005, 0.010)
-        :scale(1, 2, 1)
-            :rotate(-3.14/2, 1,0,0)
-            :move(0, 0.003, 0.01)
-            
-    )
-    muteButton:addSubview(volumeLabel)
-
-    function updateLooks()
-        if not self.micStatus or self.micStatus.status == "pending" then
-            muteButton:setColor({0.7, 0.7, 0.9, 1.0})
-            muteButton.label:setText("Starting mic...")
-        elseif self.micStatus.status == "failed" then
-            muteButton:setColor({0.9, 0.5, 0.5, 1.0})
-            muteButton.label:setText("Mic is broken")
-        elseif self.micStatus.name == "Off" or self.isMuted == true then
-            muteButton:setColor({0.9, 0.7, 0.7, 1.0})
-            muteButton.label:setText("Mic off")
-        else
-            muteButton:setColor({0.7, 0.9, 0.7, 1.0})
-            muteButton.label:setText("Mic on")
-        end
-    end
-
-    self.unsub1 = Store.singleton():listen("currentMic", function(micStatus)
-        self.micStatus = micStatus
-        updateLooks()
-    end)
-    self.unsub2 = Store.singleton():listen("micMuted", function(isMuted)
-        self.isMuted = isMuted
-        updateLooks()
-    end)
-    self.unsub3 = Store.singleton():listen("micVolume", function(micVolume)
-        if micVolume == nil then micVolume = "--" end
-        volumeLabel:setText(micVolume)
-    end)
-
-    return muteButton
-end
 
 function AlloAvatar:onInteraction(inter, body, sender)
     if body[1] == "add_wrist_widget" then
         local widget_eid = body[2]
         print("Got request to add widget eid", widget_eid)
-        self.app.client:getEntity(widget_eid, function(widget)
-            self:addWristWidget(widget, inter)
+        self.app.client:getEntity(widget_eid, function(widgetEntity)
+            self:addWristWidgetFromInteraction(widgetEntity, inter)
         end)
     else
         View.onInteraction(self, inter, body, sender)
     end
 end
 
+function AlloAvatar:addWristWidgetFromInteraction(widgetEntity, inter)
+    self:addWristWidget(widgetEntity, function(status, error)
+        if status == true then
+            print("Added wrist widget", widgetEntity.id, "from", inter.sender_entity_id)
+            inter:respond({"add_wrist_widget", "ok"})
+        else
+            print("FAILED to add wrist widget", widgetEntity.id, "from", inter.sender_entity_id, ":", error)
+            inter:respond({"add_wrist_widget", "failed"})
+        end
+    end)
+end
+
 -- @param entity Entity to add to the wrist
 -- @param inter Interaction to reply to, or nil if none
-function AlloAvatar:addWristWidget(widgetEntity, inter)
+function AlloAvatar:addWristWidget(widgetEntity, callback)
     local hud = self.watchHud
-    local otherWidgets = self.watchHud.entity.children
+    if not hud.entity then
+        self.watchHud:doWhenAwake(function()
+            self:addWristWidget(widgetEntity, callback)
+        end)
+        return
+    end
+    local otherWidgets = hud.entity.children
     -- todo: find the leftmost widget, not the "last" widget (the list isn't sorted)
     local lastWidget = otherWidgets[#otherWidgets]
-    local lastPos = mat4.new(lastWidget.components.transform.matrix)
+    local lastPos = mat4.new(lastWidget and lastWidget.components.transform.matrix or mat4.translate(mat4.new(), mat4.new(), vec3.new(0.03, 0, 0)))
     local newPos = mat4.translate(mat4.new(), lastPos, vec3.new(-0.03, 0, 0))
     newPos._m = nil -- so that it becomes a normal array that can be passed as json
     local changes = {
@@ -169,11 +133,9 @@ function AlloAvatar:addWristWidget(widgetEntity, inter)
         }
     }, function(resp, body)
         if body[2] == "ok" then
-            print("Added wrist widget", widgetEntity.id, "from", inter.sender_entity_id)
-            inter:respond({"add_wrist_widget", "ok"})
+            callback(true)
         else
-            print("FAILED to add wrist widget", widgetEntity.id, "from", inter.sender_entity_id, ":", pretty.write(body))
-            inter:respond({"add_wrist_widget", "failed"})
+            callback(false, pretty.write(body))
         end
     end)
 end

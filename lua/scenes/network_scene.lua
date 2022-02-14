@@ -16,6 +16,7 @@ local Client = require "alloui.client"
 local ui = require("alloui.ui")
 local Asset = require("lib.alloui.lua.alloui.asset")
 local AlloAvatar = require("lib.alloavatar")
+local StandardWidgets = require("lib.standard_widgets")
 
 local engines = {
   SoundEng = require "eng.sound_eng",
@@ -112,13 +113,9 @@ function NetworkScene:onLoad()
     end
   end
 
-  self.unsub = Store.singleton():listen("debug", function(debug)
+  self:scheduleCleanup(Store.singleton():listen("debug", function(debug)
     self.debug = debug
-  end)
-end
-
-function NetworkScene:onDie()
-  if self.unsub then self.unsub() end
+  end))
 end
 
 function NetworkScene:setActive(newActive)
@@ -155,6 +152,8 @@ function NetworkScene:onInteraction(interaction, body, receiver, sender)
     self.avatar_id = avatar_id
     self.place_name = place_name
     self:lookForHead()
+    self.standardWidgets = StandardWidgets():insert(self)
+    self.standardWidgets:addAllWidgetsTo(self.avatarView, self)
 
     ent.root:route("onNetConnected", self, self.url, place_name)
     lovr.onNetConnected(self, self.url, place_name)
