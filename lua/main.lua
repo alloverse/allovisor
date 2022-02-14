@@ -129,6 +129,7 @@ function _asyncLoad()
     showOverlay= true,
     avatarName= "female",
     username= "",
+    micGain= 1.5
   }
   if lovr.audio then
     local capDevs = lovr.audio.getDevices("capture")

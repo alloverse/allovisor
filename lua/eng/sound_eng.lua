@@ -116,11 +116,20 @@ function SoundEng:onLoad()
         self:useMic(micSettings.name)
       end
     end)
+
+    self.unsub2 = Store.singleton():listen("micGain", function(micGain)
+      if micGain then
+        self.micGain = micGain
+      else
+        self.micGain = 1.0
+      end
+    end)
   end
 end
 
 function SoundEng:onDie()
   if self.unsub then self.unsub() end
+  if self.unsub2 then self.unsub2() end
 end
 
 function SoundEng:onAudio(track_id, samples)
@@ -247,7 +256,7 @@ function SoundEng:onUpdate(dt)
     local count = self.mic.captureStream:getFrames(self.mic.captureBuffer, 960)
     assert(count == 960)
     if self.track_id and not self.isMuted then
-      self:_measureMicVolume()
+      self:_processAndMeasureMic()
       self.client:sendAudio(self.track_id, self.mic.captureBuffer:getString())
     else
       self.micVolume = 0
@@ -270,11 +279,12 @@ function SoundEng:onUpdate(dt)
 end
 
 
-function SoundEng:_measureMicVolume()
+function SoundEng:_processAndMeasureMic()
   local buffer = self.mic.captureBuffer
   local vol = 0
   local samples = ffi.cast("int16_t*", buffer:getPointer())
   for i = 1, 960 do
+    samples[i] = samples[i] * self.micGain
     vol = vol + math.abs(samples[i])
   end
   self:_setMeasuredMicVolume(vol / 960)
