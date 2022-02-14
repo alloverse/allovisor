@@ -70,6 +70,7 @@ function AlloAvatar:makeWatchHud()
     local hudRoot = ui.View(
         ui.Bounds(-0.09, 0.00, 0.04,   0.00, 0.00, 0.00):rotate(-3.14/2, 0,-1,0)
     )
+    self.nextWidgetPos = mat4.new()
     return hudRoot
 end
 
@@ -109,10 +110,11 @@ function AlloAvatar:addWristWidget(widgetEntity, callback)
         return
     end
     local otherWidgets = hud.entity.children
-    -- todo: find the leftmost widget, not the "last" widget (the list isn't sorted)
-    local lastWidget = otherWidgets[#otherWidgets]
+    -- todo: detect removed widgets and move the others into the free slots
+    
     local lastPos = mat4.new(lastWidget and lastWidget.components.transform.matrix or mat4.translate(mat4.new(), mat4.new(), vec3.new(0.03, 0, 0)))
-    local newPos = mat4.translate(mat4.new(), lastPos, vec3.new(-0.03, 0, 0))
+    local newPos = self.nextWidgetPos
+    self.nextWidgetPos = mat4.translate(mat4.new(), self.nextWidgetPos, vec3.new(-0.03, 0, 0))
     newPos._m = nil -- so that it becomes a normal array that can be passed as json
     local changes = {
         relationships= {
