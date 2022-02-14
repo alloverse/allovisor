@@ -126,7 +126,6 @@ function _asyncLoad()
       {name="Nevyn's place", url="alloplace://nevyn.places.alloverse.com"}
     },
     debug= false,
-    showOverlay= true,
     avatarName= "female",
     username= "",
     micGain= 1.5

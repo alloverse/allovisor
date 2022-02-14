@@ -13,10 +13,6 @@ function OptionsPane:_init(menu)
     self:addSubview(self.debugButton)
     self.debugOverlaySub = nil
 
-    self.toggleControlsButton = ui.Button(ui.Bounds(0, 0.1, 0.01,   1.4, 0.2, 0.15))
-    self:addSubview(self.toggleControlsButton)
-    self.controlOverlaySub = nil
-
     self.audioButton = ui.Button(ui.Bounds(0, -0.2, 0.01,     1.4, 0.2, 0.15))
     self.audioButton.label.text = "Audio settings..."
     self.audioButton.onActivated = function()
@@ -42,20 +38,11 @@ function OptionsPane:awake()
             Store.singleton():save("debug", not debug, true)
         end
     end)
-
-    self.controlOverlaySub = Store.singleton():listen("showOverlay", function(show)
-        self.toggleControlsButton.label:setText(show and "Overlay (On)" or "Overlay (Off)")
-
-        self.toggleControlsButton.onActivated = function()
-          Store.singleton():save("showOverlay", not show, true)
-        end
-    end)
 end
 
 function OptionsPane:sleep()
     print("Option sleep")
     if self.debugOverlaySub then self.debugOverlaySub() end
-    if self.controlOverlaySub then self.controlOverlaySub() end
     Surface.sleep(self)
 end
 
