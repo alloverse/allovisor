@@ -102,6 +102,7 @@ end
 -- @param inter Interaction to reply to, or nil if none
 function AlloAvatar:addWristWidget(widgetEntity, callback)
     local hud = self.watchHud
+    if not hud then return end
     if not hud.entity then
         self.watchHud:doWhenAwake(function()
             self:addWristWidget(widgetEntity, callback)
