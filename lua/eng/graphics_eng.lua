@@ -54,7 +54,6 @@ function GraphicsEng:onLoad()
 
   self.models_for_eids = {}
   self.materials_for_eids = {}
-  self.textures_from_assets = {}
   
   self.basicShader = alloBasicShader
   self.pbrShader = alloPbrShader
