@@ -146,10 +146,10 @@ function SoundEng:onAudio(track_id, samples)
       bitrate = 0.0,
       playbackSpeed = 1.0,
     }
-    if self.parent.isSpectatorCamera then
-      audio.source:setEffectEnabled("attenuation", false)
-    end
     self.audio[track_id] = audio
+  end
+  if self.parent.isSpectatorCamera and audio.isVisor then
+    audio.source:setEffectEnabled("attenuation", false)
   end
 
   local blobLength = #samples
@@ -189,6 +189,7 @@ function SoundEng:setAudioPositionForEntitiy(entity)
   local x, y, z, sx, sy, sz, a, ax, ay, az = matrix:unpack()
   voice.position = {x, y, z}
   voice.source:setPose(x, y, z, a, ax, ay, az)
+  voice.isVisor = entity.components.visor ~= nil
 end
 
 function SoundEng:onHeadAdded(head)
