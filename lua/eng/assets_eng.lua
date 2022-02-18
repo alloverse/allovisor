@@ -43,10 +43,6 @@ end
 -- object was already loaded and callback called immediately
 -- @tparam bool flipTexture If type is 'texture-asset' this specifies that the Image should be returned flipped
 function AssetsEng:loadFromAsset(asset, type, callback, flipTexture)
-    if asset._lovrObject then 
-      callback(asset._lovrObject)
-      return
-    end
     if asset._lovrObjectLoadingCallbacks then
       table.insert(asset._lovrObjectLoadingCallbacks, callback)
       return
@@ -63,10 +59,9 @@ function AssetsEng:loadFromAsset(asset, type, callback, flipTexture)
         if object == nil or status == false then
           print("Failed to load " .. type, asset:id(), object)
         else
-          asset._lovrObject = object
-        end
-        for _, cb in ipairs(asset._lovrObjectLoadingCallbacks) do
-          cb(asset._lovrObject)
+            for _, cb in ipairs(asset._lovrObjectLoadingCallbacks) do
+                cb(object)
+            end
         end
         asset._lovrObjectLoadingCallbacks = nil
       end,
