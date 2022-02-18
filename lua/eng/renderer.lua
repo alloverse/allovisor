@@ -106,6 +106,7 @@ function Renderer:render(objects, options)
         maxReflectionDepth = 0, -- max reached depth (cubemap gen triggers a cubemap gen. This should not happen.)
         cubemapTargets = {}, -- object id's that got a cubemap generated this frame
         debugText = {}, -- just strings the renderer would like to output to the screen
+        inputObjectCount = #objects, -- number of objects put into the rene
     }
 
     context.cubemapFarPlane = context.cubemapFarPlane or 10
