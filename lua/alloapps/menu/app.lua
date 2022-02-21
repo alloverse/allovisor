@@ -7,8 +7,12 @@ local EmbeddedApp = require("alloapps.embedded_app")
 local AudioPane = require("alloapps.menu.audio_pane")
 
 class.Menu(EmbeddedApp)
+Menu.assets = {
+  forest= Asset.LovrFile("assets/models/decorations/forest/PUSHILIN_forest.glb"),
+}
 function Menu:_init(port)
   self:super("mainmenu", port)
+  self.app.assetManager:add(Menu.assets)
 end
 
 function Menu:createUI()
@@ -16,9 +20,11 @@ function Menu:createUI()
     main= require("alloapps.menu.main_menu_pane")(self),
     overlay= require("alloapps.menu.overlay_pane")(self),
   }
+  self.app.assetManager:add(getmetatable(self.menus.main).assets)
   self.root = ui.View()
   self.nav = ui.NavStack(ui.Bounds(0, 1.6, -2.5,   1.6, 1.2, 0.1))
   self.root:addSubview(self.nav)
+  self.root:addSubview(self:createForest())
   return self.root
 end
 
@@ -45,6 +51,26 @@ function Menu:onInteraction(interaction, body, receiver, sender)
     local menu = self.menus[menuName]
     menu[verb](menu, unpack(body))
   end
+end
+
+function Menu:createForest()
+  local decos = ui.View()
+  decos:addSubview(ui.ModelView(ui.Bounds(0,0,0, 1, 1, 1):scale(2):move(  0, 0.55, -10), Menu.assets.forest))
+  decos:addSubview(ui.ModelView(ui.Bounds(0,0,0, 1, 1, 1):scale(2):move(  4, 0.55, -8), Menu.assets.forest))
+  decos:addSubview(ui.ModelView(ui.Bounds(0,0,0, 1, 1, 1):scale(2):move(  8, 0.55, -4), Menu.assets.forest))
+  decos:addSubview(ui.ModelView(ui.Bounds(0,0,0, 1, 1, 1):scale(2):move( 10, 0.55, 0), Menu.assets.forest))
+  decos:addSubview(ui.ModelView(ui.Bounds(0,0,0, 1, 1, 1):scale(2):move(  8, 0.55, 4), Menu.assets.forest))
+  decos:addSubview(ui.ModelView(ui.Bounds(0,0,0, 1, 1, 1):scale(2):move(  4, 0.55, 8), Menu.assets.forest))
+  decos:addSubview(ui.ModelView(ui.Bounds(0,0,0, 1, 1, 1):scale(2):move(  0, 0.55, 10), Menu.assets.forest))
+  decos:addSubview(ui.ModelView(ui.Bounds(0,0,0, 1, 1, 1):scale(2):move( -4, 0.55, 8), Menu.assets.forest))
+  decos:addSubview(ui.ModelView(ui.Bounds(0,0,0, 1, 1, 1):scale(2):move( -8, 0.55, 4), Menu.assets.forest))
+  decos:addSubview(ui.ModelView(ui.Bounds(0,0,0, 1, 1, 1):scale(2):move(-10, 0.55, 0), Menu.assets.forest))
+  decos:addSubview(ui.ModelView(ui.Bounds(0,0,0, 1, 1, 1):scale(2):move( -8, 0.55, -4), Menu.assets.forest))
+  decos:addSubview(ui.ModelView(ui.Bounds(0,0,0, 1, 1, 1):scale(2):move( -4, 0.55, -8), Menu.assets.forest))
+  local floor = decos:addSubview(ui.Surface(ui.Bounds(0,0,0, 24, 24, 0.01):rotate(3.14/2, 1,0,0)))
+  floor:setColor({181/255, 218/255, 153/255, 0.5})
+
+  return decos
 end
 
 return Menu
