@@ -70,7 +70,7 @@ function TextEng:onDraw()
 end
 
 function TextEng:drawText(eid, entity, text)
-    local mat = self.parent.engines.graphics.materials_for_eids[eid]
+    local mat = self.parent.engines.graphics:meta(eid).material
     if mat then
         lovr.graphics.setColor(mat:getColor())
     else
