@@ -14,7 +14,13 @@ local alloPointerRayShader = lovr.graphics.newShader(
     ]], [[
     in float alpha;
     vec4 color(vec4 graphicsColor, sampler2D image, vec2 uv) {
-      return vec4(1., 1., 1., pow(alpha, 2.));
+      //return vec4(1., 1., 1., pow(alpha, 2.));
+      //return vec4(1., 1., 1., -pow(alpha, 4.)+alpha );
+
+      //return vec4(graphicsColor.r, graphicsColor.g, graphicsColor.b, -pow(alpha, 4.)+alpha );
+
+      return vec4(graphicsColor.r, graphicsColor.g, graphicsColor.b, graphicsColor.a * alpha ); // Uses incoming alpha and multiplies it by the outgoing alpha (0-1) to blend them
+      
     }
   ]],
   {

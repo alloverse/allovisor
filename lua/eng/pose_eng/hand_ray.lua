@@ -12,7 +12,7 @@ function HandRay:_init(device)
   self.to = lovr.math.newVec3()
   self.hand = nil -- hand entity
   self.grabber_from_entity_transform = lovr.math.newMat4()
-  self.rayLength = 1
+  self.rayLength = 0.8
   self.device = device
 
   local cursorTexture = lovr.graphics.newTexture("assets/textures/cursor-default.png", {})
@@ -40,13 +40,6 @@ function HandRay:selectEntity(entity)
     --self.selectedEntity.isSelected = true
   end
 end
-function HandRay:getColor()
-  if self.highlightedEntity ~= nil then
-    return {0.91, 0.43, 0.29}
-  else
-    return {0.27,0.55,1}
-  end
-end
 
 function HandRay:draw()
   if not self.isPointing then return end
@@ -62,10 +55,10 @@ function HandRay:draw()
 
     -- user is pointing at an interactive entity, draw highlight ray & cursor
     self:drawCursor()
-    self:drawCone({1,1,0,1.0})
+    self:drawCone({1, 1, 1, 0.6})
   else
     -- user is not pointing at anything, draw the default ray
-    self:drawCone({0,1,1,1.0})
+    self:drawCone({1, 1, 1, 0.1})
   end
   lovr.graphics.pop()
 end
@@ -79,7 +72,7 @@ function HandRay:drawCone(color)
   lovr.graphics.setColor(color)
   lovr.graphics.setShader(alloPointerRayShader)
 
-  lovr.graphics.cylinder(0, 0, 0, self.rayLength, 0, 0, 0, 0, 0.005, 0.008)
+  lovr.graphics.cylinder(0, 0, 0, self.rayLength, 0, 0, 0, 0, 0.005, 0.005)
   lovr.graphics.pop()
 end
 
@@ -106,34 +99,15 @@ function HandRay:drawCursor()
 
   else
     -- Display a default cursor
-    lovr.graphics.plane(self.cursorMaterial, 0, 0, 0.01, 0.2, 0.2, 0, 0, 0, 0, 0, 0)
-    --lovr.graphics.circle("line", 0, 0, 0, .03)
+    --lovr.graphics.plane(self.cursorMaterial, 0, 0, 0.01, 0.2, 0.2, 0, 0, 0, 0, 0, 0)
+    
+    lovr.graphics.setColor(1, 1, 1, 0.2)
+    --lovr.graphics.circle("fill", 0, 0, 0, .02)
+    lovr.graphics.sphere(0, 0, 0, .02)
+    -- lovr.graphics.setColor(1, 1, 1, 1)
+    -- lovr.graphics.circle("line", 0, 0, 0, .02)
+
   end
-
-
-  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 1)
-  -- lovr.graphics.circle("line", 0, 0, 0, 0.036)
-  -- lovr.graphics.circle("line", 0, 0, 0, 0.039)
-  -- lovr.graphics.circle("line", 0, 0, 0, 0.042)
-  -- lovr.graphics.circle("line", 0, 0, 0, 0.045)
-  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 0.9)
-  -- lovr.graphics.circle("line", 0, 0, 0, 0.048)
-  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 0.8)
-  -- lovr.graphics.circle("line", 0, 0, 0, 0.051)
-  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 0.7)
-  -- lovr.graphics.circle("line", 0, 0, 0, 0.054)
-  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 0.6)
-  -- lovr.graphics.circle("line", 0, 0, 0, 0.057)
-  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 0.5)
-  -- lovr.graphics.circle("line", 0, 0, 0, 0.060)
-  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 0.4)
-  -- lovr.graphics.circle("line", 0, 0, 0, 0.063)
-  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 0.3)
-  -- lovr.graphics.circle("line", 0, 0, 0, 0.066)
-  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 0.2)
-  -- lovr.graphics.circle("line", 0, 0, 0, 0.069)
-  -- lovr.graphics.setColor(1.0, 1.0, 1.0, 0.1)
-  -- lovr.graphics.circle("line", 0, 0, 0, 0.072)
 
   lovr.graphics.pop()
 end
