@@ -68,7 +68,7 @@ end
 
 function AlloAvatar:makeWatchHud()
     local hudRoot = ui.View(
-        ui.Bounds(-0.09, 0.00, 0.04,   0.00, 0.00, 0.00):rotate(-3.14/2, 0,-1,0)
+        ui.Bounds(-0.09, 0.00, 0.04,   0.00, 0.00, 0.00):rotate(3.14/2, -1, 0, 0):rotate(-3.14/2, 0,-1,0)
     )
     return hudRoot
 end

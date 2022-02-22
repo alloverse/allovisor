@@ -129,13 +129,12 @@ function StandardWidgets:addHelpWidget(avatar, netscene, cb)
     
     local sz = 0.20
     local helpUI = ui.Surface(ui.Bounds(sz/3,sz/2 + 0.01,0, sz, sz, 0.001):rotate(-0.4,  0,1,0))
-    helpUI:setColor({0,0,0,1})
 
-    local front = helpUI:addSubview(ui.Surface(helpUI.bounds:copy():moveToOrigin():inset(0.002, 0.002, 0):move(0,0,0.001)))
     local platform = lovr.headset and "vr" or "desktop"
     local helpAsset = ui.Asset.LovrFile("/assets/images/help-"..platform..".png", true)
     netscene.assetManager:add(helpAsset)
-    front:setTexture(helpAsset)
+    helpUI:setTexture(helpAsset)
+    helpUI.hasTransparency = true
     
     
     local visible = false

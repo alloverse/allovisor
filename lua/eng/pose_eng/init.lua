@@ -168,6 +168,7 @@ function PoseEng:getPose(device)
         :mul(invHead)
         :translate(-0.18, 1.50, -0.35)
         :rotate(-3.1416/3, 0,1,0)
+        :rotate(-1.3, 0,0,1)
         :translate(0,0,-0.05)
     elseif device == "hand/right" then
       pose:translate( 0.18, 1.45, -0.0)
