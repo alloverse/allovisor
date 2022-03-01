@@ -28,11 +28,11 @@ function GraphicsEng:_init()
     self:super()
     
     -- Paint every entity in a differnet shade? Nice to figure out what be longs what
-    self.colorfulDebug = true
+    self.colorfulDebug = false
     -- Draw model boinding boxes?
-    self.drawAABBs = true
+    self.drawAABBs = false
     -- Draw spheres at the center of AABB's?
-    self.drawAABBCenters = true
+    self.drawAABBCenters = false
     
     -- A list of models loaded from a directory for previewing
     self.testModels = {}
@@ -155,7 +155,8 @@ end
 
 function GraphicsEng:onHeadAdded(headEnt)
     for k,object in pairs(self.renderObjects) do
-        if object.entity:getParent().id == self.parent.head_id then
+        local parent = object.entity:getParent()
+        if parent and parent.id == self.parent.head_id then
             object.isHead = true
             object.visible = false
         end
@@ -293,20 +294,20 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
             object.AABB = nil
         elseif component.type == "inline" then
             object.lovr.model = self:createMesh(object, component, old_component)
-            object.AABB = self:aabbForModel(object.lovr.model, lovr.math.mat4())
+            object.AABB = self:aabbForModel(object.lovr.model, entity.components.transform:getMatrix())
         elseif component.name then
             object.lovr.model = self.hardcoded_models.loading
-            object.AABB = self:aabbForModel(object.lovr.model, lovr.math.mat4())
+            object.AABB = self:aabbForModel(object.lovr.model, entity.components.transform:getMatrix())
             
             self.parent.engines.assets:loadModel(component.name, function(model)
                 if not object == self.renderObjects[entityId] then return end
                 if model then
                     object.lovr.model = model
-                    object.AABB = self:aabbForModel(object.lovr.model, lovr.math.mat4())
+                    object.AABB = self:aabbForModel(object.lovr.model, entity.components.transform:getMatrix())
                     self:applyModelMaterial(object)
                 else
                     object.lovr.model = self.hardcoded_models.broken
-                    object.AABB = self:aabbForModel(object.lovr.model, lovr.math.mat4())
+                    object.AABB = self:aabbForModel(object.lovr.model, entity.components.transform:getMatrix())
                 end
             end)
         end
@@ -315,7 +316,8 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
     
     if entity.components.material and (not component_key or component_key == "material") then
         local component = entity.components.material
-        object.hasTransparency = false -- TODO: calculate
+        local material_alpha = component.color and type(component.color[4]) == "number" and component.color[4] or 1
+        object.hasTransparency = component.hasTransparency or material_alpha < 1
         object.hasReflection = true
         object.material = {
             color = component.color,
