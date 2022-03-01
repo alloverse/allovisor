@@ -41,19 +41,20 @@ function StatsEng:statsString()
     for i,v in ipairs({"drawcalls", "renderpasses", "shaderswitches", "buffers", "textures", "buffermemory", "texturememory"}) do
         s = s .. v .. ":   " .. renderStats[v] .. "\n"
     end
-
+    
     if self.parent and self.parent.assetManager then 
         local stat = self.parent.assetManager:getStats()
         s = s .. "AssetManager: " .. stat["published"] .. ", " .. stat["loading"] .. ", " .. stat["cached"] .. ", " .. stat["disk"] .. "\n"
     end
-
+    
     self.second = (self.second or 1) + lovr.timer.getDelta()
     if self.second >= 1 then
         self.second = 0
         self.lua_memory = collectgarbage("count")
     end
-
-    s = "Lua KBytes: " .. self.lua_memory .. "\n" .. s            
+    
+    s = s .. "Graphics Objects: " .. #self.parent.engines.graphics.renderObjects .. "\n"
+    s = "Lua KBytes: " .. self.lua_memory .. "\n" .. s
     if self.parent and self.parent.engines.graphics.renderStats then
         local renderStats = self.parent.engines.graphics.renderStats
         local t = renderStats.cubemapTargets

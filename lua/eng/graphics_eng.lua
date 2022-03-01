@@ -337,6 +337,7 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
         if component.texture and component.texture:match("asset:") then
             self.parent.engines.assets:loadTexture(component.texture, function (texture)
                 if not object == self.renderObjects[entityId] then return end
+                object.material.diffuseTexture = texture
                 if not texture then return end
                 object.lovr.material:setTexture(texture)
                 self:applyModelMaterial(object)
