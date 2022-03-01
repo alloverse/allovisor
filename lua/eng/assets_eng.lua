@@ -131,7 +131,7 @@ end
 function AssetsEng:loadImage(asset_id, callback, flipped)
     assert(string.match(asset_id, "asset:"), "not an asset id")
 
-    self:getAsset(asset_id, function(asset)
+    return self:getAsset(asset_id, function(asset)
         if asset then
             self:loadFromAsset(asset, "texture-asset", callback, flipped)
         else
@@ -143,13 +143,30 @@ end
 function AssetsEng:loadTexture(asset_id, callback)
     assert(string.match(asset_id, "asset:"), "not an asset id")
 
-    self:loadImage(asset_id, function(image)
+    return self:loadImage(asset_id, function(image)
         if image then
             callback(lovr.graphics.newTexture(image))
         else
             print("Failed to load texture data")
+            callback(nil)
         end
     end)
+end
+
+function AssetsEng:loadModel(asset_id, callback)
+    assert(string.match(asset_id, "asset:"), "not an asset id")
+
+    self:getAsset(asset_id, function (asset)
+        if asset then
+            self:loadFromAsset(asset, "model-asset", function (modelData)
+                callback(modelData and lovr.graphics.newModel(modelData))
+            end)
+        else
+            print("failed to load model data")
+            callback(nil)
+        end
+    end)
+    return nil
 end
 
 

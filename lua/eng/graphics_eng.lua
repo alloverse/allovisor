@@ -28,22 +28,19 @@ function GraphicsEng:_init()
     self:super()
     
     -- Paint every entity in a differnet shade? Nice to figure out what be longs what
-    self.colorfulDebug = false
+    self.colorfulDebug = true
     -- Draw model boinding boxes?
-    self.drawAABBs = false
+    self.drawAABBs = true
     -- Draw spheres at the center of AABB's?
-    self.drawAABBCenters = false
+    self.drawAABBCenters = true
     
     -- A list of models loaded from a directory for previewing
     self.testModels = {}
     
-    -- Holds our meta about entities
-    self.entities = {}
-    
     self.defaultAmbientLightColor = {0.4,0.4,0.4,1}
     
     self.renderer = Renderer()
-    self.renderObjects = {}
+    self.renderObjects = {} -- entity.id: table
     self.aabb_for_model = {}
 end
 
@@ -104,10 +101,15 @@ function GraphicsEng:aabbForModel(model, transform)
         }
     else
         local aabb = self.aabb_for_model[model]
-        return {
-            min = newVec3(aabb.min * vec3(sx, sy, sz)),
-            max = newVec3(aabb.max * vec3(sx, sy, sz)),
-        }
+        if aabb then
+            return {
+                min = newVec3(aabb.min * vec3(sx, sy, sz)),
+                max = newVec3(aabb.max * vec3(sx, sy, sz)),
+            }
+        else
+            print("Missing aabb for ", model)
+            assert(aabb, "aabb missing for ")
+        end
     end
 end
 
@@ -119,94 +121,30 @@ function GraphicsEng:onDraw()
     graphics.setCullingEnabled(true)
     graphics.setColor(1, 1, 1, 1)
     
-    local aabbForModel = self.aabbForModel
-    
-    -- Collect all the objects to sort and draw
-    local objects = self.renderObjects
-    local count = 0
-    -- enteties
-    -- TODO: Use a managed list instead based on added/removed componets
-    for eid, meta in pairs(self.entities) do
---    for eid, entity in pairs(self.client.state.entities) do
-        local model = meta.model
-        if model then
-            count = count + 1
-            -- Default material property is basically plastic
-            local material = meta.material or {
-                metalness = 0,
-                roughness = 1
-            }
-            
-            -- Transparent obects have opposite draw order than opaque objects
-            local material_alpha = material and material.color and type(material.color[4]) == "number" and material.color[4] or 1
-            local hasTransparency = material and material.hasTransparency or material_alpha < 1
-            local transform = meta.getWorldMatrix()
-            objects[count] = {
-                id = eid,
-                visible = true,
-                AABB = aabbForModel(self, model, transform),
-                position = newVec3(transform:mul(vec3())),
-                hasTransparency = hasTransparency,
-                hasReflection = true,
-                material = {
-                    diffuseTexture = material.diffuseTexture,
-                    metalness = material.metalness or 0,
-                    roughness = material.roughness or 1,
-                    uvScale = material.uvScale or {1, 1},
-                },
-                draw = function(object, context)
-                    -- TODO: not nice with an inline closure but will be less expensive with a managed object list
-                    
-                    -- Hide head from view but not from reflections.
-                    if context.view.nr == 1 and meta.isHead then
-                        return
-                    end
-                    
-                    -- Is this reeeeally the right place to handle animations at all?
-                    -- TODO: some hack so this it only run for entities that needs it
-                    local animationCount = model.animate and model:getAnimationCount()
-                    if animationCount and animationCount > 0 then
-                        local name = model:getAnimationName(1)
-                        for i = 1, animationCount do 
-                            if model:getAnimationName(i) == "autoplay" then
-                                name = "autoplay"
-                            end
-                        end
-                        model:animate(name, lovr.timer.getTime())
-                    end
-                    
-                    if material.color then
-                        lovr.graphics.setColor(table.unpack(material.color))
-                        model:draw(transform)
-                        lovr.graphics.setColor(1,1,1,1)
-                    else
-                        model:draw(transform)
-                    end
-                end
-            }
-        end
+    local objects = tablex.values(self.renderObjects)
+
+    for i,object in ipairs(objects) do
+        -- TODO: when transform has changed for self or any parent
+        local transform = object.entity.components.transform:getMatrix()
+        object.position = newVec3(transform:mul(vec3()))
     end
     
     --- Add objects that are drag&dropped into the visor
     for i, model in ipairs(self.testModels) do
         table.insert(objects, {
             id = "Test object " .. i,
-            AABB = aabbForModel(self, model, lovr.math.mat4()),
+            AABB = self:aabbForModel(model, lovr.math.mat4()),
             position = newVec3(0,0,0),
             draw = function(object)
-                object.model:draw()
+                object.lovr.model:draw()
             end
         })
     end
-    
-    -- clear eventual old objects
-    for j = count + 1, #objects do
-        objects[j] = nil
-    end
-    
-    -- Draw all of them (unless things are not initialized properly)
-    if self.parent:getHead() then 
-        local headPosition = self.parent:getHead().components.transform:getMatrix():mul(vec3())
+
+    -- Send objects to renderer
+    local headEnt = self.parent:getHead()
+    if headEnt then
+        local headPosition = headEnt.components.transform:getMatrix():mul(vec3())
         self.renderStats = self.renderer:render(objects, {
             drawAABB = self.drawAABBs,
             cameraPosition = newVec3(headPosition),
@@ -215,44 +153,23 @@ function GraphicsEng:onDraw()
     end
 end
 
-
--- if both model and material is loaded for eid, then apply the material to the model
-function GraphicsEng:applyModelMaterialForEntity(eid)
-    local meta = self.entities[eid]
-    if not meta then return end
-    local model = meta.model
-    local material = meta.live_material or meta.material
-    if not model or not material or not model.setMaterial then return end
-    model:setMaterial(material)
-end
-
---- Load a model for supplied component.
--- @tparam component component The component to load the model for
--- @tparam component old_component The previous component state, if any
-function GraphicsEng:loadComponentModel(component, old_component)
-    local eid = component.getEntity().id
-
-    function apply(model, apply_material)
-        self.entities[eid].model = model
-        if apply_material or apply_material == nil then
-            self:applyModelMaterialForEntity(eid)
+function GraphicsEng:onHeadAdded(headEnt)
+    for k,object in pairs(self.renderObjects) do
+        if object.entity:getParent().id == self.parent.head_id then
+            object.isHead = true
+            object.visible = false
         end
     end
-    
-    if component.type == "hardcoded-model" then
-        self:loadHardcodedModel(component.name, apply)
-    elseif component.type == "inline" then 
-        apply(self:createMesh(component, old_component))
-    elseif component.type == "asset" then
-        local cached = self.parent.engines.assets:getAsset(component.name, function (asset)
-            if asset then 
-                self:modelFromAsset(asset, apply)
-            else
-                apply(self.hardcoded_models.broken, false)
-            end
-        end)
-        if cached == nil then apply(self.hardcoded_models.loading, false) end
-    end
+end
+
+-- if both model and material is loaded for eid, then apply the material to the model
+function GraphicsEng:applyModelMaterial(object)
+    if not object or not object.lovr then return end
+    local model = object.lovr.model
+    local media = object.live_media
+    local material = (media and media.material) or object.lovr.material
+    if not model or not material or not model.setMaterial then return end
+    model:setMaterial(material)
 end
 
 --- Load a bundled model by name.
@@ -287,61 +204,6 @@ function GraphicsEng:loadHardcodedModel(name, callback, path)
     )
 end
 
-function GraphicsEng:loadTexture(eid, base64, callback)
-    loader:load(
-        "base64png",
-        "base64png/"..eid,
-        function(texdata, status)
-            if texdata== nil or status == false then
-                print("Failed to load base64 texture", eid, ":", texdata)
-            else
-                local tex = graphics.newTexture(texdata)
-                callback(tex)
-            end
-        end,
-        base64
-    )
-end
-
---- Loads a material for supplied component.
--- @tparam component component The component to load a material for
--- @tparam component old_component not used
-function GraphicsEng:loadComponentMaterial(component, old_component)
-    local eid = component.getEntity().id
-    
-    local mat = graphics.newMaterial()
-    if component.color ~= nil then
-        mat:setColor("diffuse", component.color[1], component.color[2], component.color[3], component.color[4])
-    end
-    
-    local apply = function(texture, apply_material)
-        mat:setTexture(texture)
-        self.entities[eid].material = mat
-        self.entities[eid].diffuseTexture = texture
-        if apply_material or apply_material == nil then
-            self:applyModelMaterialForEntity(eid)
-        end
-    end
-    
-    local textureName = component.texture
-    if textureName == nil then
-        apply(nil)
-    else
-        if string.match(textureName, "asset:") then
-            self.parent.engines.assets:getAsset(textureName, function(asset)
-                if asset then 
-                    self:textureFromAsset(asset, apply)
-                else
-                    print("Texture asset " .. textureName .. " was not found")
-                end  
-            end)
-        else
-            -- backwards compat.
-            self:loadTexture(eid, textureName, apply)
-        end
-    end
-end
-
 function GraphicsEng:loadEnvironment(component, wasRemoved)
     if wasRemoved then component = nil end
     -- TODO: Merge all active environment components. 
@@ -361,96 +223,22 @@ function GraphicsEng:loadEnvironment(component, wasRemoved)
 end
 
 
-function GraphicsEng:onEndityAdded(ent)
-
+function GraphicsEng:onEntityAdded(ent)
+    if ent.components.geometry then
+        self:buildObject(ent)
+    end
 end
 
 function GraphicsEng:onEntityRemoved(ent)
-    self.entities[ent.id] = nil
-end
-
-function GraphicsEng:meta(eid)
-    self.entities[eid] = self.entities[eid] or {}
-    return self.entities[eid]
+    self.renderObjects[ent.id] = nil
 end
 
 --- Called when a new component is added
 -- @tparam string component_key The component type
 -- @tparam component component The new component
 function GraphicsEng:onComponentAdded(component_key, component)
-    local ent = component:getEntity()
-    local eid = ent.id
-    if component_key == "geometry" then
-        self:meta(eid)
-        self:loadComponentModel(component, nil)
-    elseif component_key == "material" then
-        self:meta(eid)
-        self:loadComponentMaterial(component, nil)
-    elseif component_key == "environment" then
+    if component_key == "environment" then
         self:loadEnvironment(component)
-    elseif component_key == "live_media" then
-        self:meta(eid)
-        self:liveMediaAdded(component)
-    elseif component_key == "transform" then
-        local meta = self:meta(eid)
-        meta.getWorldMatrix = function()
-            return newMat4(component:getMatrix())
-        end
-    elseif component_key == "relationships" then
-        local parent = ent:getParent()
-        if parent and parent.id == self.parent.head_id then
-            self:meta(eid).isHead = true
-        end
-    end
-end
-
-function GraphicsEng:liveMediaAdded(component) 
-    local eid = component:getEntity().id
-    if component.type == "video" then
-        local media = self.videoMedia[component.track_id]
-        if not media then
-            media = {
-                texture = lovr.graphics.newTexture(component.metadata.width, component.metadata.height, 1, {mipmaps = false, format = "rgba"}),
-                material = lovr.graphics.newMaterial()
-            }
-            media.texture:setWrap('clamp', 'clamp')
-            media.texture:setFilter('nearest', 0)
-            media.material:setTexture(media.texture)
-            self.videoMedia[component.track_id] = media
-            self.entities[eid].live_media = media
-            self.entities[eid].live_material = media.material
-            media.eid = eid
-            self:applyModelMaterialForEntity(eid)
-        end
-    end
-end
-
-function GraphicsEng:liveMediaChanged(component, old_component)
-    local eid = component:getEntity().id
-    if component.type == "video" then
-        local media = self.videoMedia[component.track_id]
-        if media then
-            media.texture = lovr.graphics.newTexture(component.metadata.width, component.metadata.height, 1, {
-                mipmaps = false,
-                format = "rgba"
-            })
-            media.material:setTexture(media.texture)
-            self.entities[eid].live_material = media.material
-            self:applyModelMaterialForEntity(eid)
-        else
-            self:liveMediaAdded(component)
-        end
-    end
-end
-
-function GraphicsEng:liveMediaRemoved(component)
-    local eid = component:getEntity().id
-    if component.type == "video" then
-        local media = self.videoMedia[component.track_id]
-        if media then media.material:setTexture() end
-        self.videoMedia[component.track_id] = nil
-        self.entities[eid].live_material = nil
-        self:applyModelMaterialForEntity(eid)
     end
 end
 
@@ -459,45 +247,171 @@ end
 -- @tparam component component The new component state
 -- @tparam component old_component The previous component state
 function GraphicsEng:onComponentChanged(component_key, component, old_component)
-    local eid = component:getEntity().id
-    if component_key == "geometry" then
-        self:loadComponentModel(component, old_component)
-    elseif component_key == "material" then
-        self:loadComponentMaterial(component, old_component)
-    elseif component_key == "environment" then
+    local entity = component:getEntity()
+    if component_key == "environment" then
         self:loadEnvironment(component)
-    elseif component_key == "live_media" then
-        self:liveMediaChanged(component, old_component)
-    elseif component_key == "transform" then
-        self:meta(eid).matrix = newMat4(component:getMatrix())
+    elseif self.renderObjects[entity.id] then
+       self:buildObject(entity, component_key, old_component, false)
     end
 end
 
 
---- Called when a new component is removed
+--- Called when a component is removed
 -- @tparam string component_key The component type
 -- @tparam component component The removed component
 function GraphicsEng:onComponentRemoved(component_key, component)
-    local eid = component.getEntity().id
-    local meta = self.entities[eid]
-    if component_key == "geometry" then
-        if meta then meta.model = nil end
-    elseif component_key == "material" then
-        if meta then meta.material = nil end
-    elseif component_key == "environment" then
+    local entity = component:getEntity()
+    if component_key == "environment" then
         self:loadEnvironment(component, true)
-    elseif component_key == "live_media" then
-        self:liveMediaRemoved(component)
-        if meta then meta.live_material = nil end
+    elseif self.renderObjects[entity.id] then
+        self:buildObject(entity, component_key, nil, true)
+    end
+end
+
+function GraphicsEng:buildObject(entity, component_key, old_component, removed)
+    local entityId = entity.id
+    local object = self.renderObjects[entityId]
+
+    if object and not object.lovr then 
+        assert(false, "what")
+    end
+
+    if not object then
+        object = {
+            id = entity.id,
+            visible = true,
+            entity = entity,
+            lovr = {}, -- holds on to lovr objects
+        }
+        self.renderObjects[entityId] = object
+    end
+
+    if entity.components.geometry and (not component_key or component_key == "geometry") then
+        local component = entity.components.geometry
+        if removed then 
+            object.lovr.model = nil
+            object.AABB = nil
+        elseif component.type == "inline" then
+            object.lovr.model = self:createMesh(object, component, old_component)
+            object.AABB = self:aabbForModel(object.lovr.model, lovr.math.mat4())
+        elseif component.name then
+            object.lovr.model = self.hardcoded_models.loading
+            object.AABB = self:aabbForModel(object.lovr.model, lovr.math.mat4())
+            
+            self.parent.engines.assets:loadModel(component.name, function(model)
+                if not object == self.renderObjects[entityId] then return end
+                if model then
+                    object.lovr.model = model
+                    object.AABB = self:aabbForModel(object.lovr.model, lovr.math.mat4())
+                    self:applyModelMaterial(object)
+                else
+                    object.lovr.model = self.hardcoded_models.broken
+                    object.AABB = self:aabbForModel(object.lovr.model, lovr.math.mat4())
+                end
+            end)
+        end
+        object.draw = (removed and nil) or draw_object
+    end
+    
+    if entity.components.material and (not component_key or component_key == "material") then
+        local component = entity.components.material
+        object.hasTransparency = false -- TODO: calculate
+        object.hasReflection = true
+        object.material = {
+            color = component.color,
+            metalness = component.metalness or 0,
+            roughness = component.roughness or 1,
+            uvScale = component.uvScale or {1,1}
+        }
+
+        -- todo: reuse or recreate material?
+        local material = object.lovr.material or lovr.graphics.newMaterial()
+        object.lovr.material = material
+        if component.color then 
+            local c = component.color
+            material:setColor("diffuse", c[1], c[2], c[3], c[4] or 1)
+        end
+
+        if component.texture and component.texture:match("asset:") then
+            self.parent.engines.assets:loadTexture(component.texture, function (texture)
+                if not object == self.renderObjects[entityId] then return end
+                if not texture then return end
+                object.lovr.material:setTexture(texture)
+                self:applyModelMaterial(object)
+            end)
+        end
+    end
+
+    if entity.components.transform and (not component_key or component_key == "transform") then
+        local component = entity.components.transform
+        object.getMatrix = function ()
+            return component:getMatrix()
+        end
+    end
+
+    if entity.components.live_media and (not component_key or component_key == "live_media") then
+        local component = entity.components.live_media
+        local media = nil
+        if removed then 
+            media = self:liveMediaRemoved(component)
+        elseif object.live_media then
+            media = self:liveMediaChanged(component)
+        else 
+            media = self:liveMediaAdded(component)
+        end
+        object.live_media = media
+        self:applyModelMaterial(object)
+    end
+
+    if entity.components.relationships then
+        local parent = entity:getParent()
+        if parent and parent.id == self.parent.head_id then
+            object.isHead = true
+            object.visible = false
+        end
+    end
+
+    --todo: isHead
+end
+
+function draw_object(object, renderObject, context)    
+    -- Hide head from view but not from reflections.
+    if context.view.nr == 1 and object.isHead then
+        return
+    end
+
+    local model = object.lovr.model
+    local material = object.material
+    local transform = object.getMatrix()
+    
+    -- Is this reeeeally the right place to handle animations at all?
+    -- TODO: some hack so this it only run for entities that needs it
+    local animationCount = model.animate and model:getAnimationCount()
+    if animationCount and animationCount > 0 then
+        local name = model:getAnimationName(1)
+        for i = 1, animationCount do 
+            if model:getAnimationName(i) == "autoplay" then
+                name = "autoplay"
+            end
+        end
+        model:animate(name, lovr.timer.getTime())
+    end
+    
+    if material and material.color then
+        lovr.graphics.setColor(table.unpack(material.color))
+        model:draw(transform)
+        lovr.graphics.setColor(1,1,1,1)
+    else
+        model:draw(transform)
     end
 end
 
 --- Creates a mesh for a geometry component
 -- @tparam geometry_component geom
 -- @tparam geometry_component old_geom
-function GraphicsEng:createMesh(geom, old_geom)
-    local eid = geom.getEntity().id
-    local mesh = self.entities[eid].model
+function GraphicsEng:createMesh(object, geom, old_geom)
+    local mesh = object.lovr.model
+    if mesh and not mesh.setMaterial then return end
     
     if mesh == nil
         or not tablex.deepcompare(geom.triangles, old_geom.triangles)
@@ -562,15 +476,6 @@ function GraphicsEng:createMesh(geom, old_geom)
         }
         self.aabb_for_model[mesh] = aabb
     end
-
-    if (old_geom == nil or old_geom.texture ~= geom.texture) and geom.texture then
-        -- decode texture data and setup material
-        self:loadTexture(eid, geom.texture, function(tex)
-            local material = graphics.newMaterial(tex)
-            mesh:setMaterial(material)
-        end)
-    end
-
     return mesh
 end
 
@@ -615,28 +520,56 @@ function GraphicsEng:generateGeometryWithNormals(geom)
     return new_geom
 end
 
+function GraphicsEng:modelFromAsset(asset_id, callback)
+    return self.parent.engines.assets:loadModel(asset_id, callback)
+end
 
-function GraphicsEng:modelFromAsset(asset, callback)
-    if self.parent.engines.assets:loadFromAsset(asset, "model-asset", function (modelData)
-        if modelData then 
-            callback(graphics.newModel(modelData))
-        else
-            print("Failed to parse model data for " .. asset:id())
-            callback(self.hardcoded_models.broken)
+function GraphicsEng:textureFromAsset(asset_id, callback)
+    return self.parent.engines.assets:loadTexture(asset_id, callback)
+end
+
+function GraphicsEng:liveMediaAdded(component) 
+    local eid = component:getEntity().id
+    if component.type == "video" then
+        local media = self.videoMedia[component.track_id]
+        if not media then
+            media = {
+                texture = lovr.graphics.newTexture(component.metadata.width, component.metadata.height, 1, {mipmaps = false, format = "rgba"}),
+                material = lovr.graphics.newMaterial()
+            }
+            media.texture:setWrap('clamp', 'clamp')
+            media.texture:setFilter('nearest', 0)
+            media.material:setTexture(media.texture)
+            self.videoMedia[component.track_id] = media
+            media.eid = eid
         end
-    end) then
-        callback(self.hardcoded_models.loading)
+        return media
     end
 end
 
-function GraphicsEng:textureFromAsset(asset, callback)
-    self.parent.engines.assets:loadFromAsset(asset, "texture-asset", function (image)
-        if image then 
-            callback(graphics.newTexture(image))
+function GraphicsEng:liveMediaChanged(component)
+    local eid = component:getEntity().id
+    if component.type == "video" then
+        local media = self.videoMedia[component.track_id]
+        if media then
+            media.texture = lovr.graphics.newTexture(component.metadata.width, component.metadata.height, 1, {
+                mipmaps = false,
+                format = "rgba"
+            })
+            media.material:setTexture(media.texture)
         else
-            print("Failed to load texture data")
+            self:liveMediaAdded(component)
         end
-    end)
+    end
+end
+
+function GraphicsEng:liveMediaRemoved(component)
+    local eid = component:getEntity().id
+    if component.type == "video" then
+        local media = self.videoMedia[component.track_id]
+        if media then media.material:setTexture() end
+        self.videoMedia[component.track_id] = nil
+    end
 end
 
 function GraphicsEng:loadCubemap(asset_ids, callback)
@@ -670,10 +603,6 @@ function GraphicsEng:loadCubemap(asset_ids, callback)
         print("Incomplete cubemap spec")
         pretty.dump(asset_ids)
     end
-end
-
-function GraphicsEng:loadTextureAsset(asset_id, callback)
-    self.parent.engines.assets:loadTexture(asset_id, callback)
 end
 
 return GraphicsEng

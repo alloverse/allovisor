@@ -552,7 +552,7 @@ function Renderer:drawObject(object, context)
 
     context.stats.drawnObjectIds[object.id] = object.id
 
-    object.source.draw(object, context)
+    object.source:draw(object, context)
     
     if context.drawAABB then
         local bb = object.AABB

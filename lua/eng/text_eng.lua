@@ -70,7 +70,8 @@ function TextEng:onDraw()
 end
 
 function TextEng:drawText(eid, entity, text)
-    local mat = self.parent.engines.graphics:meta(eid).material
+    local object = self.parent.engines.graphics.renderObjects[eid]
+    local mat = object and object.lovr.material
     if mat then
         lovr.graphics.setColor(mat:getColor())
     else
@@ -127,29 +128,29 @@ function TextEng:drawText(eid, entity, text)
     
     
     lovr.graphics.print(
-    text.string,
-    0, 0, 0.01,
-    dynamicTextScale, --text.height and text.height or 1.0, 
-    0, 0, 0, 0,
-    wrap,
-    text.halign and text.halign or "center",
-    text.valign and text.valign or "middle"
-)
+        text.string,
+        0, 0, 0.01,
+        dynamicTextScale, --text.height and text.height or 1.0, 
+        0, 0, 0, 0,
+        wrap,
+        text.halign and text.halign or "center",
+        text.valign and text.valign or "middle"
+    )
 
-if text.insertionMarker then
-    lovr.graphics.setColor(0, 0, 0, math.sin(lovr.timer.getTime()*5)*0.5 + 0.6)
-    local actualLabelWidth, lines = lovr.graphics.getFont():getWidth(text.string, wrap)
-    actualLabelWidth = actualLabelWidth * dynamicTextScale
-    local lastLine = string.match(text.string, "[^%c]*$")
-    local lastLineWidth = lovr.graphics.getFont():getWidth(lastLine) * dynamicTextScale
-    local height = self.font:getHeight()*dynamicTextScale
-    lovr.graphics.line(
-    lastLineWidth + 0.01, height/2 - height*(lines-1), 0,
-    lastLineWidth + 0.01, height/2 - height*lines, 0
-)
-end
+    if text.insertionMarker then
+        lovr.graphics.setColor(0, 0, 0, math.sin(lovr.timer.getTime()*5)*0.5 + 0.6)
+        local actualLabelWidth, lines = lovr.graphics.getFont():getWidth(text.string, wrap)
+        actualLabelWidth = actualLabelWidth * dynamicTextScale
+        local lastLine = string.match(text.string, "[^%c]*$")
+        local lastLineWidth = lovr.graphics.getFont():getWidth(lastLine) * dynamicTextScale
+        local height = self.font:getHeight()*dynamicTextScale
+        lovr.graphics.line(
+        lastLineWidth + 0.01, height/2 - height*(lines-1), 0,
+        lastLineWidth + 0.01, height/2 - height*lines, 0
+    )
+    end
 
-lovr.graphics.pop()
+    lovr.graphics.pop()
 end
 
 function TextEng:onDebugDraw()
