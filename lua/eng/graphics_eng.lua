@@ -217,6 +217,8 @@ function GraphicsEng:onComponentAdded(component_key, component)
     local entity = component:getEntity()
     if component_key == "environment" then
         self:loadEnvironment(component)
+    elseif component_key == "live_media" then
+        self:handleVideo(entity, component, nil)
     elseif self.renderObjects[entity.id] then
         self:buildObject(entity, component_key, nil, false)
     end
@@ -230,6 +232,8 @@ function GraphicsEng:onComponentChanged(component_key, component, old_component)
     local entity = component:getEntity()
     if component_key == "environment" then
         self:loadEnvironment(component)
+    elseif component_key == "live_media" then 
+        self:handleVideo(entity, component, old_component)
     elseif self.renderObjects[entity.id] then
        self:buildObject(entity, component_key, old_component, false)
     end
@@ -243,8 +247,66 @@ function GraphicsEng:onComponentRemoved(component_key, component)
     local entity = component:getEntity()
     if component_key == "environment" then
         self:loadEnvironment(component, true)
+    elseif component_key == "live_media" then 
+        self:handleVideo(entity, nil, component)
     elseif self.renderObjects[entity.id] then
         self:buildObject(entity, component_key, nil, true)
+    end
+end
+
+function GraphicsEng:handleVideo(entity, component, old_component)
+    if (component or old_component).type ~= "video" then return end
+    local track_id = (component or old_component).track_id
+    local media = self.videoMedia[track_id]
+    pretty.dump(component or old_component)
+    pretty.dump(media)
+    if not component and old_component and media then -- removed
+        print("Removing video track " .. track_id)
+        self.videoMedia[track_id] = nil
+        for i,eid in pairs(media.consumers) do
+            local ent = self.renderObjects[eid]
+            if ent and ent.material then 
+                ent.material.diffuseTexture = nil
+            end
+        end
+        return
+    end
+    
+    if component and media then -- changed
+        print("Changing video track " .. track_id)
+        local meta = component.metadata
+        if not media.texture or media.texture:getWidth() ~= meta.width or media.texture:getHeight() ~= meta.height then
+            media.texture = lovr.graphics.newTexture(component.metadata.width, component.metadata.height, 1, {mipmaps = false, format = "rgba"})
+            media.texture:setWrap('clamp', 'clamp')
+            media.texture:setFilter('nearest', 0)
+        end
+        for i,eid in pairs(media.consumers) do
+            local ent = self.renderObjects[eid]
+            print("assign media material to " .. eid)
+            if ent and ent.material then
+                ent.material.diffuseTexture = media.texture
+            end
+        end
+    end
+
+    if component and not media then -- added
+        print("Adding video track " .. track_id)
+        media = {
+            owner = entity.id,
+            consumers = {}
+        }
+        local meta = component.metadata
+        media.texture = lovr.graphics.newTexture(meta.width, meta.height, 1, {mipmaps = false, format = "rgba"})
+        media.texture:setWrap('clamp', 'clamp')
+        media.texture:setFilter('nearest', 0)
+        self.videoMedia[track_id] = media
+
+        -- note: backcompat
+        local object = self.renderObjects[entity.id]
+        if object then 
+            if not object.material then object.material = {} end
+            object.material.diffuseTexture = media.texture
+        end
     end
 end
 
@@ -307,40 +369,44 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
     
     if (not component_key or component_key == "material") and entity.components.material then
         local component = entity.components.material
-        local material_alpha = component.color and type(component.color[4]) == "number" and component.color[4] or 1
-        object.hasTransparency = component.hasTransparency or material_alpha < 1
-        object.hasReflection = true
-        object.material = {
-            color = component.color,
-            metalness = component.metalness or 0,
-            roughness = component.roughness or 1,
-            uvScale = component.uvScale or {1,1}
-        }
+        if not component or removed then
+            object.material = nil
+        else
+            local material_alpha = component.color and type(component.color[4]) == "number" and component.color[4] or 1
+            object.hasTransparency = component.hasTransparency or material_alpha < 1
+            object.hasReflection = true
+            object.material = {
+                color = component.color,
+                metalness = component.metalness or 0,
+                roughness = component.roughness or 1,
+                uvScale = component.uvScale or {1,1}
+            }
 
-        if component.texture and component.texture:match("asset:") then
-            self.parent.engines.assets:loadTexture(component.texture, function (texture)
-                if not object == self.renderObjects[entityId] then return end
-                object.material.diffuseTexture = texture
-            end)
+            if component.texture and component.texture:match("asset:") then
+                self.parent.engines.assets:loadTexture(component.texture, function (texture)
+                    if not object == self.renderObjects[entityId] then return end
+                    object.material.diffuseTexture = texture
+                end)
+            elseif component.texture and component.texture:match("video:") then
+                local track_id = tonumber(component.texture:match("video:(.+)"))
+                local media = self.videoMedia[track_id]
+                if media then
+                    print("found media for material")
+                    table.insert(media.consumers, entityId)
+                    object.material.diffuseTexture = media.texture
+                else
+                    print("NEW MEDIA for material")
+                    media = {consumers = {entityId}}
+                    self.videoMedia[track_id] = media
+                end
+            end
+            pretty.dump(component)
         end
     end
 
-    if (not component_key or component_key == "transform") and entity.components.transform then
-        -- local component = entity.components.transform
-    end
-
-    if (not component_key or component_key == "live_media") and entity.components.live_media then
-        local component = entity.components.live_media
-        local media = nil
-        if removed then 
-            media = self:liveMediaRemoved(component)
-        elseif object.live_media then
-            media = self:liveMediaChanged(component)
-        else 
-            media = self:liveMediaAdded(component)
-        end
-        object.live_media = media
-    end
+    -- if (not component_key or component_key == "transform") and entity.components.transform then
+    --     -- local component = entity.components.transform
+    -- end
 
     if entity.components.relationships then
         local parent = entity:getParent()
@@ -423,48 +489,6 @@ end
 
 function GraphicsEng:modelFromAsset(asset_id, callback)
     return self.parent.engines.assets:loadModel(asset_id, callback)
-end
-
-
-function GraphicsEng:liveMediaAdded(component) 
-    local eid = component:getEntity().id
-    if component.type == "video" then
-        local media = self.videoMedia[component.track_id]
-        if not media then
-            media = {
-                texture = lovr.graphics.newTexture(component.metadata.width, component.metadata.height, 1, {mipmaps = false, format = "rgba"}),
-                material = lovr.graphics.newMaterial()
-            }
-            media.texture:setWrap('clamp', 'clamp')
-            media.texture:setFilter('nearest', 0)
-            media.eid = eid
-            self.videoMedia[component.track_id] = media
-        end
-        return media
-    end
-end
-
-function GraphicsEng:liveMediaChanged(component)
-    local eid = component:getEntity().id
-    if component.type == "video" then
-        local media = self.videoMedia[component.track_id]
-        if media then
-            media.texture = lovr.graphics.newTexture(component.metadata.width, component.metadata.height, 1, {
-                mipmaps = false,
-                format = "rgba"
-            })
-        else
-            self:liveMediaAdded(component)
-        end
-        return media
-    end
-end
-
-function GraphicsEng:liveMediaRemoved(component)
-    local eid = component:getEntity().id
-    if component.type == "video" then
-        self.videoMedia[component.track_id] = nil
-    end
 end
 
 function GraphicsEng:loadCubemap(asset_ids, callback)
