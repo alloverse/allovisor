@@ -115,6 +115,7 @@ function GraphicsEng:onDraw()
     for i,object in ipairs(objects) do
         -- TODO: when transform has changed for self or any parent
         local transform = object.entity.components.transform:getMatrix()
+        object.transform = transform
         object.position = newVec3(transform:mul(vec3()))
     end
     
@@ -265,7 +266,7 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
         self.renderObjects[entityId] = object
     end
 
-    if entity.components.geometry and (not component_key or component_key == "geometry") then
+    if (not component_key or component_key == "geometry") and entity.components.geometry then
         local component = entity.components.geometry
         if removed then 
             object.lovr.model = nil
@@ -304,7 +305,7 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
         object.draw = (removed and nil) or draw_object
     end
     
-    if entity.components.material and (not component_key or component_key == "material") then
+    if (not component_key or component_key == "material") and entity.components.material then
         local component = entity.components.material
         local material_alpha = component.color and type(component.color[4]) == "number" and component.color[4] or 1
         object.hasTransparency = component.hasTransparency or material_alpha < 1
@@ -324,14 +325,11 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
         end
     end
 
-    if entity.components.transform and (not component_key or component_key == "transform") then
-        local component = entity.components.transform
-        object.getMatrix = function ()
-            return component:getMatrix()
-        end
+    if (not component_key or component_key == "transform") and entity.components.transform then
+        -- local component = entity.components.transform
     end
 
-    if entity.components.live_media and (not component_key or component_key == "live_media") then
+    if (not component_key or component_key == "live_media") and entity.components.live_media then
         local component = entity.components.live_media
         local media = nil
         if removed then 
@@ -355,15 +353,10 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
     --todo: isHead
 end
 
-function draw_object(object, renderObject, context)    
-    -- Hide head from view but not from reflections.
-    if context.view.nr == 1 and object.isHead then
-        return
-    end
-
+function draw_object(object, renderObject, context)
     local model = object.lovr.model
     local material = object.material
-    local transform = object.getMatrix()
+    local transform = object.transform
     
     -- Is this reeeeally the right place to handle animations at all?
     -- TODO: some hack so this it only run for entities that needs it
@@ -385,79 +378,6 @@ function draw_object(object, renderObject, context)
     else
         model:draw(transform)
     end
-end
-
---- Creates a mesh for a geometry component
--- @tparam geometry_component geom
--- @tparam geometry_component old_geom
-function GraphicsEng:createMesh(object, geom, old_geom)
-    local mesh = object.lovr.model
-    if mesh and not mesh.setMaterial then return end
-    if mesh == nil
-        or old_geom and (
-        not tablex.deepcompare(geom.triangles, old_geom.triangles)
-        or not tablex.deepcompare(geom.vertices, old_geom.vertices)
-        or not tablex.deepcompare(geom.uvs, old_geom.uvs)
-        or not tablex.deepcompare(geom.normals, old_geom.normals)) then
-        
-        if geom.normals == nil then 
-            geom = self:generateGeometryWithNormals(geom)
-        end
-        
-        -- convert the flattened zero-based indices list
-        local z_indices = array2d.flatten(geom.triangles)
-        -- convert to 1-based
-        local indices = tablex.map(function (x) return x + 1 end, z_indices)
-        
-        -- figure out vertex format
-        local vertex_data = {geom.vertices}
-        local mesh_format = {{'lovrPosition', 'float', 3}}
-        if (geom.uvs) then 
-            table.insert(vertex_data, geom.uvs)
-            table.insert(mesh_format, {'lovrTexCoord', 'float', 2})
-        end
-        if (geom.normals) then 
-            table.insert(vertex_data, geom.normals)
-            table.insert(mesh_format, {'lovrNormal', 'float', 3})
-        end
-        -- zip together vertex data
-        local combined = tablex.zip(unpack(vertex_data))
-        
-        -- flatten the inner tables
-        local vertices = tablex.map(function (x) return array2d.flatten(x) end, combined)
-        
-        -- Setup the mesh
-        mesh = graphics.newMesh(
-            mesh_format,
-            vertices,
-            'triangles', -- DrawMode
-            'static', -- MeshUsage. dynamic, static, stream
-            false -- do we need to read the data from the mesh later
-        )
-        
-        mesh:setVertices(vertices)
-        mesh:setVertexMap(indices)
-        
-        -- build aabb
-        local minx, maxx, miny, maxy, minz, maxz
-        for i, pt in ipairs(geom.vertices) do
-            local x, y, z = table.unpack(pt)
-            if not minx or x < minx then minx = x end
-            if not miny or y < miny then miny = y end
-            if not minz or z < minz then minz = z end
-            
-            if not maxx or x > maxx then maxx = x end
-            if not maxy or y > maxy then maxy = y end
-            if not maxz or z > maxz then maxz = z end
-        end
-        
-        local aabb = {
-            min = newVec3(minx, miny, minz),
-            max = newVec3(maxx, maxy, maxz)
-        }
-        self.aabb_for_model[mesh] = aabb
-    end
-    return mesh
 end
 
 --- Calculate vertex normal from three corner vertices

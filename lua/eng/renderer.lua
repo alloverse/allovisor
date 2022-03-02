@@ -333,8 +333,8 @@ function Renderer:prepareObjects(context)
             local AABB = object.AABB
             local minmaxdiv2 = (AABB.max - AABB.min) / 2
             renderObject.AABB = {
-                min = lovr.math.newVec3(AABB.min),
-                max = lovr.math.newVec3(AABB.max),
+                min = AABB.min,
+                max = AABB.max,
                 center = lovr.math.newVec3(object.position + AABB.min + minmaxdiv2),
                 radius = minmaxdiv2:length(),
             }
@@ -562,6 +562,7 @@ function Renderer:drawObject(object, context)
         lovr.graphics.box("line", x, y, z, math.abs(w), math.abs(h), math.abs(d))
     end
 end
+
 
 -- this function is broken in lovr 0.14.0
 local function lookAt(eye, at, up)
