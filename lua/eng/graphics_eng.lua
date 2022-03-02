@@ -34,9 +34,6 @@ function GraphicsEng:_init()
     -- Draw spheres at the center of AABB's?
     self.drawAABBCenters = false
     
-    -- A list of models loaded from a directory for previewing
-    self.testModels = {}
-    
     self.defaultAmbientLightColor = {0.4,0.4,0.4,1}
     
     self.renderer = Renderer()
@@ -81,14 +78,6 @@ function GraphicsEng:onLoad()
         if not media then return end -- noone wants this
         media.texture:replacePixels(pixels)
     end
-    
-    self.testModels = {}
-    local houseAssetNames = lovr.filesystem.getDirectoryItems("assets/models/testing")
-    for i, name in ipairs(houseAssetNames) do
-        self:loadHardcodedModel('testing/'..name, function(m) 
-            table.insert(self.testModels, m)
-        end)
-    end
 end
 
 function GraphicsEng:aabbForModel(model, transform)
@@ -130,7 +119,7 @@ function GraphicsEng:onDraw()
     end
     
     --- Add objects that are drag&dropped into the visor
-    for i, model in ipairs(self.testModels) do
+    for i, model in ipairs(self.parent.engines.assets.droppedModels) do
         table.insert(objects, {
             id = "Test object " .. i,
             AABB = self:aabbForModel(model, lovr.math.mat4()),
@@ -317,14 +306,6 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
             roughness = component.roughness or 1,
             uvScale = component.uvScale or {1,1}
         }
-
-        -- todo: reuse or recreate material?
-        local material = object.lovr.material or lovr.graphics.newMaterial()
-        object.lovr.material = material
-        if component.color then 
-            local c = component.color
-            material:setColor("diffuse", c[1], c[2], c[3], c[4] or 1)
-        end
 
         if component.texture and component.texture:match("asset:") then
             self.parent.engines.assets:loadTexture(component.texture, function (texture)
@@ -516,9 +497,6 @@ function GraphicsEng:modelFromAsset(asset_id, callback)
     return self.parent.engines.assets:loadModel(asset_id, callback)
 end
 
-function GraphicsEng:textureFromAsset(asset_id, callback)
-    return self.parent.engines.assets:loadTexture(asset_id, callback)
-end
 
 function GraphicsEng:liveMediaAdded(component) 
     local eid = component:getEntity().id
