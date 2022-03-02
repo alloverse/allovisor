@@ -523,7 +523,7 @@ function Renderer:drawObject(object, context)
         send(shader, "alloUVScale", material.uvScale or {1, 1, 1})
         if material.diffuseTexture or material.liveTexture then
             send(shader, "alloDiffuseTextureSet", 1)
-            send(shader, "alloDiffuseTexture", material.diffuseTexture or material.liveTexture)
+            send(shader, "alloDiffuseTexture", material.liveTexture or material.diffuseTexture)
         else
             send(shader, "alloDiffuseTexture", self._blankTexture)
             send(shader, "alloDiffuseTextureSet", 0)
