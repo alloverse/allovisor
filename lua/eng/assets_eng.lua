@@ -175,7 +175,18 @@ function AssetsEng:loadModel(asset_id, callback)
     end)
 end
 
-function AssetsEng:getOrLoadResource(asset_id, callback, worker)
+function AssetsEng:loadCustomMesh(geometry_asset, callback)
+    -- already added? 
+    local asset = self.assetManager:get(geometry_asset:id())
+    if not asset then 
+        asset = geometry_asset
+        self.assetManager:add(asset, true)
+    end
+
+    -- load it
+    return self:loadModel(asset:id(), callback)
+end
+
     -- If there's a cached object for asset_id then return it immediately
     local object = self.cache[asset_id]
     if object then 
