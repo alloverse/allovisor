@@ -7,13 +7,21 @@ local Store = require("lib.lovr-store")
 class.GraphicsPane(ui.Surface)
 function GraphicsPane:_init(menu)
     self.menu = menu
-    self:super(ui.Bounds{size=ui.Size(1.6, 1.2, 0.1)})
+    self:super(ui.Bounds{size=ui.Size(0.6, 0.6, 0.01)})
     self:setColor({1,1,1,1})
 
-    self.reflectionsButton = ui.Button(ui.Bounds(0, 0.4, 0.01,   1.4, 0.2, 0.15))
+    local stack = ui.StackView(ui.Bounds{size=ui.Size(0.5, 0.6, 0.01)})
+    stack:margin(0.03)
+    self:addSubview(stack)
+
+    local menuButtonSize = ui.Bounds{size=ui.Size(0.5, 0.08, 0.05)}
+
+    self.reflectionsButton = ui.Button(menuButtonSize:copy())
     self.reflectionsButton.label.text = "Reflections (Off)"
-    self:addSubview(self.reflectionsButton)
+    stack:addSubview(self.reflectionsButton)
     self.reflectionsButtonSub = nil
+
+    stack:layout()
 end
 
 function GraphicsPane:awake()

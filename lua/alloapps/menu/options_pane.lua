@@ -6,26 +6,34 @@ local GraphicsPane = require("alloapps.menu.graphics_pane")
 
 class.OptionsPane(ui.Surface)
 function OptionsPane:_init(menu)
-    self:super(ui.Bounds{size=ui.Size(1.6, 1.2, 0.1)})
+    self:super(ui.Bounds{size=ui.Size(0.6, 0.6, 0.01)})
     self:setColor({1,1,1,1})
 
-    self.debugButton = ui.Button(ui.Bounds(0, 0.4, 0.01,   1.4, 0.2, 0.15))
-    self:addSubview(self.debugButton)
+    local stack = ui.StackView(ui.Bounds{size=ui.Size(0.5, 0.6, 0.01)})
+    stack:margin(0.03)
+    self:addSubview(stack)
+
+    local menuButtonSize = ui.Bounds{size=ui.Size(0.5, 0.08, 0.05)}
+
+    self.debugButton = ui.Button(menuButtonSize:copy())
+    stack:addSubview(self.debugButton)
     self.debugOverlaySub = nil
 
-    self.audioButton = ui.Button(ui.Bounds(0, -0.2, 0.01,     1.4, 0.2, 0.15))
+    self.audioButton = ui.Button(menuButtonSize:copy())
     self.audioButton.label.text = "Audio settings..."
     self.audioButton.onActivated = function()
         self.nav:push(AudioPane(menu))
     end
-    self:addSubview(self.audioButton)
+    stack:addSubview(self.audioButton)
 
-    self.graphicsButton = ui.Button(ui.Bounds(0, -0.5, 0.01,     1.4, 0.2, 0.15))
+    self.graphicsButton = ui.Button(menuButtonSize:copy())
     self.graphicsButton.label.text = "Graphics settings..."
     self.graphicsButton.onActivated = function()
         self.nav:push(GraphicsPane(menu))
     end
-    self:addSubview(self.graphicsButton)
+    stack:addSubview(self.graphicsButton)
+
+    stack:layout()
 end
 
 function OptionsPane:awake()
