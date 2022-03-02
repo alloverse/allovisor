@@ -176,12 +176,12 @@ function AssetsEng:loadModel(asset_id, callback)
     end)
 end
 
-function AssetsEng:loadCustomMesh(geometry_asset, callback)
-    -- already added? 
+function AssetsEng:loadCustomModel(geometry_asset, callback)
+    -- Add to manager if needed
     local asset = self.assetManager:get(geometry_asset:id())
     if not asset then 
         asset = geometry_asset
-        self.assetManager:add(asset, true)
+        self.assetManager:add(asset)
     end
 
     -- load it

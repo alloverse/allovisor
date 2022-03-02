@@ -169,7 +169,7 @@ function GraphicsEng:loadHardcodedModel(name, callback, path)
     end
     callback(self.hardcoded_models.loading)
     local asset = Asset.File(path)
-    self.parent.engines.assets:loadCustomMesh(asset, function(modelData, status)
+    self.parent.engines.assets:loadCustomModel(asset, function(modelData, status)
         if model then 
             self.hardcoded_models[name] = model
         else
@@ -274,7 +274,7 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
             local asset = Asset.Geometry(component)
             object.lovr.model = self.hardcoded_models.loading
             object.AABB = self:aabbForModel(object.lovr.model, entity.components.transform:getMatrix())
-            self.parent.engines.assets:loadCustomMesh(asset, function (model)
+            self.parent.engines.assets:loadCustomModel(asset, function (model)
                 if not object == self.renderObjects[entityId] then return end
                 if not (entity and entity.components and entity.components.transform) then return end
                 if model then
