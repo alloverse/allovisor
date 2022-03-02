@@ -271,12 +271,24 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
             object.lovr.model = nil
             object.AABB = nil
         elseif component.type == "inline" then
-            object.lovr.model = self:createMesh(object, component, old_component)
+            local asset = Asset.Geometry(component)
+            object.lovr.model = self.hardcoded_models.loading
             object.AABB = self:aabbForModel(object.lovr.model, entity.components.transform:getMatrix())
+            self.parent.engines.assets:loadCustomMesh(asset, function (model)
+                if not object == self.renderObjects[entityId] then return end
+                if not (entity and entity.components and entity.components.transform) then return end
+                if model then
+                    object.lovr.model = model
+                    object.AABB = self:aabbForModel(object.lovr.model, entity.components.transform:getMatrix())
+                else
+                    object.lovr.model = self.hardcoded_models.broken
+                    object.AABB = self:aabbForModel(object.lovr.model, entity.components.transform:getMatrix())
+                end
+            end)
+            
         elseif component.name then
             object.lovr.model = self.hardcoded_models.loading
             object.AABB = self:aabbForModel(object.lovr.model, entity.components.transform:getMatrix())
-            
             self.parent.engines.assets:loadModel(component.name, function(model)
                 if not object == self.renderObjects[entityId] then return end
                 if not (entity and entity.components and entity.components.transform) then return end
@@ -381,7 +393,6 @@ end
 function GraphicsEng:createMesh(object, geom, old_geom)
     local mesh = object.lovr.model
     if mesh and not mesh.setMaterial then return end
-    
     if mesh == nil
         or old_geom and (
         not tablex.deepcompare(geom.triangles, old_geom.triangles)
