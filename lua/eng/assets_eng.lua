@@ -194,11 +194,9 @@ function AssetsEng:getOrLoadResource(type, asset_id, callback, map)
     -- If there's a cached object for asset_id then return it immediately
     local object = self.cache[key]
     if object then 
-        print("hit for " .. asset_id)
         callback(object)
         return object
     end
-    print("miss for " .. asset_id)
     
     -- If the asset is already loading then wait for it
     local callbacks = self.loaders[key]
@@ -219,7 +217,6 @@ function AssetsEng:getOrLoadResource(type, asset_id, callback, map)
             local callbacks = self.loaders[key]
             self.loaders[key] = nil
             -- call the callbaks
-            print(#callbacks .. " multicall for " .. asset_id)
             for i,callback in ipairs(callbacks) do
                 callback(object)
             end
