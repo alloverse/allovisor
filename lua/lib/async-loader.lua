@@ -15,8 +15,14 @@ local inChan = lovr.thread.getChannel("AlloLoaderResponses")
 function AsyncLoader:load(type, path, callback, extra, extra2)
   local key = type .. "-" .. path
   local req = self.requests[key]
-  assert(not req, "This is allready loading. Cache earlier: " .. key)
+  -- assert(not req, "This is allready loading. Cache earlier: " .. key)
 
+  if req then
+    callback = function (a)
+      req.callback(a)
+      callback(a)
+    end
+  end
   req = {callback= callback, type= type}
   self.requests[key] = req
   outChan:push(type)
