@@ -21,14 +21,8 @@ function AsyncLoader:load(type, path, callback, extra, extra2)
   end
 
   local req = self.requests[path]
-  if req then
-    local oldCallback = req.callback
-    req.callback = function(modelData, status)
-      oldCallback(modelData, status)
-      callback(modelData, status)
-    end
-    return
-  end
+  assert(not req, "This is allready loading. Cache earlier: " .. type .. " - " .. path)
+
   req = {callback= callback, type= type}
   self.requests[path] = req
   outChan:push(type)
