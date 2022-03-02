@@ -14,8 +14,7 @@ function AssetsEng:_init()
     self.droppedModels = {}
 
     self.loaders = {} --assetid:{callback}
-    self.cache = {}--assetid:lovrTypes
-    self.cache.__mode = 'v' -- weak values
+    self.cache = setmetatable({}, {__mode = 'v'})--assetid:lovrTypes
 end
 
 function AssetsEng:onLoad()
