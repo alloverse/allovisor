@@ -396,10 +396,8 @@ function SoundEng:onSoundEffectAdded(component)
   }
   self.effects[eid] = voice
 
-  self.parent.engines.assets:getAsset(component.asset, function (asset)
-    local model = self:sourceFromAsset(asset, function (source)
+  self.parent.engines.assets:loadSoundEffect(component.asset, function (source)
       voice.source = source
-    end)
   end)
 end
 
@@ -477,16 +475,6 @@ function SoundEng:onDisconnect()
     voice.source:stop()
   end
   self.effects = {}
-end
-
-function SoundEng:sourceFromAsset(asset, callback)
-  self.parent.engines.assets:loadFromAsset(asset, "sound-asset", function (soundData)
-    if soundData then 
-      callback(lovr.audio.newSource(soundData))
-    else
-      print("Failed to parse sound data for " .. asset:id())
-    end
-  end)
 end
 
 --- Subscribe or unsubscribe to a media track

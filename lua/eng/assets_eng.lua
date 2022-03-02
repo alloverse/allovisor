@@ -132,6 +132,17 @@ function AssetsEng:onUpdate(dt)
     end
 end
 
+function AssetsEng:loadSoundEffect(asset_id, callback)
+    assert(string.match(asset_id, "asset:"), "not an asset id")
+
+    return self:getOrLoadResource(asset_id, callback, function (asset, complete)
+        if not asset then complete(nil) end
+        self.parent.engines.assets:loadFromAsset(asset, "sound-asset", function (soundData)
+            complete(soundData and lovr.audio.newSource(soundData))
+        end)        
+    end)
+end
+
 function AssetsEng:loadImage(asset_id, callback, flipped)
     assert(string.match(asset_id, "asset:"), "not an asset id")
 
