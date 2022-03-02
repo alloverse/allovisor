@@ -163,16 +163,6 @@ function GraphicsEng:onHeadAdded(headEnt)
     end
 end
 
--- if both model and material is loaded for eid, then apply the material to the model
-function GraphicsEng:applyModelMaterial(object)
-    if not object or not object.lovr then return end
-    local model = object.lovr.model
-    local media = object.live_media
-    local material = (media and media.material) or object.lovr.material
-    if not model or not material or not model.setMaterial then return end
-    model:setMaterial(material)
-end
-
 --- Load a bundled model by name.
 -- Loads a model asynchronously and then calls the supplied callback.
 -- @tparam string name The name of the model. String
@@ -238,8 +228,11 @@ end
 -- @tparam string component_key The component type
 -- @tparam component component The new component
 function GraphicsEng:onComponentAdded(component_key, component)
+    local entity = component:getEntity()
     if component_key == "environment" then
         self:loadEnvironment(component)
+    elseif self.renderObjects[entity.id] then
+        self:buildObject(entity, component_key, nil, false)
     end
 end
 
@@ -304,7 +297,6 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
                 if model then
                     object.lovr.model = model
                     object.AABB = self:aabbForModel(object.lovr.model, entity.components.transform:getMatrix())
-                    self:applyModelMaterial(object)
                 else
                     object.lovr.model = self.hardcoded_models.broken
                     object.AABB = self:aabbForModel(object.lovr.model, entity.components.transform:getMatrix())
@@ -338,9 +330,6 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
             self.parent.engines.assets:loadTexture(component.texture, function (texture)
                 if not object == self.renderObjects[entityId] then return end
                 object.material.diffuseTexture = texture
-                if not texture then return end
-                object.lovr.material:setTexture(texture)
-                self:applyModelMaterial(object)
             end)
         end
     end
@@ -363,7 +352,6 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
             media = self:liveMediaAdded(component)
         end
         object.live_media = media
-        self:applyModelMaterial(object)
     end
 
     if entity.components.relationships then
@@ -417,10 +405,11 @@ function GraphicsEng:createMesh(object, geom, old_geom)
     if mesh and not mesh.setMaterial then return end
     
     if mesh == nil
-        or not tablex.deepcompare(geom.triangles, old_geom.triangles)
+        or old_geom and (
+        not tablex.deepcompare(geom.triangles, old_geom.triangles)
         or not tablex.deepcompare(geom.vertices, old_geom.vertices)
         or not tablex.deepcompare(geom.uvs, old_geom.uvs)
-        or not tablex.deepcompare(geom.normals, old_geom.normals) then
+        or not tablex.deepcompare(geom.normals, old_geom.normals)) then
         
         if geom.normals == nil then 
             geom = self:generateGeometryWithNormals(geom)
@@ -542,9 +531,8 @@ function GraphicsEng:liveMediaAdded(component)
             }
             media.texture:setWrap('clamp', 'clamp')
             media.texture:setFilter('nearest', 0)
-            media.material:setTexture(media.texture)
-            self.videoMedia[component.track_id] = media
             media.eid = eid
+            self.videoMedia[component.track_id] = media
         end
         return media
     end
@@ -559,18 +547,16 @@ function GraphicsEng:liveMediaChanged(component)
                 mipmaps = false,
                 format = "rgba"
             })
-            media.material:setTexture(media.texture)
         else
             self:liveMediaAdded(component)
         end
+        return media
     end
 end
 
 function GraphicsEng:liveMediaRemoved(component)
     local eid = component:getEntity().id
     if component.type == "video" then
-        local media = self.videoMedia[component.track_id]
-        if media then media.material:setTexture() end
         self.videoMedia[component.track_id] = nil
     end
 end
