@@ -5,6 +5,7 @@
 
 namespace "standard"
 local pretty = require "pl.pretty"
+local tablex = require "pl.tablex"
 
 local flat = require "engine.flat"
 
@@ -53,7 +54,9 @@ function StatsEng:statsString()
         self.lua_memory = collectgarbage("count")
     end
     
-    s = s .. "Graphics Objects: " .. #self.parent.engines.graphics.renderObjects .. "\n"
+    s = s .. "Graphics Objects: " .. #tablex.keys(self.parent.engines.graphics.renderObjects) .. "\n"
+    s = s .. "Cached assets: " .. #tablex.keys(self.parent.engines.assets.cache) .. "\n"
+
     s = "Lua KBytes: " .. self.lua_memory .. "\n" .. s
     if self.parent and self.parent.engines.graphics.renderStats then
         local renderStats = self.parent.engines.graphics.renderStats
