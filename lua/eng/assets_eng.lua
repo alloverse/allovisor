@@ -11,6 +11,11 @@ local loader = require "lib.async-loader"
 function AssetsEng:_init()
     self:super()
     self.droppedPaths = nil
+    self.droppedModels = {}
+
+    self.loaders = {} --assetid:{callback}
+    self.cache = {}--assetid:lovrTypes
+    self.cache.__mode = 'v' -- weak values
 end
 
 function AssetsEng:onLoad()
@@ -118,10 +123,10 @@ end
 function AssetsEng:onUpdate(dt)
     if self.droppedPaths and not lovr.scenes.net then
         -- If any files were dropped in 'not connected yet' mode then load them in as test files
-        self.parent.engines.graphics.testModels = {}
+        self.droppedModels = {}
         for _, path in ipairs(self.droppedPaths) do
-            self.parent.engines.graphics:modelFromAsset(Asset.File(path), function (model)
-                table.insert(self.parent.engines.graphics.testModels, model)
+            self:loadModel(Asset.File(path), function (model)
+                table.insert(self.droppedModels, model)
             end)
         end
         self.droppedPaths = nil
@@ -131,43 +136,69 @@ end
 function AssetsEng:loadImage(asset_id, callback, flipped)
     assert(string.match(asset_id, "asset:"), "not an asset id")
 
-    return self:getAsset(asset_id, function(asset)
-        if asset then
-            self:loadFromAsset(asset, "texture-asset", callback, flipped)
-        else
-            print("Texture asset " .. asset_id .. " was not found")
-        end
+    return self:getOrLoadResource(asset_id, callback, function(asset, complete)
+        if not asset then return complete(nil) end
+        self:loadFromAsset(asset, "texture-asset", function (image)
+            complete(image)
+        end, flipped)
     end)
 end
 
 function AssetsEng:loadTexture(asset_id, callback)
     assert(string.match(asset_id, "asset:"), "not an asset id")
 
-    return self:loadImage(asset_id, function(image)
-        if image then
-            callback(lovr.graphics.newTexture(image))
-        else
-            print("Failed to load texture data")
-            callback(nil)
-        end
+    return self:getOrLoadResource(asset_id, callback, function (asset, complete)
+        self:loadFromAsset(asset, "texture-asset", function (image)
+            complete(lovr.graphics.newTexture(image))
+        end)
     end)
 end
 
 function AssetsEng:loadModel(asset_id, callback)
     assert(string.match(asset_id, "asset:"), "not an asset id")
 
-    self:getAsset(asset_id, function (asset)
-        if asset then
-            self:loadFromAsset(asset, "model-asset", function (modelData)
-                callback(modelData and lovr.graphics.newModel(modelData))
-            end)
-        else
-            print("failed to load model data")
-            callback(nil)
-        end
+    return self:getOrLoadResource(asset_id, callback, function (asset, complete)
+        if not asset then return complete(nil) end
+        self:loadFromAsset(asset, "model-asset", function (modelData)
+            complete(modelData and lovr.graphics.newModel(modelData))
+        end)
     end)
-    return nil
 end
 
+function AssetsEng:getOrLoadResource(asset_id, callback, worker)
+    -- If there's a cached object for asset_id then return it immediately
+    local object = self.cache[asset_id]
+    if object then 
+        print("hit for " .. asset_id)
+        callback(object)
+        return object
+    end
+    
+    -- If the asset is already loading then wait for it
+    local callbacks = self.loaders[asset_id]
+    if callbacks then 
+        table.insert(callbacks, callback)
+        return nil
+    end
+
+    -- Start loading
+    self.loaders[asset_id] = {callback}
+    -- Load the addet
+    self:getAsset(asset_id, function (asset)
+        -- map to object
+        worker(asset, function (object)
+            -- store in cache
+            self.cache[asset_id] = object
+            -- clear the callbacks
+            local callbacks = self.loaders[asset_id]
+            self.loaders[asset_id] = nil
+            -- call the callbaks
+            print(#callbacks .. " multicall for " .. asset_id)
+            for i,callback in ipairs(callbacks) do
+                callback(object)
+            end
+        end)
+    end)
+end
 
 return AssetsEng
