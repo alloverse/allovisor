@@ -168,20 +168,16 @@ function GraphicsEng:loadHardcodedModel(name, callback, path)
         path = path .. ".glb"
     end
     callback(self.hardcoded_models.loading)
-    loader:load(
-        "model",
-        path,
-        function(modelData, status)
-            if modelData == nil or status == false then
-                print("Failed to load model", name, ":", model)
-                self.hardcoded_models[name] = self.hardcoded_models.broken
-            else
-                local model = graphics.newModel(modelData)
-                self.hardcoded_models[name] = model
-            end
-            callback(self.hardcoded_models[name])
+    local asset = Asset.File(path)
+    self.parent.engines.assets:loadCustomMesh(asset, function(modelData, status)
+        if model then 
+            self.hardcoded_models[name] = model
+        else
+            print("Failed to load model", name, ":", model)
+            self.hardcoded_models[name] = self.hardcoded_models.broken
         end
-    )
+        callback(self.hardcoded_models[name])
+    end)
 end
 
 function GraphicsEng:loadEnvironment(component, wasRemoved)
@@ -283,6 +279,7 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
             
             self.parent.engines.assets:loadModel(component.name, function(model)
                 if not object == self.renderObjects[entityId] then return end
+                if not (entity and entity.components and entity.components.transform) then return end
                 if model then
                     object.lovr.model = model
                     object.AABB = self:aabbForModel(object.lovr.model, entity.components.transform:getMatrix())
