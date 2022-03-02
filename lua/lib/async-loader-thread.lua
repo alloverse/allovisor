@@ -10,23 +10,16 @@ local outChan = lovr.thread.getChannel("AlloLoaderResponses")
 local inChan = lovr.thread.getChannel("AlloLoaderRequests")
 
 function load(type, path, extra, extra2)
-  if type == "model-asset" then
+  if type == "model" then
     -- expects a lovr blob in extra
     return pcall(lovr.data.newModelData, extra)
-  elseif type == "texture-asset" then
+  elseif type == "texture" or type == "image" then
     -- expects a lovr blob in extra
     -- expects a boolean 'flip' in extra2
     return pcall(lovr.data.newImage, extra, not extra2)
-  elseif type == "sound-asset" then
+  elseif type == "sound" then
     -- expects a lovr blob in extra
     return pcall(lovr.data.newSound, extra)
-  elseif type == "model" then
-    -- expects a file path in path
-    return pcall(lovr.data.newModelData, path)
-  elseif type == "base64png" then
-    local data = util.base64decode(extra)
-    local blob = lovr.data.newBlob(data, "texture")
-    return pcall(lovr.data.newImage, blob)
   else
     return false, "no such loader"
   end
@@ -42,6 +35,7 @@ while running do
     local extra = inChan:pop(true)
     local extra2 = inChan:pop(true)
     local status, thing = load(type, path, extra, extra2)
+    outChan:push(type)
     outChan:push(path)
     outChan:push(status)
     outChan:push(thing)

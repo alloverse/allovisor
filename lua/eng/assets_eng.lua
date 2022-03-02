@@ -13,7 +13,7 @@ function AssetsEng:_init()
     self.droppedPaths = nil
     self.droppedModels = {}
 
-    self.loaders = {} --assetid:{callback}
+    self.loaders = {} -- "type-assetid":{callback}
     self.cache = setmetatable({}, {__mode = 'v'})--assetid:lovrTypes
 end
 
@@ -40,12 +40,12 @@ end
 
 --- Loads asset data asynchronously. 
 -- Supported types:
--- * "model-asset"
--- * "texture-asset" - Produces an Image
--- * "sound-asset"
+-- * "model"
+-- * "texture" - Produces an Image
+-- * "sound"
 -- returns true if asynchronous loading started, or false if 
 -- object was already loaded and callback called immediately
--- @tparam bool flipTexture If type is 'texture-asset' this specifies that the Image should be returned flipped
+-- @tparam bool flipTexture If type is 'texture' this specifies that the Image should be returned flipped
 function AssetsEng:loadFromAsset(asset, type, callback, flipTexture)
     if asset._lovrObjectLoadingCallbacks then
       table.insert(asset._lovrObjectLoadingCallbacks, callback)
@@ -135,20 +135,20 @@ end
 function AssetsEng:loadSoundEffect(asset_id, callback)
     assert(string.match(asset_id, "asset:"), "not an asset id")
 
-    return self:getOrLoadResource(asset_id, callback, function (asset, complete)
-        if not asset then complete(nil) end
-        self.parent.engines.assets:loadFromAsset(asset, "sound-asset", function (soundData)
+    return self:getOrLoadResource("sound", asset_id, callback, function (asset, complete)
+        if not asset then return complete(nil) end
+        self:loadFromAsset(asset, "sound", function (soundData)
             complete(soundData and lovr.audio.newSource(soundData))
-        end)        
+        end)
     end)
 end
 
 function AssetsEng:loadImage(asset_id, callback, flipped)
     assert(string.match(asset_id, "asset:"), "not an asset id")
 
-    return self:getOrLoadResource(asset_id, callback, function(asset, complete)
+    return self:getOrLoadResource("image", asset_id, callback, function(asset, complete)
         if not asset then return complete(nil) end
-        self:loadFromAsset(asset, "texture-asset", function (image)
+        self:loadFromAsset(asset, "image", function (image)
             complete(image)
         end, flipped)
     end)
@@ -157,9 +157,10 @@ end
 function AssetsEng:loadTexture(asset_id, callback)
     assert(string.match(asset_id, "asset:"), "not an asset id")
 
-    return self:getOrLoadResource(asset_id, callback, function (asset, complete)
-        self:loadFromAsset(asset, "texture-asset", function (image)
-            complete(lovr.graphics.newTexture(image))
+    return self:getOrLoadResource("texture", asset_id, callback, function (asset, complete)
+        if not asset then return complete(nil) end
+        self:loadFromAsset(asset, "texture", function (image)
+            complete(image and lovr.graphics.newTexture(image))
         end)
     end)
 end
@@ -167,9 +168,9 @@ end
 function AssetsEng:loadModel(asset_id, callback)
     assert(string.match(asset_id, "asset:"), "not an asset id")
 
-    return self:getOrLoadResource(asset_id, callback, function (asset, complete)
+    return self:getOrLoadResource("model", asset_id, callback, function (asset, complete)
         if not asset then return complete(nil) end
-        self:loadFromAsset(asset, "model-asset", function (modelData)
+        self:loadFromAsset(asset, "model", function (modelData)
             complete(modelData and lovr.graphics.newModel(modelData))
         end)
     end)
@@ -187,32 +188,36 @@ function AssetsEng:loadCustomMesh(geometry_asset, callback)
     return self:loadModel(asset:id(), callback)
 end
 
+
+function AssetsEng:getOrLoadResource(type, asset_id, callback, map)
+    local key = type .. '-' .. asset_id
     -- If there's a cached object for asset_id then return it immediately
-    local object = self.cache[asset_id]
+    local object = self.cache[key]
     if object then 
         print("hit for " .. asset_id)
         callback(object)
         return object
     end
+    print("miss for " .. asset_id)
     
     -- If the asset is already loading then wait for it
-    local callbacks = self.loaders[asset_id]
+    local callbacks = self.loaders[key]
     if callbacks then 
         table.insert(callbacks, callback)
         return nil
     end
 
     -- Start loading
-    self.loaders[asset_id] = {callback}
-    -- Load the addet
+    self.loaders[key] = {callback}
+    -- Load the asset
     self:getAsset(asset_id, function (asset)
         -- map to object
-        worker(asset, function (object)
+        map(asset, function (object)
             -- store in cache
-            self.cache[asset_id] = object
+            self.cache[key] = object
             -- clear the callbacks
-            local callbacks = self.loaders[asset_id]
-            self.loaders[asset_id] = nil
+            local callbacks = self.loaders[key]
+            self.loaders[key] = nil
             -- call the callbaks
             print(#callbacks .. " multicall for " .. asset_id)
             for i,callback in ipairs(callbacks) do
@@ -220,6 +225,7 @@ end
             end
         end)
     end)
+    return nil
 end
 
 return AssetsEng
