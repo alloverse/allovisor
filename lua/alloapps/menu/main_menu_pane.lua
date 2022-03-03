@@ -3,6 +3,8 @@ local pretty = require("pl.pretty")
 local class = require("pl.class")
 local ConnectPane = require("alloapps.menu.connect_pane")
 local OptionsPane = require("alloapps.menu.options_pane")
+local mat4 = require("lib.alloui.lib.cpml.modules.mat4")
+local vec3 = require("lib.alloui.lib.cpml.modules.vec3")
 
 class.MainMenuPane(ui.Surface)
 MainMenuPane.assets = {
@@ -113,7 +115,11 @@ function MainMenuPane:_init(menu)
       })
     end)
 
-    local adIcon = adStack:addSubview(ui.ModelView(ui.Bounds(-0.02,-0.05,0.1, 0.3, 0.3, 0), MainMenuPane.assets.arcade))
+
+    -- In order to scale down the arcade model we need to put it in a container, and then scale said container down.
+    local adIconContainer = ui.View(ui.Bounds{size=ui.Size(0.3, 0.3, 0.3)})
+
+    local adIcon = ui.ModelView(ui.Bounds{size=ui.Size(0.3, 0.3, 0.3)}, MainMenuPane.assets.arcade)
     adIcon:doWhenAwake(function()
       adIcon:addPropertyAnimation(ui.PropertyAnimation{
         path= "transform.matrix.rotation.y",
@@ -123,6 +129,11 @@ function MainMenuPane:_init(menu)
         repeats= true,
       })
     end)
+
+    adIconContainer:addSubview(adIcon)
+    adIconContainer:setTransform(mat4.scale(mat4.new(), mat4.new(), vec3.new(0.5, 0.5, 0.5)))
+    
+    adStack:addSubview(adIconContainer)
 
     local adButton = adStack:addSubview(ui.Button(menuButtonSize:copy()))
     adButton.label.text = "Play~!"
