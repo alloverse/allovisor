@@ -418,16 +418,6 @@ function lovr.run()
       end
     end
 
-    -- XXX HACK vsync doesn't work on mac, so cap framerate
-    local afterWork = lovr.timer.getTime()
-    local deltaFramLastFrame = beforeWork-lastFrameTime
-    local maxFramerate = 60.0
-    local sleepAmount = 1.0/maxFramerate - deltaFramLastFrame
-    if lovr.system.getOS() == "macOS" and sleepAmount > 0 then
-      lovr.timer.sleep(sleepAmount)
-    end
-    lastFrameTime = beforeWork
-
     if lovr.math then
       lovr.math.drain()
     end
