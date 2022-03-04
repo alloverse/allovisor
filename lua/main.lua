@@ -379,8 +379,6 @@ function lovr.permission(permission, granted)
   end
 end
 
-
-local lastFrameTime = 0.0
 function lovr.run()
   lovr.timer.step()
   if lovr.load then lovr.load(arg) end
