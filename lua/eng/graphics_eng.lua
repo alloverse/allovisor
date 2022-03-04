@@ -258,8 +258,6 @@ function GraphicsEng:handleVideo(entity, component, old_component)
     if (component or old_component).type ~= "video" then return end
     local track_id = (component or old_component).track_id
     local media = self.videoMedia[track_id]
-    pretty.dump(component or old_component)
-    pretty.dump(media)
     if not component and old_component and media then -- removed
         print("Removing video track " .. track_id)
         self.videoMedia[track_id] = nil
@@ -400,7 +398,6 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
                     self.videoMedia[track_id] = media
                 end
             end
-            pretty.dump(component)
         end
     end
 
