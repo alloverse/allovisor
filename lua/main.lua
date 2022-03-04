@@ -325,8 +325,7 @@ function lovr.draw(isMirror)
     end
 end
 
-local skippedFrames = 0
-local frameSkip = 0
+local frameLimit = 0
 function lovr.mirror()
     drawMode()
     lovr.graphics.reset()
@@ -356,7 +355,7 @@ function calculateFramerateBasedOnActivity()
         wasActive = isActive
         if util.isDesktop() then
             -- glfwSwapInterval broken
-            frameSkip = isActive and 0 or 25
+            frameLimit = isActive and 0 or 25
         end
     end
 end
@@ -379,8 +378,10 @@ function lovr.permission(permission, granted)
     end
 end
 
+local lastFrameTime = 0
 function lovr.run()
     lovr.timer.step()
+    lastFrameTime = lovr.timer.getTime()
     if lovr.load then lovr.load(arg) end
     return function()
         lovr.event.pump()
@@ -393,8 +394,9 @@ function lovr.run()
             end
             if lovr.handlers[name] then lovr.handlers[name](a, b, c, d) end
         end
-        local dt = lovr.timer.step()
         
+        local startTime = lovr.timer.getTime()
+        local dt = lovr.timer.step()
         if lovr.headset then
             lovr.headset.update(dt)
         end
@@ -402,22 +404,29 @@ function lovr.run()
         if lovr.graphics then
             lovr.graphics.origin()
             if lovr.draw then
-                skippedFrames = skippedFrames + 1
-                if skippedFrames > frameSkip then
-                    skippedFrames = 0
-                    if lovr.headset and lovr.headset.isTracked() then
-                        lovr.headset.renderTo(lovr.draw)
-                    end
-                    if lovr.graphics.hasWindow() then
-                        lovr.mirror()
-                    end
-                    lovr.graphics.present()
+                if lovr.headset and lovr.headset.isTracked() then
+                    lovr.headset.renderTo(lovr.draw)
                 end
+                if lovr.graphics.hasWindow() then
+                    lovr.mirror()
+                end
+                lovr.graphics.present()
             end
         end
         
         if lovr.math then
             lovr.math.drain()
         end
+
+        if frameLimit > 0 then
+            local frameTime = lovr.timer.getTime() - startTime
+            while frameTime < 1/frameLimit do
+                lovr.timer.sleep(1/frameLimit - frameTime)
+                -- sleep away the rest of the needed frame time
+                frameTime = lovr.timer.getTime() - startTime
+            end
+        end
+
+        lastFrameTime = startTime
     end
 end
