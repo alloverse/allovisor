@@ -15,16 +15,11 @@ local inChan = lovr.thread.getChannel("AlloLoaderResponses")
 function AsyncLoader:load(type, path, callback, extra, extra2)
   local key = type .. "-" .. path
   local req = self.requests[key]
-  -- assert(not req, "This is allready loading. Cache earlier: " .. key)
-
-  if req then
-    callback = function (a)
-      req.callback(a)
-      callback(a)
-    end
+  if req then 
+    table.insert(req.callbacks, callback)
+    return
   end
-  req = {callback= callback, type= type}
-  self.requests[key] = req
+  self.requests[key] = {callbacks = {callback}, type = type}
   outChan:push(type)
   outChan:push(path)
   outChan:push(extra)
@@ -40,7 +35,9 @@ function AsyncLoader:poll()
   local key = type .. "-" .. path
   local req = self.requests[key]
   self.requests[key] = nil
-  req.callback(dataOrError, status)
+  for i,callback in ipairs(req.callbacks) do
+    callback(dataOrError, status)
+  end
 end
 
 function AsyncLoader:shutdown()
