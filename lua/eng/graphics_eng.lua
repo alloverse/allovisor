@@ -3,14 +3,10 @@
 
 namespace("networkscene", "alloverse")
 
-local array2d = require "pl.array2d"
 local tablex = require "pl.tablex"
 local pretty = require "pl.pretty"
-local allomath = require("lib.allomath")
 local alloBasicShader = require "shader/alloBasicShader"
 local alloPbrShader = require "shader/alloPbrShader"
-local loader = require "lib.async-loader"
-local util = require("lib.util")
 local Asset = require("lib.alloui.lua.alloui.asset")
 local Store = require("lib.lovr-store")
 
@@ -21,7 +17,6 @@ local Renderer = require('eng.renderer')
 local graphics = lovr.graphics
 local vec3 = lovr.math.vec3
 local newVec3 = lovr.math.newVec3
-local newMat4 = lovr.math.newMat4
 
 --- Initialize the graphics engine.
 function GraphicsEng:_init()
