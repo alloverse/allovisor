@@ -355,7 +355,7 @@ function calculateFramerateBasedOnActivity()
         wasActive = isActive
         if util.isDesktop() then
             -- glfwSwapInterval broken
-            frameLimit = isActive and 0 or 25
+            frameLimit = isActive and 0 or 12
         end
     end
 end
