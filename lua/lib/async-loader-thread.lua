@@ -40,5 +40,6 @@ while running do
         outChan:push(status)
         outChan:push(thing)
     end
+    collectgarbage("collect")
 end
 print("Exiting loader thread.")
