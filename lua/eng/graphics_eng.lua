@@ -439,51 +439,6 @@ function draw_object(object, renderObject, context)
     end
 end
 
---- Calculate vertex normal from three corner vertices
-local function get_triangle_normal(vert1, vert2, vert3)   
-    return vec3(vert3.x - vert1.x, vert3.z - vert1.z, vert3.y - vert1.y)
-    :cross(vec3(vert2.x - vert1.x, vert2.z - vert1.z, vert2.y - vert1.y))
-    :normalize()
-end
-
---- Create a new geom from the old one with unique triangle vertices and sharp normals
--- @tparam geometry_component geom
--- @treturn geometry_component new_geom
-function GraphicsEng:generateGeometryWithNormals(geom)
-    local new_geom = {
-        vertices = {}, triangles = {}, normals = {}, 
-        uvs = geom.uvs and {} or nil
-    }
-    for _, tri in ipairs(geom.triangles) do
-        local a, b, c = tri[1] + 1, tri[2] + 1, tri[3] + 1 -- vertex indices
-        local tri_vertices = {
-            vec3(table.unpack(geom.vertices[a])),
-            vec3(table.unpack(geom.vertices[b])),
-            vec3(table.unpack(geom.vertices[c]))
-        }
-        local normal = get_triangle_normal(unpack(tri_vertices))
-        for _, v in ipairs(tri_vertices) do
-            table.insert(new_geom.vertices, {v:unpack()})
-            table.insert(new_geom.normals, {normal:unpack()})
-        end
-        table.insert(new_geom.triangles, {
-            #new_geom.vertices - 3, 
-            #new_geom.vertices - 2, 
-            #new_geom.vertices - 1
-        })
-        if (geom.uvs) then
-            table.insert(new_geom.uvs, geom.uvs[a])
-            table.insert(new_geom.uvs, geom.uvs[b])
-            table.insert(new_geom.uvs, geom.uvs[c])
-        end
-    end
-    return new_geom
-end
-
-function GraphicsEng:modelFromAsset(asset_id, callback)
-    return self.parent.engines.assets:loadModel(asset_id, callback)
-end
-
 function GraphicsEng:loadCubemap(asset_ids, callback)
     local box = asset_ids
     local failed = false
