@@ -375,6 +375,7 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
                 uvScale = component.uvScale or {1,1}
             }
 
+            component.texture = component.asset_texture or component.texture -- back.compat
             if component.texture and component.texture:match("asset:") then
                 self.parent.engines.assets:loadTexture(component.texture, function (texture)
                     if not object == self.renderObjects[entityId] then return end
