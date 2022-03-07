@@ -106,6 +106,7 @@ function Renderer:render(objects, options)
         maxReflectionDepth = 0, -- max reached depth (cubemap gen triggers a cubemap gen. This should not happen.)
         cubemapTargets = {}, -- object id's that got a cubemap generated this frame
         debugText = {}, -- just strings the renderer would like to output to the screen
+        inputObjectCount = #objects, -- number of objects put into the rene
     }
 
     context.cubemapFarPlane = context.cubemapFarPlane or 10
@@ -331,8 +332,8 @@ function Renderer:prepareObjects(context)
             local AABB = object.AABB
             local minmaxdiv2 = (AABB.max - AABB.min) / 2
             renderObject.AABB = {
-                min = lovr.math.newVec3(AABB.min),
-                max = lovr.math.newVec3(AABB.max),
+                min = AABB.min,
+                max = AABB.max,
                 center = lovr.math.newVec3(object.position + AABB.min + minmaxdiv2),
                 radius = minmaxdiv2:length(),
             }
@@ -551,7 +552,7 @@ function Renderer:drawObject(object, context)
 
     context.stats.drawnObjectIds[object.id] = object.id
 
-    object.source.draw(object, context)
+    object.source:draw(object, context)
     
     if context.drawAABB then
         local bb = object.AABB
@@ -560,6 +561,7 @@ function Renderer:drawObject(object, context)
         lovr.graphics.box("line", x, y, z, math.abs(w), math.abs(h), math.abs(d))
     end
 end
+
 
 -- this function is broken in lovr 0.14.0
 local function lookAt(eye, at, up)
