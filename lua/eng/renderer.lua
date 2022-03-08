@@ -11,6 +11,8 @@ local OrderedMap = require('pl.OrderedMap')
 local Shader = require 'eng.shader'
 
 local Renderer = class.Renderer()
+local vec4 = lovr.math.vec4
+local vec3 = lovr.math.vec3
 
 function Renderer:_init()
     is_desktop = lovr and lovr.headset == nil
@@ -418,8 +420,6 @@ end
 
 -- transforms AABB {min=vec4, max=vec3}
 function AABBTransform(min, max, transform)
-    local vec4 = lovr.math.vec4
-    
     local corners = {
         transform * min,
         transform * vec4(min.x, min.y, max.z, 1),
@@ -781,8 +781,8 @@ end
 
 function Renderer:pointInAABB(point, aabb)
     local px, py, pz = point:unpack()
-    local minx, miny, minz = (aabb.center + aabb.min):unpack()
-    local maxx, maxy, maxz = (aabb.center + aabb.max):unpack()
+    local minx, miny, minz = aabb.min:unpack()
+    local maxx, maxy, maxz = aabb.max:unpack()
     return (px > minx and py > miny and pz > minz) and (px < maxx and py < maxy and pz < maxz)
 end
 
@@ -815,18 +815,13 @@ function Renderer:cullTest(renderObject, context)
     end
 
     -- test frustrum
-    local AABB = renderObject.AABB
-
-    -- local farPlaneDistance = 10
-    -- if renderObject.distanceToCamera - AABB.radius > farPlaneDistance then
-    --     return true
-    -- end
-
     
+    local AABB = renderObject.AABB
+    local center, radius = AABB.center, AABB.radius
     local frustum = context.view.frustum
-    for i = 1, 6 do -- 5 because skipping far plane as handled above
-        local p = frustum[i]
-        local e = renderObject.AABB.center:dot(vec3(p.x, p.y, p.z)) + p.d + renderObject.AABB.radius
+    for i = 1, 6 do
+        local f = frustum[i]
+        local e = center:dot(vec3(f.x, f.y, f.z)) + f.w + radius
         if e < 0 then return true end -- if outside any plane
     end
     return false
@@ -835,61 +830,54 @@ end
 -- @tparam mat mat4 projection_matrix * Matrix4_Transpose(modelview_matrix)
 -- @treturn {{x, y, z, d}} List of planes normal and distance
 function Renderer:getFrustum(mat)
-    local planes = {}
-    local p = {}
+    local planes = {
+        vec4(), vec4(), vec4(), vec4(), vec4(), vec4()
+    }
     -- local m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34, m41, m42, m43, m44 = mat:unpack(true)
     local m11, m21, m31, m41, m12, m22, m32, m42, m13, m23, m33, m43, m14, m24, m34, m44 = mat:unpack(true)
-    
-    local function norm(p)
-        local len = math.sqrt(p.x * p.x + p.y * p.y + p.z * p.z)
-        p.x = p.x / len
-        p.y = p.y / len
-        p.z = p.z / len
-        p.d = p.d / len
-        return p
-    end
+
     -- Left clipping plane
-    planes[1] = norm{
-        x = m41 + m11;
-        y = m42 + m12;
-        z = m43 + m13;
-        d = m44 + m14;
-    }
+    planes[1]:set(
+        m41 + m11,
+        m42 + m12,
+        m43 + m13,
+        m44 + m14
+    )
     -- Right clipping plane
-    planes[2] = norm{
-        x = m41 - m11;
-        y = m42 - m12;
-        z = m43 - m13;
-        d = m44 - m14;
-    }
+    planes[2]:set(
+        m41 - m11,
+        m42 - m12,
+        m43 - m13,
+        m44 - m14
+    )
     -- Top clipping plane
-    planes[3] = norm{
-        x = m41 - m21,
-        y = m42 - m22,
-        z = m43 - m23,
-        d = m44 - m24,
-    }
+    planes[3]:set(
+        m41 - m21,
+        m42 - m22,
+        m43 - m23,
+        m44 - m24
+    )
     -- Bottom clipping plane
-    planes[4] = norm{
-        x = m41 + m21,
-        y = m42 + m22,
-        z = m43 + m23,
-        d = m44 + m24,
-    }
+    planes[4]:set(
+        m41 + m21,
+        m42 + m22,
+        m43 + m23,
+        m44 + m24
+    )
     -- Near clipping plane
-    planes[5] = norm{
-        x = m41 + m31,
-        y = m42 + m32,
-        z = m43 + m33,
-        d = m44 + m34,
-    }
+    planes[5]:set(
+        m41 + m31,
+        m42 + m32,
+        m43 + m33,
+        m44 + m34
+    )
     -- Far clipping plane
-    planes[6] = norm{
-        x = m41 - m31,
-        y = m42 - m32,
-        z = m43 - m33,
-        d = m44 - m34,
-    }
+    planes[6]:set(
+        m41 - m31,
+        m42 - m32,
+        m43 - m33,
+        m44 - m34
+    )
 
     return planes
 end
