@@ -343,7 +343,7 @@ function Renderer:prepareObjects(context)
                     min = lovr.math.newVec3( worldMin:unpack() ),
                     max =  lovr.math.newVec3( worldMax:unpack() ),
                     center = lovr.math.newVec3( worldCenter:unpack() ),
-                    radius = (worldMax - worldMin):length(),
+                    radius = (worldMax - worldMin):length() / 2,
                 }
             end
 
@@ -598,7 +598,9 @@ function Renderer:drawObject(object, context)
 
     context.stats.drawnObjects = context.stats.drawnObjects + 1
 
-    if self.debug == "distance" then
+    local applyColor = true
+    if self.debug and self.debug == "distance" then
+        applyColor = false
         lovr.graphics.setShader()
         local d = context.views[1].objectToCamera[object.id].distance/10
         lovr.graphics.setColor(d, d, d, 1)
@@ -611,7 +613,9 @@ function Renderer:drawObject(object, context)
 
     local material = object.material
     local color = material and material.color or {1,1,1,1}
-    lovr.graphics.setColor(table.unpack(color))
+    if applyColor then 
+        lovr.graphics.setColor(table.unpack(color))
+    end
 
     object.source:draw(object, context)
     lovr.graphics.pop()
@@ -621,6 +625,16 @@ function Renderer:drawObject(object, context)
         local w, h, d = (bb.max - bb.min):unpack()
         local x, y, z = bb.center:unpack()
         lovr.graphics.box("line", x, y, z, math.abs(w), math.abs(h), math.abs(d))
+        
+        -- local bb
+        
+        local bb = object.AABB.source
+        local w, h, d = (bb.max - bb.min):unpack()
+        local x, y, z = ((bb.min + bb.max)/2):unpack()
+        lovr.graphics.push()
+        lovr.graphics.transform(object.transform)
+        lovr.graphics.box("line", x,y,z, math.abs(w), math.abs(h), math.abs(d))
+        lovr.graphics.pop()
     end
 end
 
@@ -833,7 +847,6 @@ function Renderer:getFrustum(mat)
     local planes = {
         vec4(), vec4(), vec4(), vec4(), vec4(), vec4()
     }
-    -- local m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34, m41, m42, m43, m44 = mat:unpack(true)
     local m11, m21, m31, m41, m12, m22, m32, m42, m13, m23, m33, m43, m14, m24, m34, m44 = mat:unpack(true)
 
     -- Left clipping plane
