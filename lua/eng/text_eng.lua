@@ -78,7 +78,7 @@ function TextEng:drawText(eid, entity, text)
         lovr.graphics.setColor(1,1,1,1)
     end
     lovr.graphics.push()
-    lovr.graphics.transform(entity.components.transform:getMatrix())
+    -- lovr.graphics.transform(entity.components.transform:getMatrix())
     
     -- sets a dynamic text scale that fits within a width, if such parameter has been set
     local dynamicTextScale = 0

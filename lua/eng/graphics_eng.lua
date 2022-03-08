@@ -16,7 +16,9 @@ local Renderer = require('eng.renderer')
 
 local graphics = lovr.graphics
 local vec3 = lovr.math.vec3
+local vec4 = lovr.math.vec4
 local newVec3 = lovr.math.newVec3
+local newVec4 = lovr.math.newVec4
 
 --- Initialize the graphics engine.
 function GraphicsEng:_init()
@@ -25,7 +27,7 @@ function GraphicsEng:_init()
     -- Paint every entity in a differnet shade? Nice to figure out what be longs what
     self.colorfulDebug = false
     -- Draw model boinding boxes?
-    self.drawAABBs = false
+    self.drawAABBs = true
     -- Draw spheres at the center of AABB's?
     self.drawAABBCenters = false
     
@@ -33,7 +35,6 @@ function GraphicsEng:_init()
     
     self.renderer = Renderer()
     self.renderObjects = {} -- entity.id: table
-    self.aabb_for_model = {}
 end
 
 --- Called when the application loads.
@@ -76,25 +77,12 @@ function GraphicsEng:onLoad()
 end
 
 function GraphicsEng:aabbForModel(model, transform)
-    local _, _, _, sx, sy, sz = transform:unpack()
-    if model.getAABB then
-        local minx, maxx, miny, maxy, minz, maxz = model:getAABB()
-        return {
-            min = newVec3(minx*sx, miny*sy, minz*sz),
-            max = newVec3(maxx*sx, maxy*sy, maxz*sz)
-        }
-    else
-        local aabb = self.aabb_for_model[model]
-        if aabb then
-            return {
-                min = newVec3(aabb.min * vec3(sx, sy, sz)),
-                max = newVec3(aabb.max * vec3(sx, sy, sz)),
-            }
-        else
-            print("Missing aabb for ", model)
-            assert(aabb, "aabb missing for ")
-        end
-    end
+    assert(model.getAABB)
+    local minx, maxx, miny, maxy, minz, maxz = model:getAABB()
+    return {
+        min = newVec4( minx, miny, minz, 1 ),
+        max = newVec4( maxx, maxy, maxz, 1 )
+    }
 end
 
 --- Called each frame to draw the world
@@ -422,18 +410,29 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
     --todo: isHead
 end
 
+
+-- Return a boundingbox in entity space. {min: vec3, max:vec3}
+-- Only valid if entity has a text component
 function GraphicsEng:aabbForEntity(entity)
-    local x, y, z, sx, sy, sz = entity.components.transform:getMatrix():unpack()
-    if entity.components.text then 
+    if not self.font then
+        self.font = lovr.graphics.newFont(32)
+        lovr.graphics.setFont(self.font)
+    end
+    if entity.components.text then
         local text = entity.components.text
+        lovr.graphics.getFont():setPixelDensity(32)
         local width = lovr.graphics.getFont():getWidth(text.string)
         local height = lovr.graphics.getFont():getHeight(text.string)
-        local origin = vec3(x, y, z)
-        local scale = vec3(sx, sy, sz)
-        local size2 = scale * vec3(width, height, 0) / 2
+        if text.height < height then 
+            width = width * text.height / height
+            height = text.height
+        end
+        
+        local origin = vec4(0,0,0,1)
+        local size2 = vec4(width, height, 0, 0) / 2
         return {
-            min = newVec3(origin - size2),
-            max = newVec3(origin + size2)
+            min = newVec4(origin - size2),
+            max = newVec4(origin + size2)
         }
     end
 
@@ -461,10 +460,10 @@ function draw_object(object, renderObject, context)
     
     if material and material.color then
         lovr.graphics.setColor(table.unpack(material.color))
-        model:draw(transform)
+        model:draw()
         lovr.graphics.setColor(1,1,1,1)
     else
-        model:draw(transform)
+        model:draw()
     end
 end
 

@@ -304,6 +304,7 @@ function Renderer:prepareObjects(context)
                 renderObject = { 
                     id = object.id,
                     position = lovr.math.newVec3(),
+                    transform = lovr.math.newMat4(),
                     lastPosition = lovr.math.newVec3(999999, 9999999),
                 }
             end
@@ -314,6 +315,7 @@ function Renderer:prepareObjects(context)
             renderObject.hasTransformed = not renderObject.position or renderObject.position:distance(object.position) > 0.0001
             renderObject.lastPosition:set(renderObject.position)
             renderObject.position:set(object.position)
+            renderObject.transform:set(object.transform)
 
             -- TODO: smarts based on changes in material
             if object.material then
@@ -331,18 +333,21 @@ function Renderer:prepareObjects(context)
             
             -- AABB derivates
             local AABB = object.AABB
-            local minmaxdiv2 = (AABB.max - AABB.min) / 2
+            local transform = object.transform
+            local worldMin = transform * AABB.min
+            local worldMax = transform * AABB.max
+            local worldCenter = (worldMin + worldMax) / 2
             renderObject.AABB = {
-                min = AABB.min,
-                max = AABB.max,
-                center = lovr.math.newVec3(object.position + AABB.min + minmaxdiv2),
-                radius = minmaxdiv2:length(),
+                min = lovr.math.newVec3( worldMin:unpack() ),
+                max =  lovr.math.newVec3( worldMax:unpack() ),
+                center = lovr.math.newVec3( worldCenter:unpack() ),
+                radius = (worldMax - worldMin):length(),
             }
 
             -- Precalculate object vector and distance to camera
             local vectorToCamera = view.cameraPosition - renderObject.AABB.center
             local distanceToCamera = vectorToCamera:length() - renderObject.AABB.radius
-            if distanceToCamera < 0 then 
+            if distanceToCamera < 0 then
                 distanceToCamera = 0
             end
             view.objectToCamera[object.id] = {
@@ -565,7 +570,10 @@ function Renderer:drawObject(object, context)
 
     context.stats.drawnObjectIds[object.id] = object.id
 
+    lovr.graphics.push()
+    lovr.graphics.transform(object.transform)
     object.source:draw(object, context)
+    lovr.graphics.pop()
     
     if context.drawAABB then
         local bb = object.AABB
