@@ -305,44 +305,45 @@ function Renderer:prepareObjects(context)
                     id = object.id,
                     position = lovr.math.newVec3(),
                     transform = lovr.math.newMat4(),
-                    lastPosition = lovr.math.newVec3(999999, 9999999),
+                    material = {}
                 }
             end
             self.cache[object.id] = renderObject
             renderObject.source = object
 
             --TODO: find a quicker way
-            renderObject.hasTransformed = not renderObject.position or renderObject.position:distance(object.position) > 0.0001
-            renderObject.lastPosition:set(renderObject.position)
-            renderObject.position:set(object.position)
+            renderObject.transformChanged = not renderObject.transform:equals(object.transform)
             renderObject.transform:set(object.transform)
+            renderObject.position:set(object.position)
 
             -- TODO: smarts based on changes in material
             if object.material then
-                renderObject.material = {}
-                renderObject.material.color = object.material.color or {1,1,1,1}
-                renderObject.material.roughness = object.material.roughness or 1
-                renderObject.material.metalness = object.material.metalness or 1
-                renderObject.material.diffuseTexture = object.material.diffuseTexture
-                renderObject.material.uvScale = object.material.uvScale and {object.material.uvScale[1], object.material.uvScale[2], 1}
-            else
-                renderObject.material = {
-                    roughness = 1,
-                    metalness = 1,
-                }
+                local material = renderObject.material
+                material.color = object.material.color
+                material.roughness = object.material.roughness
+                material.metalness = object.material.metalness
+                material.diffuseTexture = object.material.diffuseTexture
+                material.uvScale = object.material.uvScale and {object.material.uvScale[1], object.material.uvScale[2], 1}
             end
             
             -- AABB derivates
-            local AABB = object.AABB
-            local transform = object.transform
-            local worldMin, worldMax = AABBTransform(AABB.min, AABB.max, transform)
-            local worldCenter = (worldMin + worldMax) / 2
-            renderObject.AABB = {
-                min = lovr.math.newVec3( worldMin:unpack() ),
-                max =  lovr.math.newVec3( worldMax:unpack() ),
-                center = lovr.math.newVec3( worldCenter:unpack() ),
-                radius = (worldMax - worldMin):length(),
-            }
+            local aabbChanged = 
+                not renderObject.AABB or 
+                not object.AABB.min:equals(renderObject.AABB.source.min) or 
+                not object.AABB.max:equals(renderObject.AABB.source.max)
+            if aabbChanged or renderObject.transformChanged then
+                local AABB = object.AABB
+                local transform = object.transform
+                local worldMin, worldMax = AABBTransform(AABB.min, AABB.max, transform)
+                local worldCenter = (worldMin + worldMax) / 2
+                renderObject.AABB = {
+                    source = AABB,
+                    min = lovr.math.newVec3( worldMin:unpack() ),
+                    max =  lovr.math.newVec3( worldMax:unpack() ),
+                    center = lovr.math.newVec3( worldCenter:unpack() ),
+                    radius = (worldMax - worldMin):length(),
+                }
+            end
 
             -- Precalculate object vector and distance to camera
             local vectorToCamera = view.cameraPosition - renderObject.AABB.center

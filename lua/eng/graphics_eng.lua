@@ -27,7 +27,7 @@ function GraphicsEng:_init()
     -- Paint every entity in a differnet shade? Nice to figure out what be longs what
     self.colorfulDebug = false
     -- Draw model boinding boxes?
-    self.drawAABBs = true
+    self.drawAABBs = false
     -- Draw spheres at the center of AABB's?
     self.drawAABBCenters = false
     
