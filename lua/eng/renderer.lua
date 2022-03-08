@@ -334,8 +334,7 @@ function Renderer:prepareObjects(context)
             -- AABB derivates
             local AABB = object.AABB
             local transform = object.transform
-            local worldMin = transform * AABB.min
-            local worldMax = transform * AABB.max
+            local worldMin, worldMax = AABBTransform(AABB.min, AABB.max, transform)
             local worldCenter = (worldMin + worldMax) / 2
             renderObject.AABB = {
                 min = lovr.math.newVec3( worldMin:unpack() ),
@@ -412,6 +411,42 @@ function Renderer:objectCubemapScore(object, context)
             * (object.reflectionMap and (frameNr - object.reflectionMap.source.frameNr) or frameNr) -- larger is better
             * (1.1 - object.material.roughness) -- Shiny objects preferred
             + (object.reflectionMap and 0 or 50) -- objects missing a map gets extra help
+end
+
+
+-- transforms AABB {min=vec4, max=vec3}
+function AABBTransform(min, max, transform)
+    local vec4 = lovr.math.vec4
+    
+    local corners = {
+        transform * min,
+        transform * vec4(min.x, min.y, max.z, 1),
+        transform * vec4(min.x, max.y, min.z, 1),
+        transform * vec4(max.x, min.y, min.z, 1),
+        transform * vec4(min.x, max.y, max.z, 1),
+        transform * vec4(max.x, min.y, max.z, 1),
+        transform * vec4(max.x, max.y, min.z, 1),
+        transform * max,
+    }
+
+    local large = 1.0e+10000
+    local rmin = lovr.math.vec4(large, large, large, 1)
+    local rmax = lovr.math.vec4(-large, -large, -large, 1)
+    for i, p in ipairs(corners) do
+        rmin:set(
+            math.min(rmin.x, p.x),
+            math.min(rmin.y, p.y),
+            math.min(rmin.z, p.z),
+            1
+        )
+        rmax:set(
+            math.max(rmax.x, p.x),
+            math.max(rmax.y, p.y),
+            math.max(rmax.z, p.z),
+            1
+        )
+    end
+    return rmin, rmax
 end
 
 function Renderer:prepareObject(renderObject, context, prepareFrameObjects, prepareViewObjects)

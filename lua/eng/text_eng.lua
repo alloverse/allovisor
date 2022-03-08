@@ -48,16 +48,10 @@ function TextEng:onUpdate()
 end
 
 --- Draws all text components
-function TextEng:onDraw2() 
+function TextEng:onDraw() 
     lovr.graphics.setShader()
     self.font:setPixelDensity(32)
     lovr.graphics.setFont(self.font)
-    for eid, entity in pairs(self.client.state.entities) do
-        local text = entity.components.text
-        if text ~= nil then
-            self:drawText(eid, entity, text)
-        end
-    end
     
     lovr.graphics.push()
     lovr.graphics.transform(self.parent.inverseCameraTransform)
@@ -160,7 +154,7 @@ end
 function TextEng:onFocusChanged(newEnt, focusType)
     if focusType == "key" then
         self.firstResponder = newEnt
-        if lovr.headset then
+        if true or lovr.headset then
             letters.displayKeyboard()
         end
     else
