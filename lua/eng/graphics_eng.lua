@@ -390,9 +390,8 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
         object.text = component
         object.AABB = self:aabbForEntity(entity)
         object.hasText = true -- text has transparent background
-        object.draw = function (object, renderObject, context)
-            self.parent.engines.text:drawText(object.entity.id, object.entity, object.text)
-        end
+        object.text.font = self.font
+        object.draw = draw_object
     end
 
     -- if (not component_key or component_key == "transform") and entity.components.transform then
@@ -416,13 +415,12 @@ end
 function GraphicsEng:aabbForEntity(entity)
     if not self.font then
         self.font = lovr.graphics.newFont(32)
-        lovr.graphics.setFont(self.font)
+        self.font:setPixelDensity(32)
     end
     if entity.components.text then
         local text = entity.components.text
-        lovr.graphics.getFont():setPixelDensity(32)
-        local width = lovr.graphics.getFont():getWidth(text.string)
-        local height = lovr.graphics.getFont():getHeight(text.string)
+        local width = self.font:getWidth(text.string)
+        local height = self.font:getHeight(text.string)
         if text.height < height then 
             width = width * text.height / height
             height = text.height
@@ -442,28 +440,93 @@ end
 
 function draw_object(object, renderObject, context)
     local model = object.lovr.model
-    local material = object.material
-    local transform = object.transform
-    
-    -- Is this reeeeally the right place to handle animations at all?
-    -- TODO: some hack so this it only run for entities that needs it
-    local animationCount = model.animate and model:getAnimationCount()
-    if animationCount and animationCount > 0 then
-        local name = model:getAnimationName(1)
-        for i = 1, animationCount do 
-            if model:getAnimationName(i) == "autoplay" then
-                name = "autoplay"
+    if model then 
+        -- Is this reeeeally the right place to handle animations at all?
+        -- TODO: some hack so this it only run for entities that needs it
+        local animationCount = model.animate and model:getAnimationCount()
+        if animationCount and animationCount > 0 then
+            local name = model:getAnimationName(1)
+            for i = 1, animationCount do 
+                if model:getAnimationName(i) == "autoplay" then
+                    name = "autoplay"
+                end
+            end
+            model:animate(name, lovr.timer.getTime())
+        end
+        
+        model:draw()
+    end
+    local text = object.text
+    if text then
+        lovr.graphics.push()
+        
+        -- sets a dynamic text scale that fits within a width, if such parameter has been set
+        local dynamicTextScale = 0
+        
+        if text.fitToWidth then
+            -- backwards compatibility
+            if type(text.fitToWidth) == "number" then
+                text.width = text.fitToWidth
+                text.fitToWidth = true
+            end
+            
+            local textLabelWidth = lovr.graphics.getFont():getWidth(text.string)
+            dynamicTextScale = text.width / textLabelWidth  
+        else
+            -- Fit text size to the element's height instead
+            dynamicTextScale = text.height and text.height or 1.0
+        end
+        
+        local wrap = 0
+        -- only care about setting wrap is fitToWidth hasn't been set
+        if not text.fitToWidth then
+            if text.wrap then
+                -- backwards compatibility
+                if type(text.wrap) == "number" then
+                    text.width = text.wrap
+                    text.wrap = true
+                end
+                
+                wrap = text.width and text.width / (text.height and text.height or 1) or 0
             end
         end
-        model:animate(name, lovr.timer.getTime())
-    end
+        
+        if text.halign == "left" then
+            lovr.graphics.translate(-text.width/2,0,0)
+        elseif text.halign == "right" then
+            lovr.graphics.translate(text.width/2,0,0)
+        end
+        
+        -- Make sure the text never overflows the height of the container (unless it's wrapped, which is fine.)
+        if dynamicTextScale > text.height then
+            dynamicTextScale = text.height
+        end
+        
+        
+        lovr.graphics.print(
+            text.string,
+            0, 0, 0.01,
+            dynamicTextScale, --text.height and text.height or 1.0, 
+            0, 0, 0, 0,
+            wrap,
+            text.halign and text.halign or "center",
+            text.valign and text.valign or "middle"
+        )
     
-    if material and material.color then
-        lovr.graphics.setColor(table.unpack(material.color))
-        model:draw()
-        lovr.graphics.setColor(1,1,1,1)
-    else
-        model:draw()
+        if text.insertionMarker then
+            lovr.graphics.setColor(0, 0, 0, math.sin(lovr.timer.getTime()*5)*0.5 + 0.6)
+            local actualLabelWidth, lines = lovr.graphics.getFont():getWidth(text.string, wrap)
+            actualLabelWidth = actualLabelWidth * dynamicTextScale
+            local lastLine = string.match(text.string, "[^%c]*$")
+            local lastLineWidth = lovr.graphics.getFont():getWidth(lastLine) * dynamicTextScale
+            local height = text.font:getHeight()*dynamicTextScale
+            lovr.graphics.line(
+            lastLineWidth + 0.01, height/2 - height*(lines-1), 0,
+            lastLineWidth + 0.01, height/2 - height*lines, 0
+        )
+        end
+    
+        lovr.graphics.pop()
     end
 end
 

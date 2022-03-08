@@ -320,6 +320,7 @@ function Renderer:prepareObjects(context)
             -- TODO: smarts based on changes in material
             if object.material then
                 renderObject.material = {}
+                renderObject.material.color = object.material.color or {1,1,1,1}
                 renderObject.material.roughness = object.material.roughness or 1
                 renderObject.material.metalness = object.material.metalness or 1
                 renderObject.material.diffuseTexture = object.material.diffuseTexture
@@ -594,7 +595,6 @@ function Renderer:drawObject(object, context)
         end
     end
 
-    lovr.graphics.setColor(1,1,1,1)
     context.stats.drawnObjects = context.stats.drawnObjects + 1
 
     if self.debug == "distance" then
@@ -607,6 +607,11 @@ function Renderer:drawObject(object, context)
 
     lovr.graphics.push()
     lovr.graphics.transform(object.transform)
+
+    local material = object.material
+    local color = material and material.color or {1,1,1,1}
+    lovr.graphics.setColor(table.unpack(color))
+
     object.source:draw(object, context)
     lovr.graphics.pop()
     
