@@ -48,7 +48,7 @@ function TextEng:onUpdate()
 end
 
 --- Draws all text components
-function TextEng:onDraw() 
+function TextEng:onDraw2() 
     lovr.graphics.setShader()
     self.font:setPixelDensity(32)
     lovr.graphics.setFont(self.font)

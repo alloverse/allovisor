@@ -196,7 +196,7 @@ end
 
 
 function GraphicsEng:onEntityAdded(ent)
-    if ent.components.geometry then
+    if ent.components.geometry or ent.components.text then
         self:buildObject(ent)
     end
 end
@@ -397,6 +397,16 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
         end
     end
 
+    if (not component_key or component_key == "text") and entity.components.text then
+        local component = entity.components.text
+        object.text = component
+        object.AABB = self:aabbForEntity(entity)
+        object.hasText = true -- text has transparent background
+        object.draw = function (object, renderObject, context)
+            self.parent.engines.text:drawText(object.entity.id, object.entity, object.text)
+        end
+    end
+
     -- if (not component_key or component_key == "transform") and entity.components.transform then
     --     -- local component = entity.components.transform
     -- end
@@ -411,6 +421,25 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
 
     --todo: isHead
 end
+
+function GraphicsEng:aabbForEntity(entity)
+    local x, y, z, sx, sy, sz = entity.components.transform:getMatrix():unpack()
+    if entity.components.text then 
+        local text = entity.components.text
+        local width = lovr.graphics.getFont():getWidth(text.string)
+        local height = lovr.graphics.getFont():getHeight(text.string)
+        local origin = vec3(x, y, z)
+        local scale = vec3(sx, sy, sz)
+        local size2 = scale * vec3(width, height, 0) / 2
+        return {
+            min = newVec3(origin - size2),
+            max = newVec3(origin + size2)
+        }
+    end
+
+    print("Missing aabb for " .. entity.id)
+end
+
 
 function draw_object(object, renderObject, context)
     local model = object.lovr.model

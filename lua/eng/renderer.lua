@@ -267,6 +267,7 @@ function Renderer:prepareObjects(context)
             transparent = OrderedMap(),-- ordered furthest to nearest from camera
             culled = OrderedMap(), -- objects not drawn this view
             needsCubemap = OrderedMap(), -- objects that needs a fresh cubemap
+            text = OrderedMap(), -- text objects. Has transparency but not needing sorting
         }
     end
 
@@ -368,6 +369,10 @@ function Renderer:prepareObjects(context)
             return toCamera[a].distance < toCamera[b].distance
         end)
 
+        view.objects.text:sort(function(a, b)
+            return toCamera[a].distance < toCamera[b].distance
+        end)
+
         local lastCubemapFrame = self.lastCubemapFrame or 0
         if context.enableReflections == false or context.frame.cubemapDepth >= context.frame.cubemapLimit.maxDepth or (context.frame.nr - lastCubemapFrame) < context.frame.cubemapLimit.minFrameDistance then
             view.objects.needsCubemap = OrderedMap()
@@ -439,6 +444,8 @@ function Renderer:prepareObject(renderObject, context, prepareFrameObjects, prep
             end
             if object.hasTransparency then
                 insert(view.objects.transparent, renderObject)
+            elseif object.hasText then
+                insert(view.objects.text, renderObject)
             else
                 insert(view.objects.opaque, renderObject)
             end
@@ -481,6 +488,12 @@ function Renderer:drawContext(context)
         drawObject(self, object, context)
     end
     lovr.graphics.setDepthTest('lequal', true)
+
+    -- Draw text last as it goes on top of surfaces and uses a different shader
+    lovr.graphics.setShader()
+    for id, object in context.view.objects.text:iter() do
+        drawObject(self, object, context)
+    end
 
     -- Draw where we think camera is
     -- lovr.graphics.setColor(1, 0, 1, 1)
