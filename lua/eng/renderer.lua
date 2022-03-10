@@ -207,21 +207,11 @@ function Renderer:prepareView(context)
 
     -- Determine the modelView and projection matrices
     if not view.modelView then
-        local modelView = lovr.math.newMat4()
-        lovr.graphics.getViewPose(1, modelView, true)
-        view.modelView = modelView
-    else
-        -- lovr.graphics.setViewPose(1, view.modelView, true)
-        -- lovr.graphics.setViewPose(2, view.modelView, true)
+        view.modelView = lovr.graphics.getViewPose(1, lovr.math.newMat4(), true)
     end
 
     if not view.projection then
-        local projection = lovr.math.newMat4()
-        lovr.graphics.getProjection(1, projection)
-        view.projection = projection
-    else
-        -- lovr.graphics.setProjection(1, view.projection)
-        -- lovr.graphics.setProjection(2, view.projection)
+        view.projection = lovr.graphics.getProjection(1, lovr.math.newMat4())
     end
 
     
@@ -625,6 +615,12 @@ function Renderer:drawObject(object, context)
         local w, h, d = (bb.max - bb.min):unpack()
         local x, y, z = bb.center:unpack()
         lovr.graphics.box("line", x, y, z, math.abs(w), math.abs(h), math.abs(d))
+
+        -- aabb radius
+        -- lovr.graphics.setColor(1,1,1,0.3)
+        -- lovr.graphics.setDepthTest("lequal", false)
+        -- lovr.graphics.sphere(x,y,z, bb.radius)
+        -- lovr.graphics.setDepthTest("lequal", true)
         
         -- local bb
         
@@ -635,6 +631,7 @@ function Renderer:drawObject(object, context)
         lovr.graphics.transform(object.transform)
         lovr.graphics.box("line", x,y,z, math.abs(w), math.abs(h), math.abs(d))
         lovr.graphics.pop()
+
     end
 end
 
@@ -833,9 +830,11 @@ function Renderer:cullTest(renderObject, context)
     local AABB = renderObject.AABB
     local center, radius = AABB.center, AABB.radius
     local frustum = context.view.frustum
+    -- some is off with the frustum so we expand the radius a bit
+    radius = radius * 1.4
     for i = 1, 6 do
         local f = frustum[i]
-        local e = center:dot(vec3(f.x, f.y, f.z)) + f.w + radius
+        local e = f.x * center.x + f.y * center.y + f.z * center.z + f.w + radius
         if e < 0 then return true end -- if outside any plane
     end
     return false
