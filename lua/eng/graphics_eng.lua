@@ -30,6 +30,8 @@ function GraphicsEng:_init()
     self.drawAABBs = false
     -- Draw spheres at the center of AABB's?
     self.drawAABBCenters = false
+    -- Draw boxes around defined text components (the aabb of text is only around the text itself)
+    self.drawTextBoxes = true
     
     self.defaultAmbientLightColor = {0.4,0.4,0.4,1}
     
@@ -44,6 +46,9 @@ function GraphicsEng:onLoad()
         broken = graphics.newModel('/assets/models/broken.glb'),
         loading = graphics.newModel('/assets/models/loading.glb'),
     }
+
+    self.font = lovr.graphics.newFont(39)
+    self.font:setPixelDensity(39)
     
     self.basicShader = alloBasicShader
     self.pbrShader = alloPbrShader
@@ -120,6 +125,7 @@ function GraphicsEng:onDraw()
         local headPosition = headEnt.components.transform:getMatrix():mul(vec3())
         self.renderStats = self.renderer:render(objects, {
             drawAABB = self.drawAABBs,
+            drawTextBoxes = self.drawTextBoxes,
             cameraPosition = newVec3(headPosition),
             enableReflections = Store.singleton():load("graphics.reflections"),
         })
@@ -387,11 +393,92 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
 
     if (not component_key or component_key == "text") and entity.components.text then
         local component = entity.components.text
-        object.text = component
-        object.AABB = self:aabbForEntity(entity)
         object.hasText = true -- text has transparent background
-        object.text.font = self.font
         object.draw = draw_object
+
+        -- wrap: The width in meters at which to wrap the text, if at all.
+        local font = self.font
+        local string = component.string
+        local lineHeight = component.height -- per line
+        local boxWidth = component.width -- for any line
+        local wrap = component.wrap == true
+        local fitToWidth = component.fitToWidth == true
+
+        -- boxWidth/Height is the size given in the component for the text to fit in
+
+        -- get scale from the diff in height
+        local scale = math.min(lineHeight / font:getHeight(), lineHeight)
+        
+        pretty.dump(component)
+
+        local lovrTextWidth, lovrTextHeight, nLines, lastLineWidth = font:getMeasure(string, (wrap and boxWidth) or 0)
+        local textWidth = lovrTextWidth * scale
+        -- With wrapping some text might overflow anyway
+        -- Font:getWidth still reports the longest overflowing width,
+        -- so use the smallest of box and text width
+        if wrap or fitToWidth and textWidth > boxWidth then
+            -- if text still doens't fit after wrapping
+            local a = scale
+            -- scale = boxWidth/textWidth * scale
+            textWidth = lovrTextWidth * scale
+            lineHeight = scale
+            print("Still to wide",wrap,textWidth,boxWidth, a, scale, entityId)
+        end
+
+        local textHeight = lovrTextHeight * scale
+
+        -- if the box is too wide still we need to limit it further
+        -- if textWidth > boxWidth then
+        --     print("scaling x")
+        --     scale.x = width / boxWidth
+        -- end
+        -- component.halign = "center"
+        local origin = lovr.math.vec2(0,0)
+        local offset = lovr.math.newVec2()
+        if component.halign == "left" then
+            offset.x = -boxWidth / 2
+            origin.x = offset.x + textWidth / 2
+        elseif component.halign == "right" then
+            offset.x = boxWidth / 2
+            origin.x = offset.x - textWidth / 2
+        end
+
+        local caret = nil
+        if component.insertionMarker then
+            lastLineWidth = lastLineWidth * scale
+            caret = lovr.math.newVec3( -- 1 2D line segment packed into vec3.
+                lastLineWidth / 2, -- same for both x
+                offset.y + lineHeight/2 - lineHeight * (nLines - 1), -- y1
+                offset.y + lineHeight/2 - lineHeight * nLines -- y2
+            )
+            if component.halign == "left" then
+                caret.x = -boxWidth / 2 + lastLineWidth
+            elseif component.halign == "right" then
+                caret.x = lastLineWidth
+            end
+        end
+
+        object.text = {
+            font = font,
+            component = component,
+            string = string,
+            scale = scale,
+            halign = component.halign,
+            valign = component.valign,
+            nLines = nLines,
+            caret = caret,
+            offset = offset,
+            maxWidth = wrap and boxWidth or nil,
+            boxSize = lovr.math.newVec2(boxWidth, textHeight),
+            textSize = lovr.math.newVec2(textWidth, textHeight)
+        }
+        pretty.dump(object.text)
+        local w = textWidth / 2
+        local h = textHeight / 2
+        object.AABB = {
+            min = newVec4(origin.x - w, origin.y - h, 0, 1),
+            max = newVec4(origin.x + w, origin.y + h, 0, 1),
+        }
     end
 
     -- if (not component_key or component_key == "transform") and entity.components.transform then
@@ -413,10 +500,6 @@ end
 -- Return a boundingbox in entity space. {min: vec3, max:vec3}
 -- Only valid if entity has a text component
 function GraphicsEng:aabbForEntity(entity)
-    if not self.font then
-        self.font = lovr.graphics.newFont(32)
-        self.font:setPixelDensity(32)
-    end
     if entity.components.text then
         local text = entity.components.text
         local width = self.font:getWidth(text.string)
@@ -458,75 +541,26 @@ function draw_object(object, renderObject, context)
     end
     local text = object.text
     if text then
-        lovr.graphics.push()
-        
-        -- sets a dynamic text scale that fits within a width, if such parameter has been set
-        local dynamicTextScale = 0
-        
-        if text.fitToWidth then
-            -- backwards compatibility
-            if type(text.fitToWidth) == "number" then
-                text.width = text.fitToWidth
-                text.fitToWidth = true
-            end
-            
-            local textLabelWidth = lovr.graphics.getFont():getWidth(text.string)
-            dynamicTextScale = text.width / textLabelWidth  
-        else
-            -- Fit text size to the element's height instead
-            dynamicTextScale = text.height and text.height or 1.0
+        if text.string:match("oxar") then 
+            print("nametag?")
+            pretty.dump(text)
         end
-        
-        local wrap = 0
-        -- only care about setting wrap is fitToWidth hasn't been set
-        if not text.fitToWidth then
-            if text.wrap then
-                -- backwards compatibility
-                if type(text.wrap) == "number" then
-                    text.width = text.wrap
-                    text.wrap = true
-                end
-                
-                wrap = text.width and text.width / (text.height and text.height or 1) or 0
-            end
-        end
-        
-        if text.halign == "left" then
-            lovr.graphics.translate(-text.width/2,0,0)
-        elseif text.halign == "right" then
-            lovr.graphics.translate(text.width/2,0,0)
-        end
-        
-        -- Make sure the text never overflows the height of the container (unless it's wrapped, which is fine.)
-        if dynamicTextScale > text.height then
-            dynamicTextScale = text.height
-        end
-        
-        
+        lovr.graphics.setFont(text.font)
         lovr.graphics.print(
             text.string,
-            0, 0, 0.01,
-            dynamicTextScale, --text.height and text.height or 1.0, 
+            text.offset.x or 0, 0, 0.01,
+            text.scale, --text.height and text.height or 1.0, 
             0, 0, 0, 0,
-            wrap,
-            text.halign and text.halign or "center",
-            text.valign and text.valign or "middle"
+            text.maxWidth,
+            text.halign or "center",
+            text.valign or "middle"
         )
     
-        if text.insertionMarker then
+        if text.caret then
+            local caret = text.caret
             lovr.graphics.setColor(0, 0, 0, math.sin(lovr.timer.getTime()*5)*0.5 + 0.6)
-            local actualLabelWidth, lines = lovr.graphics.getFont():getWidth(text.string, wrap)
-            actualLabelWidth = actualLabelWidth * dynamicTextScale
-            local lastLine = string.match(text.string, "[^%c]*$")
-            local lastLineWidth = lovr.graphics.getFont():getWidth(lastLine) * dynamicTextScale
-            local height = text.font:getHeight()*dynamicTextScale
-            lovr.graphics.line(
-            lastLineWidth + 0.01, height/2 - height*(lines-1), 0,
-            lastLineWidth + 0.01, height/2 - height*lines, 0
-        )
+            lovr.graphics.line(caret.x, caret.y, 0, caret.x, caret.z, 0)
         end
-    
-        lovr.graphics.pop()
     end
 end
 
