@@ -188,7 +188,7 @@ function AvatarChooser:_createUI()
   }
 
   self.avatarNameTag = ui.Surface(ui.Bounds(0, 0, 0,   0.2, 0.066, 0):rotate(3.14, 0, 1, 0):move(0, 0.25, -0.18):rotate(3.14/8, 1, 0, 0))
-  self.avatarNameTag.texture = AvatarChooser.assets.nameTag
+  self.avatarNameTag.material.texture = AvatarChooser.assets.nameTag
   self.avatarNameTag.hasTransparency = true
   self.avatarNameTagLabel = ui.Label {
     bounds= ui.Bounds(0, 0, 0,   0.16, 0.062, 0.001),
