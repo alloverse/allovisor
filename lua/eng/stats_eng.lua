@@ -156,18 +156,4 @@ function StatsEng:drawGraph()
     self.graphNames = {}
 end
 
-function StatsEng:onDraw2()
-    lovr.graphics.setShader(nil)
-    lovr.graphics.setColor(1,1,1,1)
-    lovr.graphics.setFont(flat.font)
-    lovr.graphics.sphere(0,0,-2)
-    lovr.graphics.print(
-        self:statsString(),
-        0,0,0, 
-        1, 
-        0,0,1,0,0
-        -- 'right','top'
-    )
-end
-
 return StatsEng
