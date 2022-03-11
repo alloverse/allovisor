@@ -31,7 +31,7 @@ function GraphicsEng:_init()
     -- Draw spheres at the center of AABB's?
     self.drawAABBCenters = false
     -- Draw boxes around defined text components (the aabb of text is only around the text itself)
-    self.drawTextBoxes = true
+    self.drawTextBoxes = false
     
     self.defaultAmbientLightColor = {0.4,0.4,0.4,1}
     
@@ -409,8 +409,6 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
         -- get scale from the diff in height
         local scale = math.min(lineHeight / font:getHeight(), lineHeight)
         
-        pretty.dump(component)
-
         local lovrTextWidth, lovrTextHeight, nLines, lastLineWidth = font:getMeasure(string, (wrap and boxWidth) or 0)
         local textWidth = lovrTextWidth * scale
         -- With wrapping some text might overflow anyway
@@ -418,21 +416,13 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
         -- so use the smallest of box and text width
         if wrap or fitToWidth and textWidth > boxWidth then
             -- if text still doens't fit after wrapping
-            local a = scale
-            -- scale = boxWidth/textWidth * scale
-            textWidth = lovrTextWidth * scale
-            lineHeight = scale
-            print("Still to wide",wrap,textWidth,boxWidth, a, scale, entityId)
+            scale = boxWidth/textWidth * scale -- scale down the scale
+            textWidth = lovrTextWidth * scale -- make text smaller
+            lineHeight = scale -- don't understand why these are the same
         end
 
         local textHeight = lovrTextHeight * scale
 
-        -- if the box is too wide still we need to limit it further
-        -- if textWidth > boxWidth then
-        --     print("scaling x")
-        --     scale.x = width / boxWidth
-        -- end
-        -- component.halign = "center"
         local origin = lovr.math.vec2(0,0)
         local offset = lovr.math.newVec2()
         if component.halign == "left" then
@@ -472,7 +462,7 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
             boxSize = lovr.math.newVec2(boxWidth, textHeight),
             textSize = lovr.math.newVec2(textWidth, textHeight)
         }
-        pretty.dump(object.text)
+
         local w = textWidth / 2
         local h = textHeight / 2
         object.AABB = {
@@ -496,31 +486,6 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
     --todo: isHead
 end
 
-
--- Return a boundingbox in entity space. {min: vec3, max:vec3}
--- Only valid if entity has a text component
-function GraphicsEng:aabbForEntity(entity)
-    if entity.components.text then
-        local text = entity.components.text
-        local width = self.font:getWidth(text.string)
-        local height = self.font:getHeight(text.string)
-        if text.height < height then 
-            width = width * text.height / height
-            height = text.height
-        end
-        
-        local origin = vec4(0,0,0,1)
-        local size2 = vec4(width, height, 0, 0) / 2
-        return {
-            min = newVec4(origin - size2),
-            max = newVec4(origin + size2)
-        }
-    end
-
-    print("Missing aabb for " .. entity.id)
-end
-
-
 function draw_object(object, renderObject, context)
     local model = object.lovr.model
     if model then 
@@ -541,10 +506,6 @@ function draw_object(object, renderObject, context)
     end
     local text = object.text
     if text then
-        if text.string:match("oxar") then 
-            print("nametag?")
-            pretty.dump(text)
-        end
         lovr.graphics.setFont(text.font)
         lovr.graphics.print(
             text.string,
