@@ -608,6 +608,11 @@ function Renderer:drawObject(object, context)
     end
 
     object.source:draw(object, context)
+
+    if context.drawTextBoxes and object.source.hasText then
+        local text = object.source.text
+        lovr.graphics.box("line", 0,0,0, text.boxSize.x, text.boxSize.y,0)
+    end
     lovr.graphics.pop()
     
     if context.drawAABB then
