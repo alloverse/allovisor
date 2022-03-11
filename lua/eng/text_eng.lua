@@ -50,9 +50,6 @@ end
 --- Draws all text components
 function TextEng:onDraw()
     lovr.graphics.setShader()
-    self.font:setPixelDensity(32)
-    lovr.graphics.setFont(self.font)
-    
     lovr.graphics.push()
     lovr.graphics.transform(self.parent.inverseCameraTransform)
     if not lovr.headset then
