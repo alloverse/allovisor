@@ -67,7 +67,7 @@ end
 function TextEng:onFocusChanged(newEnt, focusType)
     if focusType == "key" then
         self.firstResponder = newEnt
-        if true or lovr.headset then
+        if lovr.headset then
             letters.displayKeyboard()
         end
     else
