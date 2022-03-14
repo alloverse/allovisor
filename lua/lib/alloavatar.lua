@@ -197,7 +197,7 @@ function AlloBodyPart:nameTagSpec()
             {
                 text = {
                     string = self.displayName,
-                    height = 0.66,
+                    height = 0.062,
                     halign = "center",
                     width = 0.16,
                     fitToWidth = true

@@ -11,6 +11,8 @@ local OrderedMap = require('pl.OrderedMap')
 local Shader = require 'eng.shader'
 
 local Renderer = class.Renderer()
+local vec4 = lovr.math.vec4
+local vec3 = lovr.math.vec3
 
 function Renderer:_init()
     is_desktop = lovr and lovr.headset == nil
@@ -205,21 +207,11 @@ function Renderer:prepareView(context)
 
     -- Determine the modelView and projection matrices
     if not view.modelView then
-        local modelView = lovr.math.newMat4()
-        lovr.graphics.getViewPose(1, modelView, true)
-        view.modelView = modelView
-    else
-        -- lovr.graphics.setViewPose(1, view.modelView, true)
-        -- lovr.graphics.setViewPose(2, view.modelView, true)
+        view.modelView = lovr.graphics.getViewPose(1, lovr.math.newMat4(), true)
     end
 
     if not view.projection then
-        local projection = lovr.math.newMat4()
-        lovr.graphics.getProjection(1, projection)
-        view.projection = projection
-    else
-        -- lovr.graphics.setProjection(1, view.projection)
-        -- lovr.graphics.setProjection(2, view.projection)
+        view.projection = lovr.graphics.getProjection(1, lovr.math.newMat4())
     end
 
     
@@ -267,6 +259,7 @@ function Renderer:prepareObjects(context)
             transparent = OrderedMap(),-- ordered furthest to nearest from camera
             culled = OrderedMap(), -- objects not drawn this view
             needsCubemap = OrderedMap(), -- objects that needs a fresh cubemap
+            text = OrderedMap(), -- text objects. Has transparency but not needing sorting
         }
     end
 
@@ -303,45 +296,51 @@ function Renderer:prepareObjects(context)
                 renderObject = { 
                     id = object.id,
                     position = lovr.math.newVec3(),
-                    lastPosition = lovr.math.newVec3(999999, 9999999),
+                    transform = lovr.math.newMat4(),
+                    material = {}
                 }
             end
             self.cache[object.id] = renderObject
             renderObject.source = object
 
             --TODO: find a quicker way
-            renderObject.hasTransformed = not renderObject.position or renderObject.position:distance(object.position) > 0.0001
-            renderObject.lastPosition:set(renderObject.position)
+            renderObject.transformChanged = not renderObject.transform:equals(object.transform)
+            renderObject.transform:set(object.transform)
             renderObject.position:set(object.position)
 
             -- TODO: smarts based on changes in material
             if object.material then
-                renderObject.material = {}
-                renderObject.material.roughness = object.material.roughness or 1
-                renderObject.material.metalness = object.material.metalness or 1
-                renderObject.material.diffuseTexture = object.material.diffuseTexture
-                renderObject.material.uvScale = object.material.uvScale and {object.material.uvScale[1], object.material.uvScale[2], 1}
-            else
-                renderObject.material = {
-                    roughness = 1,
-                    metalness = 1,
-                }
+                local material = renderObject.material
+                material.color = object.material.color
+                material.roughness = object.material.roughness
+                material.metalness = object.material.metalness
+                material.diffuseTexture = object.material.diffuseTexture
+                material.uvScale = object.material.uvScale and {object.material.uvScale[1], object.material.uvScale[2], 1}
             end
             
             -- AABB derivates
-            local AABB = object.AABB
-            local minmaxdiv2 = (AABB.max - AABB.min) / 2
-            renderObject.AABB = {
-                min = AABB.min,
-                max = AABB.max,
-                center = lovr.math.newVec3(object.position + AABB.min + minmaxdiv2),
-                radius = minmaxdiv2:length(),
-            }
+            local aabbChanged = 
+                not renderObject.AABB or 
+                not object.AABB.min:equals(renderObject.AABB.source.min) or 
+                not object.AABB.max:equals(renderObject.AABB.source.max)
+            if aabbChanged or renderObject.transformChanged then
+                local AABB = object.AABB
+                local transform = object.transform
+                local worldMin, worldMax = AABBTransform(AABB.min, AABB.max, transform)
+                local worldCenter = (worldMin + worldMax) / 2
+                renderObject.AABB = {
+                    source = AABB,
+                    min = lovr.math.newVec3( worldMin:unpack() ),
+                    max =  lovr.math.newVec3( worldMax:unpack() ),
+                    center = lovr.math.newVec3( worldCenter:unpack() ),
+                    radius = (worldMax - worldMin):length() / 2,
+                }
+            end
 
             -- Precalculate object vector and distance to camera
             local vectorToCamera = view.cameraPosition - renderObject.AABB.center
             local distanceToCamera = vectorToCamera:length() - renderObject.AABB.radius
-            if distanceToCamera < 0 then 
+            if distanceToCamera < 0 then
                 distanceToCamera = 0
             end
             view.objectToCamera[object.id] = {
@@ -365,6 +364,10 @@ function Renderer:prepareObjects(context)
         end)
 
         view.objects.opaque:sort(function(a, b)
+            return toCamera[a].distance < toCamera[b].distance
+        end)
+
+        view.objects.text:sort(function(a, b)
             return toCamera[a].distance < toCamera[b].distance
         end)
 
@@ -404,6 +407,40 @@ function Renderer:objectCubemapScore(object, context)
             + (object.reflectionMap and 0 or 50) -- objects missing a map gets extra help
 end
 
+
+-- transforms AABB {min=vec4, max=vec3}
+function AABBTransform(min, max, transform)
+    local corners = {
+        transform * min,
+        transform * vec4(min.x, min.y, max.z, 1),
+        transform * vec4(min.x, max.y, min.z, 1),
+        transform * vec4(max.x, min.y, min.z, 1),
+        transform * vec4(min.x, max.y, max.z, 1),
+        transform * vec4(max.x, min.y, max.z, 1),
+        transform * vec4(max.x, max.y, min.z, 1),
+        transform * max,
+    }
+
+    local large = 1.0e+10000
+    local rmin = lovr.math.vec4(large, large, large, 1)
+    local rmax = lovr.math.vec4(-large, -large, -large, 1)
+    for i, p in ipairs(corners) do
+        rmin:set(
+            math.min(rmin.x, p.x),
+            math.min(rmin.y, p.y),
+            math.min(rmin.z, p.z),
+            1
+        )
+        rmax:set(
+            math.max(rmax.x, p.x),
+            math.max(rmax.y, p.y),
+            math.max(rmax.z, p.z),
+            1
+        )
+    end
+    return rmin, rmax
+end
+
 function Renderer:prepareObject(renderObject, context, prepareFrameObjects, prepareViewObjects)
     local object = renderObject.source
 
@@ -439,6 +476,8 @@ function Renderer:prepareObject(renderObject, context, prepareFrameObjects, prep
             end
             if object.hasTransparency then
                 insert(view.objects.transparent, renderObject)
+            elseif object.hasText then
+                insert(view.objects.text, renderObject)
             else
                 insert(view.objects.opaque, renderObject)
             end
@@ -481,6 +520,12 @@ function Renderer:drawContext(context)
         drawObject(self, object, context)
     end
     lovr.graphics.setDepthTest('lequal', true)
+
+    -- Draw text last as it goes on top of surfaces and uses a different shader
+    lovr.graphics.setShader()
+    for id, object in context.view.objects.text:iter() do
+        drawObject(self, object, context)
+    end
 
     -- Draw where we think camera is
     -- lovr.graphics.setColor(1, 0, 1, 1)
@@ -541,10 +586,11 @@ function Renderer:drawObject(object, context)
         end
     end
 
-    lovr.graphics.setColor(1,1,1,1)
     context.stats.drawnObjects = context.stats.drawnObjects + 1
 
-    if self.debug == "distance" then
+    local applyColor = true
+    if self.debug and self.debug == "distance" then
+        applyColor = false
         lovr.graphics.setShader()
         local d = context.views[1].objectToCamera[object.id].distance/10
         lovr.graphics.setColor(d, d, d, 1)
@@ -552,13 +598,45 @@ function Renderer:drawObject(object, context)
 
     context.stats.drawnObjectIds[object.id] = object.id
 
+    lovr.graphics.push()
+    lovr.graphics.transform(object.transform)
+
+    local material = object.material
+    local color = material and material.color or {1,1,1,1}
+    if applyColor then 
+        lovr.graphics.setColor(table.unpack(color))
+    end
+
     object.source:draw(object, context)
+
+    if context.drawTextBoxes and object.source.hasText then
+        local text = object.source.text
+        lovr.graphics.box("line", 0,0,0, text.boxSize.x, text.boxSize.y,0)
+    end
+    lovr.graphics.pop()
     
     if context.drawAABB then
         local bb = object.AABB
         local w, h, d = (bb.max - bb.min):unpack()
         local x, y, z = bb.center:unpack()
         lovr.graphics.box("line", x, y, z, math.abs(w), math.abs(h), math.abs(d))
+
+        -- aabb radius
+        -- lovr.graphics.setColor(1,1,1,0.3)
+        -- lovr.graphics.setDepthTest("lequal", false)
+        -- lovr.graphics.sphere(x,y,z, bb.radius)
+        -- lovr.graphics.setDepthTest("lequal", true)
+        
+        -- local bb
+        
+        local bb = object.AABB.source
+        local w, h, d = (bb.max - bb.min):unpack()
+        local x, y, z = ((bb.min + bb.max)/2):unpack()
+        lovr.graphics.push()
+        lovr.graphics.transform(object.transform)
+        lovr.graphics.box("line", x,y,z, math.abs(w), math.abs(h), math.abs(d))
+        lovr.graphics.pop()
+
     end
 end
 
@@ -719,8 +797,8 @@ end
 
 function Renderer:pointInAABB(point, aabb)
     local px, py, pz = point:unpack()
-    local minx, miny, minz = (aabb.center + aabb.min):unpack()
-    local maxx, maxy, maxz = (aabb.center + aabb.max):unpack()
+    local minx, miny, minz = aabb.min:unpack()
+    local maxx, maxy, maxz = aabb.max:unpack()
     return (px > minx and py > miny and pz > minz) and (px < maxx and py < maxy and pz < maxz)
 end
 
@@ -753,18 +831,15 @@ function Renderer:cullTest(renderObject, context)
     end
 
     -- test frustrum
-    local AABB = renderObject.AABB
-
-    -- local farPlaneDistance = 10
-    -- if renderObject.distanceToCamera - AABB.radius > farPlaneDistance then
-    --     return true
-    -- end
-
     
+    local AABB = renderObject.AABB
+    local center, radius = AABB.center, AABB.radius
     local frustum = context.view.frustum
-    for i = 1, 6 do -- 5 because skipping far plane as handled above
-        local p = frustum[i]
-        local e = renderObject.AABB.center:dot(vec3(p.x, p.y, p.z)) + p.d + renderObject.AABB.radius
+    -- some is off with the frustum so we expand the radius a bit
+    radius = radius * 1.4
+    for i = 1, 6 do
+        local f = frustum[i]
+        local e = f.x * center.x + f.y * center.y + f.z * center.z + f.w + radius
         if e < 0 then return true end -- if outside any plane
     end
     return false
@@ -773,61 +848,53 @@ end
 -- @tparam mat mat4 projection_matrix * Matrix4_Transpose(modelview_matrix)
 -- @treturn {{x, y, z, d}} List of planes normal and distance
 function Renderer:getFrustum(mat)
-    local planes = {}
-    local p = {}
-    -- local m11, m12, m13, m14, m21, m22, m23, m24, m31, m32, m33, m34, m41, m42, m43, m44 = mat:unpack(true)
+    local planes = {
+        vec4(), vec4(), vec4(), vec4(), vec4(), vec4()
+    }
     local m11, m21, m31, m41, m12, m22, m32, m42, m13, m23, m33, m43, m14, m24, m34, m44 = mat:unpack(true)
-    
-    local function norm(p)
-        local len = math.sqrt(p.x * p.x + p.y * p.y + p.z * p.z)
-        p.x = p.x / len
-        p.y = p.y / len
-        p.z = p.z / len
-        p.d = p.d / len
-        return p
-    end
+
     -- Left clipping plane
-    planes[1] = norm{
-        x = m41 + m11;
-        y = m42 + m12;
-        z = m43 + m13;
-        d = m44 + m14;
-    }
+    planes[1]:set(
+        m41 + m11,
+        m42 + m12,
+        m43 + m13,
+        m44 + m14
+    )
     -- Right clipping plane
-    planes[2] = norm{
-        x = m41 - m11;
-        y = m42 - m12;
-        z = m43 - m13;
-        d = m44 - m14;
-    }
+    planes[2]:set(
+        m41 - m11,
+        m42 - m12,
+        m43 - m13,
+        m44 - m14
+    )
     -- Top clipping plane
-    planes[3] = norm{
-        x = m41 - m21,
-        y = m42 - m22,
-        z = m43 - m23,
-        d = m44 - m24,
-    }
+    planes[3]:set(
+        m41 - m21,
+        m42 - m22,
+        m43 - m23,
+        m44 - m24
+    )
     -- Bottom clipping plane
-    planes[4] = norm{
-        x = m41 + m21,
-        y = m42 + m22,
-        z = m43 + m23,
-        d = m44 + m24,
-    }
+    planes[4]:set(
+        m41 + m21,
+        m42 + m22,
+        m43 + m23,
+        m44 + m24
+    )
     -- Near clipping plane
-    planes[5] = norm{
-        x = m41 + m31,
-        y = m42 + m32,
-        z = m43 + m33,
-        d = m44 + m34,
-    }
+    planes[5]:set(
+        m41 + m31,
+        m42 + m32,
+        m43 + m33,
+        m44 + m34
+    )
     -- Far clipping plane
-    planes[6] = norm{
-        x = m41 - m31,
-        y = m42 - m32,
-        z = m43 - m33,
-        d = m44 - m34,
-    }
+    planes[6]:set(
+        m41 - m31,
+        m42 - m32,
+        m43 - m33,
+        m44 - m34
+    )
 
     return planes
 end

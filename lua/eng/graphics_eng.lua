@@ -16,7 +16,9 @@ local Renderer = require('eng.renderer')
 
 local graphics = lovr.graphics
 local vec3 = lovr.math.vec3
+local vec4 = lovr.math.vec4
 local newVec3 = lovr.math.newVec3
+local newVec4 = lovr.math.newVec4
 
 --- Initialize the graphics engine.
 function GraphicsEng:_init()
@@ -28,12 +30,13 @@ function GraphicsEng:_init()
     self.drawAABBs = false
     -- Draw spheres at the center of AABB's?
     self.drawAABBCenters = false
+    -- Draw boxes around defined text components (the aabb of text is only around the text itself)
+    self.drawTextBoxes = false
     
     self.defaultAmbientLightColor = {0.4,0.4,0.4,1}
     
     self.renderer = Renderer()
     self.renderObjects = {} -- entity.id: table
-    self.aabb_for_model = {}
 end
 
 --- Called when the application loads.
@@ -43,6 +46,9 @@ function GraphicsEng:onLoad()
         broken = graphics.newModel('/assets/models/broken.glb'),
         loading = graphics.newModel('/assets/models/loading.glb'),
     }
+
+    self.font = lovr.graphics.newFont(39)
+    self.font:setPixelDensity(39)
     
     self.basicShader = alloBasicShader
     self.pbrShader = alloPbrShader
@@ -76,25 +82,12 @@ function GraphicsEng:onLoad()
 end
 
 function GraphicsEng:aabbForModel(model, transform)
-    local _, _, _, sx, sy, sz = transform:unpack()
-    if model.getAABB then
-        local minx, maxx, miny, maxy, minz, maxz = model:getAABB()
-        return {
-            min = newVec3(minx*sx, miny*sy, minz*sz),
-            max = newVec3(maxx*sx, maxy*sy, maxz*sz)
-        }
-    else
-        local aabb = self.aabb_for_model[model]
-        if aabb then
-            return {
-                min = newVec3(aabb.min * vec3(sx, sy, sz)),
-                max = newVec3(aabb.max * vec3(sx, sy, sz)),
-            }
-        else
-            print("Missing aabb for ", model)
-            assert(aabb, "aabb missing for ")
-        end
-    end
+    assert(model.getAABB)
+    local minx, maxx, miny, maxy, minz, maxz = model:getAABB()
+    return {
+        min = newVec4( minx, miny, minz, 1 ),
+        max = newVec4( maxx, maxy, maxz, 1 )
+    }
 end
 
 --- Called each frame to draw the world
@@ -132,6 +125,7 @@ function GraphicsEng:onDraw()
         local headPosition = headEnt.components.transform:getMatrix():mul(vec3())
         self.renderStats = self.renderer:render(objects, {
             drawAABB = self.drawAABBs,
+            drawTextBoxes = self.drawTextBoxes,
             cameraPosition = newVec3(headPosition),
             enableReflections = Store.singleton():load("graphics.reflections"),
         })
@@ -196,7 +190,7 @@ end
 
 
 function GraphicsEng:onEntityAdded(ent)
-    if ent.components.geometry then
+    if ent.components.geometry or ent.components.text then
         self:buildObject(ent)
     end
 end
@@ -397,6 +391,86 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
         end
     end
 
+    if (not component_key or component_key == "text") and entity.components.text then
+        local component = entity.components.text
+        object.hasText = true -- text has transparent background
+        object.draw = draw_object
+
+        -- wrap: The width in meters at which to wrap the text, if at all.
+        local font = self.font
+        local string = component.string
+        local lineHeight = component.height -- per line
+        local boxWidth = component.width -- for any line
+        local wrap = component.wrap == true
+        local fitToWidth = component.fitToWidth == true
+
+        -- boxWidth/Height is the size given in the component for the text to fit in
+
+        -- get scale from the diff in height
+        local scale = math.min(lineHeight / font:getHeight(), lineHeight)
+        
+        local lovrTextWidth, lovrTextHeight, nLines, lastLineWidth = font:getMeasure(string, (wrap and boxWidth) or 0)
+        local textWidth = lovrTextWidth * scale
+        -- With wrapping some text might overflow anyway
+        -- Font:getWidth still reports the longest overflowing width,
+        -- so use the smallest of box and text width
+        if wrap or fitToWidth and textWidth > boxWidth then
+            -- if text still doens't fit after wrapping
+            scale = boxWidth/textWidth * scale -- scale down the scale
+            textWidth = lovrTextWidth * scale -- make text smaller
+            lineHeight = scale -- don't understand why these are the same
+        end
+
+        local textHeight = lovrTextHeight * scale
+
+        local origin = lovr.math.vec2(0,0)
+        local offset = lovr.math.newVec2()
+        if component.halign == "left" then
+            offset.x = -boxWidth / 2
+            origin.x = offset.x + textWidth / 2
+        elseif component.halign == "right" then
+            offset.x = boxWidth / 2
+            origin.x = offset.x - textWidth / 2
+        end
+
+        local caret = nil
+        if component.insertionMarker then
+            lastLineWidth = lastLineWidth * scale
+            caret = lovr.math.newVec3( -- 1 2D line segment packed into vec3.
+                lastLineWidth / 2, -- same for both x
+                offset.y + lineHeight/2 - lineHeight * (nLines - 1), -- y1
+                offset.y + lineHeight/2 - lineHeight * nLines -- y2
+            )
+            if component.halign == "left" then
+                caret.x = -boxWidth / 2 + lastLineWidth
+            elseif component.halign == "right" then
+                caret.x = lastLineWidth
+            end
+        end
+
+        object.text = {
+            font = font,
+            component = component,
+            string = string,
+            scale = scale,
+            halign = component.halign,
+            valign = component.valign,
+            nLines = nLines,
+            caret = caret,
+            offset = offset,
+            maxWidth = wrap and boxWidth or nil,
+            boxSize = lovr.math.newVec2(boxWidth, textHeight),
+            textSize = lovr.math.newVec2(textWidth, textHeight)
+        }
+
+        local w = textWidth / 2
+        local h = textHeight / 2
+        object.AABB = {
+            min = newVec4(origin.x - w, origin.y - h, 0, 1),
+            max = newVec4(origin.x + w, origin.y + h, 0, 1),
+        }
+    end
+
     -- if (not component_key or component_key == "transform") and entity.components.transform then
     --     -- local component = entity.components.transform
     -- end
@@ -414,28 +488,40 @@ end
 
 function draw_object(object, renderObject, context)
     local model = object.lovr.model
-    local material = object.material
-    local transform = object.transform
-    
-    -- Is this reeeeally the right place to handle animations at all?
-    -- TODO: some hack so this it only run for entities that needs it
-    local animationCount = model.animate and model:getAnimationCount()
-    if animationCount and animationCount > 0 then
-        local name = model:getAnimationName(1)
-        for i = 1, animationCount do 
-            if model:getAnimationName(i) == "autoplay" then
-                name = "autoplay"
+    if model then 
+        -- Is this reeeeally the right place to handle animations at all?
+        -- TODO: some hack so this it only run for entities that needs it
+        local animationCount = model.animate and model:getAnimationCount()
+        if animationCount and animationCount > 0 then
+            local name = model:getAnimationName(1)
+            for i = 1, animationCount do 
+                if model:getAnimationName(i) == "autoplay" then
+                    name = "autoplay"
+                end
             end
+            model:animate(name, lovr.timer.getTime())
         end
-        model:animate(name, lovr.timer.getTime())
+        
+        model:draw()
     end
+    local text = object.text
+    if text then
+        lovr.graphics.setFont(text.font)
+        lovr.graphics.print(
+            text.string,
+            text.offset.x or 0, 0, 0.01,
+            text.scale, --text.height and text.height or 1.0, 
+            0, 0, 0, 0,
+            text.maxWidth,
+            text.halign or "center",
+            text.valign or "middle"
+        )
     
-    if material and material.color then
-        lovr.graphics.setColor(table.unpack(material.color))
-        model:draw(transform)
-        lovr.graphics.setColor(1,1,1,1)
-    else
-        model:draw(transform)
+        if text.caret then
+            local caret = text.caret
+            lovr.graphics.setColor(0, 0, 0, math.sin(lovr.timer.getTime()*5)*0.5 + 0.6)
+            lovr.graphics.line(caret.x, caret.y, 0, caret.x, caret.z, 0)
+        end
     end
 end
 
