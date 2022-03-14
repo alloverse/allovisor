@@ -513,6 +513,14 @@ function Renderer:drawContext(context)
         drawObject(self, object, context)
     end
 
+    -- Draw text last as it goes on top of surfaces and uses a different shader
+    
+    lovr.graphics.setShader()
+    for id, object in context.view.objects.text:iter() do
+        drawObject(self, object, context)
+    end
+    lovr.graphics.setShader(self.shader)
+
     -- Draw transparent objects
     -- don't write that to depth buffer tho
     lovr.graphics.setDepthTest('lequal', false)
@@ -521,11 +529,7 @@ function Renderer:drawContext(context)
     end
     lovr.graphics.setDepthTest('lequal', true)
 
-    -- Draw text last as it goes on top of surfaces and uses a different shader
-    lovr.graphics.setShader()
-    for id, object in context.view.objects.text:iter() do
-        drawObject(self, object, context)
-    end
+    
 
     -- Draw where we think camera is
     -- lovr.graphics.setColor(1, 0, 1, 1)
