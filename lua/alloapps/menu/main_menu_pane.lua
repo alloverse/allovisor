@@ -89,7 +89,7 @@ function MainMenuPane:_init(menu)
 
 
     local ad = self:addSubview(ui.Surface(ui.Bounds(0, 0, 0,    0.6, 0.6, 0.01):rotate(-0.4, 0,1,0):move(0.65,0,0.1)))
-    ad:setColor({0.95, 0.95, 1, 1})
+    ad:setColor({0, 0, 0, 0})
 
     local adStack = ui.StackView(ui.Bounds{size=ui.Size(0.5, 0.6, 0.01)})
     adStack:margin(0.03)
