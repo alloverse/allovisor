@@ -111,26 +111,77 @@ function AvatarChooser:_createUI()
   self.app.assetManager:add(AvatarChooser.assets)
 
 
-  local root = ui.Surface(ui.Bounds(0, 0, 0,  0.6, 0.6, 0.01):rotate(0.4, 0,1,0):move(-0.65, 1.6, -0.9))
-  root:setColor({0.95, 0.95, 1, 1})
+  
+  local root = ui.Surface(ui.Bounds{size=ui.Size(0.6, 0.6, 0.01)}:rotate(0.7, 0,1,0):move(-0.60, 1.6, -0.75))
+  root:setColor({0.5, 0.8, 0.9, 0.1})
 
-  local vstack = ui.StackView(ui.Bounds(0,0,0, 0.56, 0, 0.01), "v")
-  root:addSubview(vstack)
+  local vstack = ui.StackView(ui.Bounds{size=ui.Size(0.56, 0, 0.01)}, "v")
   vstack:margin(0.02)
-
+  root:addSubview(vstack)
   
 
+
+  self.puppetContainer = ui.View(ui.Bounds{size=ui.Size(0.5, 0.3, 0.3)})
+
+
+  self.puppet = ui.View(ui.Bounds{size=ui.Size(0.5, 0.3, 0.5)})
+
+  self.head = BodyPart(     ui.Bounds( 0.0, 0.60, 0.0,   0.2, 0.2, 0.2), self.avatarName, "head", "head")
+  self.puppet:addSubview(self.head)
+
+  self.torso = BodyPart(    ui.Bounds( 0.0, 0.15, 0.0,   0.2, 0.2, 0.2), self.avatarName, "torso", "torso")
+  self.puppet:addSubview(self.torso)
+
+  self.leftHand = BodyPart( ui.Bounds(-0.2, 0, 0.2,   0.2, 0.2, 0.2), self.avatarName, "left-hand", "hand/left")
+  self.puppet:addSubview(self.leftHand)
+
+  self.rightHand = BodyPart(ui.Bounds( 0.2, 0.1, -0.2,   0.2, 0.2, 0.2), self.avatarName, "right-hand", "hand/right")
+  self.puppet:addSubview(self.rightHand)
+
+  self.parts = {self.head, self.torso, self.leftHand, self.rightHand}
+
+  self.poseEnts = {
+    head = {},
+    torso = {},
+    ["hand/left"] = {},
+    ["hand/right"] = {},
+  }
+
+  -- Creates & attaches the name tag to the puppet's torso
+  self.avatarNameTag = ui.Surface(ui.Bounds(0, 0.24, 0.174,   0.2, 0.066, 0):rotate(3.14, 0, 1, 0):rotate(3.14/8, 1, 0, 0))
+  self.avatarNameTag.texture = AvatarChooser.assets.nameTag
+  self.avatarNameTag.hasTransparency = true
+  self.avatarNameTagLabel = ui.Label {
+    bounds= ui.Bounds(0, 0, 0,   0.16, 0.062, 0.001),
+    text= "My Name",
+    fitToWidth= true
+  }
+  self.avatarNameTagLabel.color = {12/255, 43/255, 72/255}  -- TODO: Make this refer to Color.alloDark() constant instead of this magic number
+
+  self.avatarNameTag:addSubview(self.avatarNameTagLabel)
+  self.torso:addSubview(self.avatarNameTag)
+
+
+  self.puppetContainer:addSubview(self.puppet)
+  vstack:addSubview(self.puppetContainer)
+
+
+
+
+  local avatarInputBackground = ui.Surface(ui.Bounds{size=ui.Size(0.5, 0.3, 0.01)})
+  local avatarInputStack = ui.StackView(avatarInputBackground.bounds:copy())
+  avatarInputStack:margin(0.02)
+
+
   local nameInputLabel = ui.Label{
-    bounds= ui.Bounds{size=ui.Size(0.6, 0.04, 0.001)},
-    color= {0.5,0.5,0.5,1},
+    bounds= ui.Bounds{size=ui.Size(0.5, 0.03, 0.01)},
+    color= {12/255, 43/255, 72/255, 1},  -- TODO: Make this refer to Color.alloDark() constant instead of this magic number
     text= "Hello, my name is",
     halign= "left",
   }
-  vstack:addSubview(nameInputLabel)
-
+  
   self.oldDisplayName = ""
-  self.nameInputField = ui.TextField(ui.Bounds(0, 0, 0,   0.56, 0.08, 0.01))
-
+  self.nameInputField = ui.TextField(ui.Bounds{size=ui.Size(0.5, 0.08, 0.02)})
 
   self.nameInputField.onChange = function(field, oldText, newText)
     self.oldDisplayName = newText
@@ -150,67 +201,19 @@ function AvatarChooser:_createUI()
   self.nameInputField.onLostFocus = function()
     self.nameInputField.label:setText(self.oldDisplayName)
   end
-  vstack:addSubview(self.nameInputField)
-
-
-  
 
 
 
-
-  local puppet = ui.View(ui.Bounds{size=ui.Size(0.5, 0.3, 0.5)})
-
-  self.head = BodyPart(     ui.Bounds( 0.0, 0.60, 0.0,   0.2, 0.2, 0.2), self.avatarName, "head", "head")
-  puppet:addSubview(self.head)
-
-  self.torso = BodyPart(    ui.Bounds( 0.0, 0.15, 0.0,   0.2, 0.2, 0.2), self.avatarName, "torso", "torso")
-  puppet:addSubview(self.torso)
-
-  self.leftHand = BodyPart( ui.Bounds(-0.2, 0, 0.2,   0.2, 0.2, 0.2), self.avatarName, "left-hand", "hand/left")
-  puppet:addSubview(self.leftHand)
-
-  self.rightHand = BodyPart(ui.Bounds( 0.2, 0.1, -0.2,   0.2, 0.2, 0.2), self.avatarName, "right-hand", "hand/right")
-  puppet:addSubview(self.rightHand)
-
-  self.parts = {self.head, self.torso, self.leftHand, self.rightHand}
-
-  self.poseEnts = {
-    head = {},
-    torso = {},
-    ["hand/left"] = {},
-    ["hand/right"] = {},
-  }
-
-  self.avatarNameTag = ui.Surface(ui.Bounds(0, 0.24, 0.174,   0.2, 0.066, 0):rotate(3.14, 0, 1, 0):rotate(3.14/8, 1, 0, 0))
-  self.avatarNameTag.texture = AvatarChooser.assets.nameTag
-  self.avatarNameTag.hasTransparency = true
-  self.avatarNameTagLabel = ui.Label {
-    bounds= ui.Bounds(0, 0, 0,   0.16, 0.062, 0.001),
-    text= "My Name",
-    fitToWidth= true
-  }
-  self.avatarNameTagLabel.color = {12/255, 43/255, 72/255}  -- TODO: Make this refer to Color.alloDark() constant instead of this magic number
-
-  self.avatarNameTag:addSubview(self.avatarNameTagLabel)
-  self.torso:addSubview(self.avatarNameTag)
-
-  vstack:addSubview(puppet)
-
-
-
-
-
-
-  local hstack = ui.StackView(ui.Bounds{size=ui.Size(0.56, 0.1, 0.01)}, "h")
-  hstack:margin(0.02)
+  local avatarTypeStack = ui.StackView(ui.Bounds{size=ui.Size(0.5, 0.08, 0.01)}, "h")
+  avatarTypeStack:margin(0.02)
 
   self.prevButton = ui.Button(ui.Bounds{size=ui.Size(0.08, 0.08, 0.05)})
   self.prevButton.label.text = "<"
   self.prevButton.onActivated = function() self:actuate({"changeAvatar", -1}) end
   
   self.nameLabel = ui.Label{
-    bounds= ui.Bounds{size=ui.Size(0.36, 0.06, 0.01)},
-    text= "Avatar: " .. self.avatarName,
+    bounds= ui.Bounds{size=ui.Size(0.3, 0.06, 0.01)},
+    text= self.avatarName,
     lineHeight=0.04,
     color={12/255, 43/255, 72/255} -- TODO: Make this refer to Color.alloDark() constant instead of this magic number
   }
@@ -219,14 +222,23 @@ function AvatarChooser:_createUI()
   self.nextButton.label.text = ">"
   self.nextButton.onActivated = function() self:actuate({"changeAvatar", 1}) end
   
-  -- TODO: The Hstack seems to add things from right-to-left, which is counterintuitive to most people.
-  hstack:addSubview(self.nextButton)
-  hstack:addSubview(self.nameLabel)
-  hstack:addSubview(self.prevButton)
+  -- TODO: The avatarTypeStack seems to add things from right-to-left, which seems counterintuitive
+  avatarTypeStack:addSubview(self.nextButton)
+  avatarTypeStack:addSubview(self.nameLabel)
+  avatarTypeStack:addSubview(self.prevButton)
 
-  hstack:layout()
+  avatarTypeStack:layout()
   
-  vstack:addSubview(hstack)
+  
+
+  avatarInputStack:addSubview(nameInputLabel)
+  avatarInputStack:addSubview(self.nameInputField)
+  avatarInputStack:addSubview(avatarTypeStack)
+  avatarInputStack:layout()
+
+  avatarInputBackground:addSubview(avatarInputStack)
+  vstack:addSubview(avatarInputBackground)
+
 
   vstack:layout()
 
@@ -278,7 +290,7 @@ function AvatarChooser:setDisplayName(displayName)
 
 function AvatarChooser:showAvatar(avatarName)
   self.avatarName = avatarName
-  self.nameLabel:setText("Avatar: "..self.avatarName)
+  self.nameLabel:setText(self.avatarName)
   for _, part in ipairs(self.parts) do
     part:setAvatar(self.avatarName)
     

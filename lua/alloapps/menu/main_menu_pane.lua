@@ -15,9 +15,10 @@ function MainMenuPane:_init(menu)
     self.name = "main"
     self:super(ui.Bounds{size=ui.Size(0.6, 0.6, 0.01)})
     self:setColor({1,1,1,1})
+    self:setPointable(true)
 
     local stack = ui.StackView(ui.Bounds{size=ui.Size(0.5, 0.6, 0.01)})
-    stack:margin(0.03)
+    stack:margin(0.02)
     self:addSubview(stack)
 
     local menuButtonSize = ui.Bounds{size=ui.Size(0.5, 0.08, 0.05)}
@@ -79,7 +80,7 @@ function MainMenuPane:_init(menu)
     self.versionLabel = ui.Label{
       bounds = ui.Bounds(0, -0.36, 0,     0.6, 0.017, 0.01),
       text = "ver. unknown",
-      color = {0.3, 0.3, 0.3, 1},
+      color = {0.8, 0.8, 0.8, 1},
       halign = "left",
       wrap = true
     }
@@ -88,11 +89,11 @@ function MainMenuPane:_init(menu)
 
 
 
-    local ad = self:addSubview(ui.Surface(ui.Bounds(0, 0, 0,    0.6, 0.6, 0.01):rotate(-0.4, 0,1,0):move(0.65,0,0.1)))
+    local ad = self:addSubview(ui.Surface(ui.Bounds(0, 0, 0,    0.6, 0.6, 0.01):rotate(-0.7, 0,1,0):move(0.65,0,0.2)))
     ad:setColor({0, 0, 0, 0})
 
     local adStack = ui.StackView(ui.Bounds{size=ui.Size(0.5, 0.6, 0.01)})
-    adStack:margin(0.03)
+    adStack:margin(0.02)
     ad:addSubview(adStack)
 
     local menuButtonSize = ui.Bounds{size=ui.Size(0.5, 0.08, 0.05)}
@@ -135,11 +136,21 @@ function MainMenuPane:_init(menu)
     
     adStack:addSubview(adIconContainer)
 
-    local adButton = adStack:addSubview(ui.Button(menuButtonSize:copy()))
+
+
+    local adButtonBackground = ui.Surface(ui.Bounds(0, 0, 0,    0.6, 0.18, 0.01):rotate(-0.7, 0,1,0):move(0.65,0,0.2))
+    adButtonBackground:setColor({1, 1, 1, 1})
+    adButtonBackground:setPointable(true)
+
+    local adButton = ui.Button(ui.Bounds{size=ui.Size(0.4, 0.08, 0.05)})
     adButton.label.text = "Play~!"
     adButton.onActivated = function() 
       menu:actuate({"connect", "alloplace://arcade.places.alloverse.com"})
     end
+
+    adButtonBackground:addSubview(adButton)
+    adStack:addSubview(adButtonBackground)
+    
 
     adStack:layout()
 end

@@ -5,14 +5,15 @@ local class = require("pl.class")
 class.ConnectPane(ui.Surface)
 function ConnectPane:_init(menu)
     self.menu = menu
-    self:super(ui.Bounds{size=ui.Size(0.6, 0.6, 0.1)})
+    self:super(ui.Bounds{size=ui.Size(0.6, 0.6, 0.01)})
     self:setColor({1,1,1,1})
+    self:setPointable(true)
 
     local stack = ui.StackView(ui.Bounds{size=ui.Size(0.5, 0.6, 0.01)})
-    stack:margin(0.03)
+    stack:margin(0.02)
     self:addSubview(stack)
 
-    local menuHeaderSize = ui.Bounds{size=ui.Size(0.5, 0.04, 0.01)}
+    local menuHeaderSize = ui.Bounds{size=ui.Size(0.5, 0.03, 0.01)}
     local menuButtonSize = ui.Bounds{size=ui.Size(0.5, 0.08, 0.05)}
 
     local connectHeaderLabel = ui.Label{

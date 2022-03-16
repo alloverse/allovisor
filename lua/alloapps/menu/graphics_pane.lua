@@ -9,9 +9,10 @@ function GraphicsPane:_init(menu)
     self.menu = menu
     self:super(ui.Bounds{size=ui.Size(0.6, 0.6, 0.01)})
     self:setColor({1,1,1,1})
+    self:setPointable(true)
 
     local stack = ui.StackView(ui.Bounds{size=ui.Size(0.5, 0.6, 0.01)})
-    stack:margin(0.03)
+    stack:margin(0.02)
     self:addSubview(stack)
 
     local menuButtonSize = ui.Bounds{size=ui.Size(0.5, 0.08, 0.05)}
