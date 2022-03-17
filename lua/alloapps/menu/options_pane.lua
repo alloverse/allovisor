@@ -22,6 +22,7 @@ function OptionsPane:_init(menu)
 
     self.audioButton = ui.Button(menuButtonSize:copy())
     self.audioButton.label.text = "Audio settings..."
+    self.audioButton.label.fitToWidth=0.45
     self.audioButton.onActivated = function()
         self.nav:push(AudioPane(menu))
     end
@@ -29,6 +30,7 @@ function OptionsPane:_init(menu)
 
     self.graphicsButton = ui.Button(menuButtonSize:copy())
     self.graphicsButton.label.text = "Graphics settings..."
+    self.graphicsButton.label.fitToWidth=0.45
     self.graphicsButton.onActivated = function()
         self.nav:push(GraphicsPane(menu))
     end
