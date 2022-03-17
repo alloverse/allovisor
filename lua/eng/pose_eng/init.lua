@@ -320,35 +320,37 @@ function PoseEng:updateIntent(dt)
 
 
   
-  local intent = {
+
+  local intent = self.client:createIntent({
     entity_id = self.client.avatar_id,
     wants_stick_movement = false,
     xmovement = mx,
     zmovement = -my,
     yaw = self.yaw,
     pitch = 0.0,
-    poses = {}
-  }
+    poses = {},
+  })
 
-  -- child entity positioning
-  for i, device in ipairs({"hand/left", "hand/right", "head", "torso"}) do
-    intent.poses[device] = {
-      matrix = {self:getPose(device):unpack(true)},
-      skeleton = self:getSkeletonTable(device),
-      grab = self:grabForDevice(i, device),
-    }
-  end
+
+  self.client.handle.allo_m4x4_set(intent.poses.root.matrix, self:getPose("head"):unpack(true))
+  
+  -- intent.poses.head
+  -- intent.poses.torso
+  -- intent.poses.left_hand
+  -- intent.poses.right_hand
+
+  -- -- child entity positioning
+  -- for i, device in ipairs({"hand/left", "hand/right", "head", "torso"}) do
+  --   intent.poses[device] = {
+  --     matrix = {self:getPose(device):unpack(true)},
+  --     skeleton = self:getSkeletonTable(device),
+  --     grab = self:grabForDevice(i, device),
+  --   }
+  -- end
 
   if self.parent.useClientAuthoritativePositioning then
     local avatar_id = self.parent.avatar_id
-    local rootPose = self.client.client:simulate_root_pose(avatar_id, dt, intent)
-    if self.poseToRestore then
-      rootPose = self.poseToRestore
-      self.poseToRestore = nil
-    end
-    intent.poses.root = {
-      matrix = rootPose
-    }
+    self.client:simulateRootPose(avatar_id, dt, intent)
     intent.xmovement = 0
     intent.zmovement = 0
   end

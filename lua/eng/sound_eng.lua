@@ -429,7 +429,7 @@ function SoundEng:updateSoundEffect(voice, comp)
   if voice.source == nil then return end
   local eid = comp:getEntity().id
 
-  local now = self.client.client:get_server_time()
+  local now = self.client:getServerTime()
   local startsAt = comp.starts_at
   local oneLength = comp.length or voice.source:getDuration('seconds')
   local loopCount = comp.loop_count or 0

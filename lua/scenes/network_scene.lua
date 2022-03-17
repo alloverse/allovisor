@@ -79,7 +79,7 @@ function NetworkScene:_init(displayName, url, avatarName, isSpectatorCamera)
     self:onDisconnect(code, message)
   end
 
-  self.assetManager = Asset.Manager(self.client.client)
+  self.assetManager = Asset.Manager(self.client)
   self.assetManager:add(assets, true)
   local ok, error = pcall(self.app.connect, self.app)
   if not ok  then
@@ -343,12 +343,12 @@ function NetworkScene:onUpdate(dt)
     stats:enable(self.debug)
     stats:set("Clocks", string.format(
       "Server %.3fs\nClient %.3fs", 
-      self.client.client:get_server_time(),
-      self.client.client:get_time()
+      self.client:getServerTime(),
+      self.client:getClientTime()
     ))
-    stats:set("Network stats", self.client.client:get_stats())
-    stats:set("Latency", string.format("%.0fms", self.client.client:get_latency()*1000.0))
-    stats:set("C/S clock delta", string.format("%.3fs", self.client.client:get_clock_delta()))
+    stats:set("Network stats", self.client:getStats())
+    stats:set("Latency", string.format("%.0fms", self.client:getLatency()*1000.0))
+    stats:set("C/S clock delta", string.format("%.3fs", self.client:getClockDelta()))
     stats:set("FPS", string.format("%.1fhz", lovr.timer.getFPS()))
     stats:set("Entity count", string.format("%d", self.client.entityCount))
     stats:set("Durations", string.format(
