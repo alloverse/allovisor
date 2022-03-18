@@ -409,18 +409,22 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
         -- get scale from the diff in height
         local scale = math.min(lineHeight / font:getHeight(), lineHeight)
         
-        local lovrTextWidth, lovrTextHeight, nLines, lastLineWidth = font:getMeasure(string, (wrap and boxWidth) or 0)
+        local lovrTextWidth, lovrTextHeight, nLines, lastLineWidth = font:getMeasure(string, (wrap and (boxWidth/scale)) or 0)
         local textWidth = lovrTextWidth * scale
+        
+        
+        local measuredLineHeight = (lovrTextHeight * scale) / nLines
+        if measuredLineHeight > lineHeight then
+            scale = lineHeight / measuredLineHeight * scale
+        end
         -- With wrapping some text might overflow anyway
         -- Font:getWidth still reports the longest overflowing width,
         -- so use the smallest of box and text width
         if wrap or fitToWidth and textWidth > boxWidth then
-            -- if text still doens't fit after wrapping
-            scale = boxWidth/textWidth * scale -- scale down the scale
-            textWidth = lovrTextWidth * scale -- make text smaller
-            lineHeight = scale -- don't understand why these are the same
+            scale = boxWidth/textWidth * scale
         end
 
+        textWidth = lovrTextWidth * scale
         local textHeight = lovrTextHeight * scale
 
         local origin = lovr.math.vec2(0,0)
@@ -512,7 +516,7 @@ function draw_object(object, renderObject, context)
             text.offset.x or 0, 0, 0.01,
             text.scale, --text.height and text.height or 1.0, 
             0, 0, 0, 0,
-            text.maxWidth,
+            text.maxWidth and (text.maxWidth / text.scale),
             text.halign or "center",
             text.valign or "middle"
         )
