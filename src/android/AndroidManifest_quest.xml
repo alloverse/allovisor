@@ -22,7 +22,6 @@
 	<application
     android:allowBackup="false"
     android:label="Alloverse"
-    android:icon="@mipmap/ic_launcher"
     android:extractNativeLibs="false"
     android:debuggable="false"
   >
