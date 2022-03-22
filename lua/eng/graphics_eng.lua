@@ -420,7 +420,7 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
         -- With wrapping some text might overflow anyway
         -- Font:getWidth still reports the longest overflowing width,
         -- so use the smallest of box and text width
-        if wrap or fitToWidth and textWidth > boxWidth then
+        if fitToWidth and textWidth > boxWidth then
             scale = boxWidth/textWidth * scale
         end
 
