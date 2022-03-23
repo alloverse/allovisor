@@ -320,9 +320,6 @@ end
 
 
 function NetworkScene:onUpdate(dt)
-  if not self.active then
-    return route_terminate
-  end
   local atStartOfPoll = lovr.timer.getTime()
   if self.client then
     self.app:runOnce(self.standardDt)

@@ -149,7 +149,8 @@ function AvatarChooser:_createUI()
 
   -- Creates & attaches the name tag to the puppet's torso
   self.avatarNameTag = ui.Surface(ui.Bounds(0, 0.24, 0.174,   0.2, 0.066, 0):rotate(3.14, 0, 1, 0):rotate(3.14/8, 1, 0, 0))
-  self.avatarNameTag.texture = AvatarChooser.assets.nameTag
+  self.avatarNameTag.material.texture = AvatarChooser.assets.nameTag
+
   self.avatarNameTag.hasTransparency = true
   self.avatarNameTagLabel = ui.Label {
     bounds= ui.Bounds(0, 0, 0,   0.16, 0.062, 0.001),
