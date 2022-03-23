@@ -124,7 +124,7 @@ function AvatarChooser:_createUI()
   self.puppetContainer = ui.View(ui.Bounds{size=ui.Size(0.5, 0.3, 0.3)})
 
 
-  self.puppet = ui.View(ui.Bounds{size=ui.Size(0.5, 0.3, 0.5)})
+  self.puppet = ui.View(ui.Bounds{size=ui.Size(0.5, 0.3, 0.5)}:move(0, -1.4, 0):rotate(3.14, 0, 1, 0):scale(0.5))
 
   self.head = BodyPart(     ui.Bounds( 0.0, 0.60, 0.0,   0.2, 0.2, 0.2), self.avatarName, "head", "head")
   self.puppet:addSubview(self.head)
@@ -163,9 +163,7 @@ function AvatarChooser:_createUI()
 
 
   self.puppetContainer:addSubview(self.puppet)
-  vstack:addSubview(self.puppetContainer)
-
-
+  vstack:addSubview(self.puppetContainer) 
 
 
   local avatarInputBackground = ui.Surface(ui.Bounds{size=ui.Size(0.5, 0.3, 0.01)})
@@ -230,10 +228,10 @@ function AvatarChooser:_createUI()
   avatarTypeStack:layout()
   
   
-
+  avatarInputStack:addSubview(avatarTypeStack)
   avatarInputStack:addSubview(nameInputLabel)
   avatarInputStack:addSubview(self.nameInputField)
-  avatarInputStack:addSubview(avatarTypeStack)
+  
   avatarInputStack:layout()
 
   avatarInputBackground:addSubview(avatarInputStack)
