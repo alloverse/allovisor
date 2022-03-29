@@ -328,11 +328,13 @@ function PoseEng:updateIntent(dt)
     zmovement = -my,
     yaw = self.yaw,
     pitch = 0.0,
-    poses = {},
   })
 
 
-  self.client.handle.allo_m4x4_set(intent.poses.root.matrix, self:getPose("head"):unpack(true))
+  self.client.handle.allo_m4x4_set(intent.poses.head.matrix, self:getPose("head"):unpack(true))
+  self.client.handle.allo_m4x4_set(intent.poses.torso.matrix, self:getPose("torso"):unpack(true))
+  self.client.handle.allo_m4x4_set(intent.poses.left_hand.matrix, self:getPose("hand/left"):unpack(true))
+  self.client.handle.allo_m4x4_set(intent.poses.right_hand.matrix, self:getPose("hand/right"):unpack(true))
   
   -- intent.poses.head
   -- intent.poses.torso
@@ -351,8 +353,6 @@ function PoseEng:updateIntent(dt)
   if self.parent.useClientAuthoritativePositioning then
     local avatar_id = self.parent.avatar_id
     self.client:simulateRootPose(avatar_id, dt, intent)
-    intent.xmovement = 0
-    intent.zmovement = 0
   end
   
   self.client:setIntent(intent)
