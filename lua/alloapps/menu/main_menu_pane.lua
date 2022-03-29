@@ -3,6 +3,8 @@ local pretty = require("pl.pretty")
 local class = require("pl.class")
 local ConnectPane = require("alloapps.menu.connect_pane")
 local OptionsPane = require("alloapps.menu.options_pane")
+local mat4 = require("lib.alloui.lib.cpml.modules.mat4")
+local vec3 = require("lib.alloui.lib.cpml.modules.vec3")
 
 class.MainMenuPane(ui.Surface)
 MainMenuPane.assets = {
@@ -11,51 +13,54 @@ MainMenuPane.assets = {
 }
 function MainMenuPane:_init(menu)
     self.name = "main"
-    self:super(ui.Bounds{size=ui.Size(1.6, 1.2, 0.1)})
+    self:super(ui.Bounds{size=ui.Size(0.6, 0.6, 0.01)})
     self:setColor({1,1,1,1})
+    self:setPointable(true)
 
-    if lovr.headsetName ~= "Oculus Quest" then
-      local quitButton = ui.Button(ui.Bounds(0, -0.4, 0.01,     1.4, 0.2, 0.15))
-      quitButton.label.text = "Quit"
-      quitButton.onActivated = function() 
-        menu:actuate({"quit"})
-      end
-      self:addSubview(quitButton)
-    end
+    local stack = ui.StackView(ui.Bounds{size=ui.Size(0.5, 0.6, 0.01)})
+    stack:margin(0.02)
+    self:addSubview(stack)
+
+    local menuButtonSize = ui.Bounds{size=ui.Size(0.5, 0.08, 0.05)}
     
-    local connectButton = ui.Button(ui.Bounds(0, 0.4, 0.01,   1.4, 0.2, 0.15))
+    local connectButton = ui.Button(menuButtonSize:copy())
     connectButton.label.text = "Connect..."
     connectButton.onActivated = function() 
       self.nav:push(ConnectPane(menu))
     end
-    self:addSubview(connectButton)
+    stack:addSubview(connectButton)
     
     self.optionsPane = OptionsPane(menu)
-    local optionsButton = ui.Button(ui.Bounds(0, 0.1, 0.01,     1.4, 0.2, 0.15))
+    local optionsButton = ui.Button(menuButtonSize:copy())
     optionsButton.label.text = "Options..."
     optionsButton.onActivated = function() 
       self.nav:push(self.optionsPane)
     end
-    self:addSubview(optionsButton)
+    stack:addSubview(optionsButton)
+
+    if lovr.headsetName ~= "Oculus Quest" then
+      local gap = ui.View(ui.Bounds{size=ui.Size(0.5, 0.08, 0.05)})
+      stack:addSubview(gap)
+
+      local quitButton = ui.Button(menuButtonSize:copy())
+      quitButton.label.text = "Quit"
+      quitButton.onActivated = function() 
+        menu:actuate({"quit"})
+      end
+      stack:addSubview(quitButton)
+    end
+
+    stack:layout()
   
     self.messageLabel = ui.Label{
-      bounds = ui.Bounds(0.2, 0.8, 0.01,     1.4, 0.1, 0.1),
-      text = "Welcome to Alloverse",
+      bounds = ui.Bounds(0.13, 0.35, 0.01,     0.6, 0.04, 0.01),
+      text = "Welcome to Alloverse!",
       color = {0,0,0,1},
       halign = "left"
     }
     self:addSubview(self.messageLabel)
-
-    self.versionLabel = ui.Label{
-      bounds = ui.Bounds(-0.09, -0.80, 0.01,     1.4, 0.05, 0.1),
-      text = "ver. unknown",
-      color = {0.5, 0.5, 0.5, 1},
-      halign = "left"
-    }
-    self:addSubview(self.versionLabel)
-    self:updateVersionLabel()
   
-    self.logo = ui.Surface(ui.Bounds(-0.65, 0.8, 0.01, 0.2, 0.2, 0.2))
+    self.logo = ui.Surface(ui.Bounds(-0.25, 0.35, 0.01, 0.08, 0.08, 0.001))
     self.logo:setTexture(MainMenuPane.assets.logo)
     self.logo.hasTransparency = true
     self:addSubview(self.logo)
@@ -72,10 +77,29 @@ function MainMenuPane:_init(menu)
       })
     end)
 
-    local ad = self:addSubview(ui.Surface(ui.Bounds(0, 0, 0,    1, 1.1, 0.1):rotate(-0.4, 0,1,0):move(1.5,0,0)))
-    ad:setColor({1.0, 1.0, 0.9, 1.0})
-    local adLabel = ad:addSubview(ui.Label{
-      bounds = ui.Bounds(0.0, 0.4, 0.01,     0.3, 0.1, 0.1),
+    self.versionLabel = ui.Label{
+      bounds = ui.Bounds(0, -0.36, 0,     0.6, 0.017, 0.01),
+      text = "ver. unknown",
+      color = {0.8, 0.8, 0.8, 1},
+      halign = "left",
+      wrap = true
+    }
+    self:addSubview(self.versionLabel)
+    self:updateVersionLabel()
+
+
+
+    local ad = self:addSubview(ui.Surface(ui.Bounds(0, 0, 0,    0.6, 0.6, 0.01):rotate(-0.7, 0,1,0):move(0.65,0,0.2)))
+    ad:setColor({0, 0, 0, 0})
+
+    local adStack = ui.StackView(ui.Bounds{size=ui.Size(0.5, 0.6, 0.01)})
+    adStack:margin(0.02)
+    ad:addSubview(adStack)
+
+    local menuButtonSize = ui.Bounds{size=ui.Size(0.5, 0.08, 0.05)}
+
+    local adLabel = adStack:addSubview(ui.Label{
+      bounds = ui.Bounds(0.0, 0.3, 0.01,     0.3, 0.05, 0.1),
       text = "Try our new\nretro arcade!",
       color = {0,0,0,1},
       halign = "center"
@@ -84,7 +108,7 @@ function MainMenuPane:_init(menu)
       adLabel:addPropertyAnimation(ui.PropertyAnimation{
         path= "transform.matrix.translation.z",
         from= 0,
-        to=   0.2,
+        to=   0.05,
         duration = 1.0,
         repeats= true,
         autoreverses= true,
@@ -92,7 +116,11 @@ function MainMenuPane:_init(menu)
       })
     end)
 
-    local adIcon = ad:addSubview(ui.ModelView(ui.Bounds(-0.02,-0.05,0.2, 0.1, 0.1, 0.1), MainMenuPane.assets.arcade))
+
+    -- In order to scale down the arcade model we need to put it in a container, and then scale said container down.
+    local adIconContainer = ui.View(ui.Bounds{size=ui.Size(0.3, 0.3, 0.3)})
+
+    local adIcon = ui.ModelView(ui.Bounds{size=ui.Size(0.3, 0.3, 0.3)}, MainMenuPane.assets.arcade)
     adIcon:doWhenAwake(function()
       adIcon:addPropertyAnimation(ui.PropertyAnimation{
         path= "transform.matrix.rotation.y",
@@ -103,11 +131,28 @@ function MainMenuPane:_init(menu)
       })
     end)
 
-    local adButton = ad:addSubview(ui.Button(ui.Bounds(0, -0.4, 0.01,     0.65, 0.2, 0.15)))
+    adIconContainer:addSubview(adIcon)
+    adIconContainer:setTransform(mat4.scale(mat4.new(), mat4.new(), vec3.new(0.5, 0.5, 0.5)))
+    
+    adStack:addSubview(adIconContainer)
+
+
+
+    local adButtonBackground = ui.Surface(ui.Bounds(0, 0, 0,    0.6, 0.18, 0.01):rotate(-0.7, 0,1,0):move(0.65,0,0.2))
+    adButtonBackground:setColor({1, 1, 1, 1})
+    adButtonBackground:setPointable(true)
+
+    local adButton = ui.Button(ui.Bounds{size=ui.Size(0.4, 0.08, 0.05)})
     adButton.label.text = "Play~!"
     adButton.onActivated = function() 
       menu:actuate({"connect", "alloplace://arcade.places.alloverse.com"})
     end
+
+    adButtonBackground:addSubview(adButton)
+    adStack:addSubview(adButtonBackground)
+    
+
+    adStack:layout()
 end
 
 local ffi = require("ffi")

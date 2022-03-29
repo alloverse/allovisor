@@ -22,7 +22,7 @@ function Menu:createUI()
   }
   self.app.assetManager:add(getmetatable(self.menus.main).assets)
   self.root = ui.View()
-  self.nav = ui.NavStack(ui.Bounds(0, 1.6, -2.5,   1.6, 1.2, 0.1))
+  self.nav = ui.NavStack(ui.Bounds(0, 1.6, -1,   0.6, 0.8, 0.1))
   self.root:addSubview(self.nav)
   self.root:addSubview(self:createForest())
   return self.root
