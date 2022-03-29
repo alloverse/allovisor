@@ -101,7 +101,7 @@ end
 
 function SoundEng:onLoad()
   self.client.delegates.onAudio = function(track_id, audio)
-    self:onAudio(track_id, audio) 
+    return self:onAudio(track_id, audio) 
   end
 
   if not self.parent.isMenu then
@@ -169,6 +169,7 @@ function SoundEng:onAudio(track_id, samples)
     print("Starting playback audio in track "..track_id)
     audio.source:play()
   end
+  return true
 end
 
 -- set position of audio for each entity that has a track_id assigned
