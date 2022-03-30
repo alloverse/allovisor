@@ -7,7 +7,6 @@ lovr.timer = require 'lovr.timer'
 lovr.math = require 'lovr.math'
 
 local util = require "lib.util"
-local allonet = util.load_allonet()
 local running = true
 local chan = lovr.thread.getChannel("appserv")
 local port = chan:pop(true)

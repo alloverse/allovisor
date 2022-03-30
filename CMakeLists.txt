@@ -193,6 +193,7 @@ elseif(APPLE)
 
     # Link the libs
     target_link_libraries (Alloverse 
+        "-Wl,-force_load" allonet
         ${ALLO_LINK_LIBS}
         ${AVFOUNDATION_LIBRARY}
     )

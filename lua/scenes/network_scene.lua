@@ -52,9 +52,8 @@ function NetworkScene:_init(displayName, url, avatarName, isSpectatorCamera)
 
   self.viewPoseStack = {}
 
-  local threadedClient = allonet.create(true)
   self.url = url
-  self.client = Client(url, displayName, threadedClient)
+  self.client = Client(url, displayName, true)
   self.app = ui.App(self.client)
   self.app.mainView = self.avatarView
   
