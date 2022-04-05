@@ -416,8 +416,6 @@ function lovr.run()
             lovr.math.drain()
         end
 
-        collectgarbage("collect")
-
         if frameLimit > 0 then
             local frameTime = lovr.timer.getTime() - startTime
             while frameTime < 1/frameLimit do
