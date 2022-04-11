@@ -473,7 +473,9 @@ function SoundEng:onDisconnect()
     self.mic = nil
   end
   for eid, voice in pairs(self.effects) do
-    voice.source:stop()
+    if voice.source then
+      voice.source:stop()
+    end
   end
   self.effects = {}
 end
