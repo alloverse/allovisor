@@ -101,7 +101,7 @@ end
 
 function SoundEng:onLoad()
   self.client.delegates.onAudio = function(track_id, audio)
-    self:onAudio(track_id, audio) 
+    return self:onAudio(track_id, audio) 
   end
 
   if not self.parent.isMenu then
@@ -169,6 +169,7 @@ function SoundEng:onAudio(track_id, samples)
     print("Starting playback audio in track "..track_id)
     audio.source:play()
   end
+  return true
 end
 
 -- set position of audio for each entity that has a track_id assigned
@@ -429,7 +430,7 @@ function SoundEng:updateSoundEffect(voice, comp)
   if voice.source == nil then return end
   local eid = comp:getEntity().id
 
-  local now = self.client.client:get_server_time()
+  local now = self.client:getServerTime()
   local startsAt = comp.starts_at
   local oneLength = comp.length or voice.source:getDuration('seconds')
   local loopCount = comp.loop_count or 0
@@ -472,7 +473,9 @@ function SoundEng:onDisconnect()
     self.mic = nil
   end
   for eid, voice in pairs(self.effects) do
-    voice.source:stop()
+    if voice.source then
+      voice.source:stop()
+    end
   end
   self.effects = {}
 end

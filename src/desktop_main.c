@@ -68,7 +68,6 @@ int main(int argc, char** argv)
     luax_setmainthread(L);
     luaL_openlibs(L);
     luax_preload(L);
-    luaopen_liballonet(L);
 
     // arg table
     lua_newtable(L);

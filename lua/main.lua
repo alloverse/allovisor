@@ -20,8 +20,6 @@ package.cpath = cpath
 
 -- load util and allonet into globals in all namespaces on the main thread
 local util = require "lib.util"
-allonet = nil
-allonet = util.load_allonet()
 local ffi = require 'ffi'
 
 ffi.cdef [[
@@ -417,8 +415,6 @@ function lovr.run()
         if lovr.math then
             lovr.math.drain()
         end
-
-        collectgarbage("collect")
 
         if frameLimit > 0 then
             local frameTime = lovr.timer.getTime() - startTime

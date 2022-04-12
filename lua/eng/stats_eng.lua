@@ -60,7 +60,7 @@ function StatsEng:statsString()
     self:graph("fps", lovr.timer.getFPS(), 60, {1,1,1,0.5})
     self:graph("dt", lovr.timer.getDelta()*1000, 60, {1,0,0,0.5})
     self:graph("dtavg", lovr.timer.getAverageDelta()*1000, 60, {1,0,0,1})
-    self:graph("ping", self.parent.client.client:get_latency()*1000, 60, {0.5,0.5,1,0.7})
+    self:graph("ping", self.parent.client:getLatency()*1000, 60, {0.5,0.5,1,0.7})
 
     local renderStats = lovr.graphics.getStats()
 

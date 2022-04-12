@@ -7,6 +7,7 @@ alloBasicShader = require "shader/alloBasicShader"
 alloPointerRayShader = require "shader/alloPointerRayShader"
 local HandRay = require "eng.pose_eng.hand_ray"
 local letters = require("lib.letters.letters")
+local ffi = require("ffi")
 
 --------------------------
 -- PoseEng abstracts headset and hand input; and translates them into intents and interactions.
@@ -320,37 +321,28 @@ function PoseEng:updateIntent(dt)
 
 
   
-  local intent = {
+
+  local intent = self.client:createIntent({
     entity_id = self.client.avatar_id,
     wants_stick_movement = false,
     xmovement = mx,
     zmovement = -my,
     yaw = self.yaw,
     pitch = 0.0,
-    poses = {}
-  }
+  })
 
-  -- child entity positioning
-  for i, device in ipairs({"hand/left", "hand/right", "head", "torso"}) do
-    intent.poses[device] = {
-      matrix = {self:getPose(device):unpack(true)},
-      skeleton = self:getSkeletonTable(device),
-      grab = self:grabForDevice(i, device),
-    }
-  end
+  intent.poses.head.matrix.v = {self:getPose("head"):unpack(true)}
+  intent.poses.torso.matrix.v = {self:getPose("torso"):unpack(true)}
+  intent.poses.left_hand.matrix.v = {self:getPose("hand/left"):unpack(true)}
+  intent.poses.left_hand.grab = self:grabForDevice(1, "hand/left")
+  --intent.poses.left_hand.skeleton = self:getSkeletonTable("hand/left")
+  intent.poses.right_hand.matrix.v = {self:getPose("hand/right"):unpack(true)}
+  intent.poses.right_hand.grab = self:grabForDevice(2, "hand/right")
+  --intent.poses.right_hand.skeleton = self:getSkeletonTable("hand/right")
 
   if self.parent.useClientAuthoritativePositioning then
     local avatar_id = self.parent.avatar_id
-    local rootPose = self.client.client:simulate_root_pose(avatar_id, dt, intent)
-    if self.poseToRestore then
-      rootPose = self.poseToRestore
-      self.poseToRestore = nil
-    end
-    intent.poses.root = {
-      matrix = rootPose
-    }
-    intent.xmovement = 0
-    intent.zmovement = 0
+    self.client:simulateRootPose(avatar_id, dt, intent)
   end
   
   self.client:setIntent(intent)
@@ -360,7 +352,7 @@ local requiredGripStrength = 0.4
 function PoseEng:grabForDevice(handIndex, device)
   if device == "head" or device == "torso" then return nil end
   local ray = self.handRays[handIndex]
-  if ray.hand == nil then return nil end
+  if ray.hand == nil then return {} end
 
   local previouslyHeld = ray.heldEntity
 
@@ -399,7 +391,7 @@ function PoseEng:grabForDevice(handIndex, device)
 
 
   if ray.heldEntity == nil then
-    return nil
+    return {}
   else
     -- Move things to/away from hand with stick
     local stickX, stickY = self:getAxis(device, "thumbstick")
@@ -414,8 +406,10 @@ function PoseEng:grabForDevice(handIndex, device)
 
     -- return thing to put in intent
     return {
-      entity = ray.heldEntity.id,
-      grabber_from_entity_transform = ray.grabber_from_entity_transform
+      entity = ffi.C.strdup(ray.heldEntity.id),
+      grabber_from_entity_transform = {
+        v = {ray.grabber_from_entity_transform:unpack(true)}
+      }
     }
   end
 end

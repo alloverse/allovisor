@@ -74,10 +74,11 @@ function GraphicsEng:onLoad()
     
     local videoMedia = {}
     self.videoMedia = videoMedia
-    self.client.delegates.onVideo = function(track, pixels, width, height)
+    self.client.delegates.onVideo = function(track, width, height, pixels)
         local media = videoMedia[track]
         if not media then return end -- noone wants this
         media.texture:replacePixels(pixels)
+        return true
     end
 end
 
