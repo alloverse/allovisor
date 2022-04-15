@@ -405,8 +405,10 @@ function PoseEng:grabForDevice(handIndex, device)
     end
 
     -- return thing to put in intent
+    local entId = ffi.C.malloc(#ray.heldEntity.id+1)
+    ffi.copy(entId, ray.heldEntity.id)
     return {
-      entity = ffi.C.strdup(ray.heldEntity.id),
+      entity = entId,
       grabber_from_entity_transform = {
         v = {ray.grabber_from_entity_transform:unpack(true)}
       }
