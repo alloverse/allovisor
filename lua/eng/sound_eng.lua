@@ -454,9 +454,12 @@ function SoundEng:updateSoundEffect(voice, comp)
     end
   end
 
-  if shouldBePlaying and not voice.source:isPlaying() then
-    local volume = comp.volume or 1.0
+  local volume = comp.volume or 1.0
+  if volume ~= voice.source:getVolume() then
     voice.source:setVolume(volume)
+  end
+
+  if shouldBePlaying and not voice.source:isPlaying() then
     voice.source:setLooping(loopCount > 0)
     voice.source:play()
   elseif not shouldBePlaying and voice.source:isPlaying() then
