@@ -13,11 +13,11 @@ MainMenuPane.assets = {
 }
 function MainMenuPane:_init(menu)
     self.name = "main"
-    self:super(ui.Bounds{size=ui.Size(0.6, 0.6, 0.01)})
+    self:super(ui.Bounds{size=ui.Size(0.6, 0.6, 0.001)})
     self:setColor({1,1,1,1})
     self:setPointable(true)
 
-    local stack = ui.StackView(ui.Bounds{size=ui.Size(0.5, 0.6, 0.01)})
+    local stack = ui.StackView(ui.Bounds{size=ui.Size(0.5, 0.6, 0.001)})
     stack:margin(0.02)
     self:addSubview(stack)
 
@@ -88,18 +88,19 @@ function MainMenuPane:_init(menu)
     self:updateVersionLabel()
 
 
-
-    local ad = self:addSubview(ui.Surface(ui.Bounds(0, 0, 0,    0.6, 0.6, 0.01):rotate(-0.7, 0,1,0):move(0.65,0,0.2)))
+    --local ad = self:addSubview(ui.Surface(ui.Bounds(0, 0, 0,    0.5, 0.6, 0.01):rotate(-0.7, 0,1,0):move(0.65,0,0.2)))
+    local ad = self:addSubview(ui.Surface(ui.Bounds{size=ui.Size(0.5, 0.6, 0.001)}:rotate(-0.4, 0,1,0):move(0.55, 0, 0.12)))
+  
     ad:setColor({0, 0, 0, 0})
 
-    local adStack = ui.StackView(ui.Bounds{size=ui.Size(0.5, 0.6, 0.01)})
+    local adStack = ui.StackView(ui.Bounds{size=ui.Size(0.5, 0.6, 0.001)})
     adStack:margin(0.02)
     ad:addSubview(adStack)
 
-    local menuButtonSize = ui.Bounds{size=ui.Size(0.5, 0.08, 0.05)}
+    local menuButtonSize = ui.Bounds{size=ui.Size(0.4, 0.08, 0.05)}
 
     local adLabel = adStack:addSubview(ui.Label{
-      bounds = ui.Bounds(0.0, 0.3, 0.01,     0.3, 0.05, 0.1),
+      bounds = ui.Bounds(0.0, 0.4, 0.01,     0.3, 0.05, 0.1),
       text = "Try our new\nretro arcade!",
       color = {0,0,0,1},
       halign = "center"
@@ -138,7 +139,7 @@ function MainMenuPane:_init(menu)
 
 
 
-    local adButtonBackground = ui.Surface(ui.Bounds(0, 0, 0,    0.6, 0.18, 0.01):rotate(-0.7, 0,1,0):move(0.65,0,0.2))
+    local adButtonBackground = ui.Surface(ui.Bounds(0, 0, 0,    0.5, 0.18, 0.001))
     adButtonBackground:setColor({1, 1, 1, 1})
     adButtonBackground:setPointable(true)
 

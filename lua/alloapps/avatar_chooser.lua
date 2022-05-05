@@ -111,15 +111,14 @@ function AvatarChooser:_createUI()
   self.app.assetManager:add(AvatarChooser.assets)
 
 
-  
-  local root = ui.Surface(ui.Bounds{size=ui.Size(0.6, 0.6, 0.01)}:rotate(0.7, 0,1,0):move(-0.60, 1.6, -0.75))
-  root:setColor({0.5, 0.8, 0.9, 0.1})
+  local root = ui.Surface(ui.Bounds{size=ui.Size(0.5, 0.6, 0.001)}:rotate(0.4, 0,1,0):move(-0.55, 1.6, -0.905))
+  --root:setColor({0.5, 0.8, 0.9, 0.1})
+  root:setColor({0, 0, 0, 0})
 
-  local vstack = ui.StackView(ui.Bounds{size=ui.Size(0.56, 0, 0.01)}, "v")
+  local vstack = ui.StackView(ui.Bounds{size=ui.Size(0.5, 0, 0.001)}, "v")
   vstack:margin(0.02)
   root:addSubview(vstack)
   
-
 
   self.puppetContainer = ui.View(ui.Bounds{size=ui.Size(0.5, 0.3, 0.3)})
 
@@ -167,20 +166,20 @@ function AvatarChooser:_createUI()
   vstack:addSubview(self.puppetContainer) 
 
 
-  local avatarInputBackground = ui.Surface(ui.Bounds{size=ui.Size(0.5, 0.3, 0.01)})
+  local avatarInputBackground = ui.Surface(ui.Bounds{size=ui.Size(0.4, 0.3, 0.01)})
   local avatarInputStack = ui.StackView(avatarInputBackground.bounds:copy())
   avatarInputStack:margin(0.02)
 
 
   local nameInputLabel = ui.Label{
-    bounds= ui.Bounds{size=ui.Size(0.5, 0.03, 0.01)},
+    bounds= ui.Bounds{size=ui.Size(0.4, 0.03, 0.01)},
     color= {12/255, 43/255, 72/255, 1},  -- TODO: Make this refer to Color.alloDark() constant instead of this magic number
     text= "Hello, my name is",
     halign= "left",
   }
   
   self.oldDisplayName = ""
-  self.nameInputField = ui.TextField(ui.Bounds{size=ui.Size(0.5, 0.08, 0.02)})
+  self.nameInputField = ui.TextField(ui.Bounds{size=ui.Size(0.4, 0.08, 0.02)})
 
   self.nameInputField.onChange = function(field, oldText, newText)
     self.oldDisplayName = newText
@@ -203,15 +202,16 @@ function AvatarChooser:_createUI()
 
 
 
-  local avatarTypeStack = ui.StackView(ui.Bounds{size=ui.Size(0.5, 0.08, 0.01)}, "h")
-  avatarTypeStack:margin(0.02)
+  local avatarTypeStack = ui.StackView(ui.Bounds{size=ui.Size(0.4, 0.08, 0.01)}, "h")
+  --avatarTypeStack:margin(0.02)
+  avatarTypeStack:margin(0)
 
   self.prevButton = ui.Button(ui.Bounds{size=ui.Size(0.08, 0.08, 0.05)})
   self.prevButton.label.text = "<"
   self.prevButton.onActivated = function() self:actuate({"changeAvatar", -1}) end
   
   self.nameLabel = ui.Label{
-    bounds= ui.Bounds{size=ui.Size(0.3, 0.06, 0.01)},
+    bounds= ui.Bounds{size=ui.Size(0.24, 0.06, 0.01)},
     text= self.avatarName,
     lineHeight=0.04,
     color={12/255, 43/255, 72/255} -- TODO: Make this refer to Color.alloDark() constant instead of this magic number
