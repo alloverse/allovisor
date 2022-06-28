@@ -143,6 +143,7 @@ function NetworkScene:lookForHead()
       entity.components.relationships and entity.components.relationships.parent == self.avatar_id then
       log("DEBUG", "Avatar's head entity:", eid)
       self.head_id = eid
+      self.head = entity
       self:route("onHeadAdded", entity)
     end
   end
@@ -319,6 +320,43 @@ function NetworkScene:onFileDrop(key)
   if not self.active then
     return route_terminate
   end
+end
+
+function NetworkScene:onHandleUrl(url)
+  if string.find(url, "alloapp:") == nil then
+      return
+  end
+  if self.isOverlayScene then
+    return
+  end
+  if not self.head then
+    return
+  end
+
+  print("Asking place at "..self.url.." to open app: "..url)
+
+  local initialLocation = self.head.components.transform:transformFromWorld()
+  initialLocation:translate(0, 0, -2)
+
+  local inter = {
+    type = "request",
+    receiver_entity_id = "place",
+    body = {
+      "launch_app",
+      url,
+      {
+        initialLocation= {initialLocation:unpack(true)}
+      }
+    }
+  }
+  self.client:sendInteraction(inter, function(reply, body)
+    if body[2] == "ok" then
+      print("Launched app with avatar ID", body[3])
+    else
+      print("Failed to launch app in: ")
+    end
+  end)
+  
 end
 
 
