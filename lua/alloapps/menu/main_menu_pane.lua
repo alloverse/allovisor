@@ -6,16 +6,18 @@ local OptionsPane = require("alloapps.menu.options_pane")
 local mat4 = require("lib.alloui.lib.cpml.modules.mat4")
 local vec3 = require("lib.alloui.lib.cpml.modules.vec3")
 
-class.MainMenuPane(ui.Surface)
+class.MainMenuPane(ui.Ninepatch)
+
 MainMenuPane.assets = {
   logo= Asset.LovrFile("assets/alloverse-logo.png"),
   arcade= Asset.LovrFile("assets/models/arcade.glb"),
+  paneBackground= Asset.LovrFile("assets/models/rounded-surface-texture.png"),
 }
 function MainMenuPane:_init(menu)
     self.name = "main"
-    self:super(ui.Bounds{size=ui.Size(0.6, 0.6, 0.001)})
-    self:setColor({1,1,1,1})
+    self:super(ui.Bounds{size=ui.Size(0.6, 1.6, 0.001)}, MainMenuPane.assets.paneBackground, 20)
     self:setPointable(true)
+    
 
     local stack = ui.StackView(ui.Bounds{size=ui.Size(0.5, 0.6, 0.001)})
     stack:margin(0.02)
