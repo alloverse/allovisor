@@ -5,7 +5,7 @@ lovr.filesystem, lovr.thread = require 'lovr.filesystem', require 'lovr.thread'
 local util = require "lib.util"
 local allonet = require("alloui.ffi_allonet_handle")
 
-local server = allonet.alloserv_start_standalone(0x0100007F, 0, "Menu")
+local server = allonet.alloserv_start_standalone("localhost", 0x0100007F, 0, "Menu")
 assert(server)
 local allosocket = allonet.allo_socket_for_select(server)
 local port = server._port
