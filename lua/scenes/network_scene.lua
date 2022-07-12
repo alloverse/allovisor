@@ -31,9 +31,14 @@ local engines = {
 require "lib.allostring"
 local util = require "lib.util"
 
+local function log(t, message, ...)
+  --string.format(message, ...)    
+  --allo_log(t, "network_scene", nil, message)
+end
+
 local NetworkScene = classNamed("NetworkScene", OrderedEnt)
 function NetworkScene:_init(displayName, url, avatarName, isSpectatorCamera)
-  print("Starting network scene as", displayName, isSpectatorCamera and "(cam)" or "(user)", "connecting to", url, "on a", (lovr.headset and lovr.headset.getName() or "desktop"))
+  log("INFO", "Starting network scene as", displayName, isSpectatorCamera and "(cam)" or "(user)", "connecting to", url, "on a", (lovr.headset and lovr.headset.getName() or "desktop"))
   
 
   self.displayName = displayName
@@ -136,7 +141,7 @@ function NetworkScene:lookForHead()
     if 
       entity.components.intent and entity.components.intent.actuate_pose == "head" and 
       entity.components.relationships and entity.components.relationships.parent == self.avatar_id then
-      print("Avatar's head entity:", eid)
+      log("DEBUG", "Avatar's head entity:", eid)
       self.head_id = eid
       self:route("onHeadAdded", entity)
     end
@@ -147,7 +152,7 @@ function NetworkScene:onInteraction(interaction, body, receiver, sender)
   if interaction.type == "response" and body[1] == "announce" then
     local avatar_id = body[2]
     local place_name = body[3]
-    print("Welcome to", place_name, ". You are", avatar_id)
+    log("INFO", "Welcome to", place_name, ". You are", avatar_id)
     self.avatar_id = avatar_id
     self.place_name = place_name
     self:lookForHead()
@@ -187,7 +192,7 @@ function NetworkScene:moveToOrigin()
 end
 
 function NetworkScene:onDisconnect(code, message)
-  print("Network scene was disconnected from", self.place_name, code, message, ", tearing down...")
+  log("INFO", "Network scene was disconnected from", self.place_name, code, message, ", tearing down...")
   if self.engines then
     for _, engine in pairs(self.engines) do
       engine.client = nil
@@ -202,7 +207,7 @@ function NetworkScene:onDisconnect(code, message)
   end
   local menu = lovr.scenes:transitionToMainMenu()
   menu:setMessage(message and message or "Disconnected.")
-  print("Network scene finished disconnecting.")
+  log("DEBUG", "Network scene finished disconnecting.")
   self:die()
 end
 

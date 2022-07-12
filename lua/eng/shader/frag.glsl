@@ -26,6 +26,11 @@ uniform samplerCube alloEnvironmentMapCube;
 
 uniform vec4 alloAmbientLightColor;
 
+#ifdef FLAG_colorswap
+uniform vec4 colorswapFrom;
+uniform vec4 colorswapTo;
+#endif
+
 #ifdef FLAG_debug
 
 uniform float draw_albedo;
@@ -169,6 +174,15 @@ vec4 color(vec4 graphicsColor, sampler2D image, vec2 uv) {
     } else {
         diffuseColor = texture(alloDiffuseTexture, uv);
     }
+
+    diffuseColor = diffuseColor * lovrGraphicsColor * lovrVertexColor * lovrDiffuseColor;
+
+    #ifdef FLAG_colorswap
+        if (diffuseColor == colorswapFrom) {
+            diffuseColor = colorswapTo;
+        }
+    #endif
+
     
     // Apply normalmap without tangent map
     debug(if (draw_normalMap > 0.) {)
@@ -177,9 +191,6 @@ vec4 color(vec4 graphicsColor, sampler2D image, vec2 uv) {
             N = perturb_normal(N, vCameraPositionWorld - vFragmentPos, uv);
         }
     debug(})
-
-    
-    diffuseColor = diffuseColor * lovrGraphicsColor * lovrVertexColor * lovrDiffuseColor;
 
     vec3 albedo = diffuseColor.rgb;
     vec4 emissive = texture(lovrEmissiveTexture, uv) * lovrEmissiveColor;

@@ -72,7 +72,8 @@ function Shader:generate(options)
         flags = {
             highp = true,
             lights = options.lights,
-            debug = options.debug
+            debug = options.debug,
+            colorswap = options.colorswap,
         }
     })
     shader:sendBlock('Lights', self.lightsBlock)
