@@ -31,8 +31,9 @@ function Renderer:_init()
     self.cache = {}
 
     self.shaderObj = Shader()
-    self.shader = self.shaderObj:generate({lights = true, debug = is_desktop or false})
+    self.shader = self.shaderObj:generate({lights = true, debug = is_desktop or false, colorswap = true})
     self.cubemapShader = self.shaderObj:generate({stereo = false, lights = false})
+    self.colorSwapShader = self.shaderObj:generate({lights = true, debug = is_desktop or false, colorswap = true})
 
     self.standardShaders = {
         self.shader, 
@@ -311,6 +312,8 @@ function Renderer:prepareObjects(context)
             -- TODO: smarts based on changes in material
             if object.material then
                 local material = renderObject.material
+                material.colorswapFrom = object.material.colorswapFrom
+                material.colorswapTo = object.material.colorswapTo
                 material.color = object.material.color
                 material.roughness = object.material.roughness
                 material.metalness = object.material.metalness
@@ -566,6 +569,8 @@ function Renderer:drawObject(object, context)
         local send = shader.send
         
         local material = object.material
+        send(shader, "colorswapFrom", material.colorswapFrom or {0,0,0,0})
+        send(shader, "colorswapTo", material.colorswapTo or {0,0,0,0})
         send(shader, "alloMetalness", material.metalness or 1)
         send(shader, "alloRoughness", material.roughness or 1)
         send(shader, "alloUVScale", material.uvScale or {1, 1, 1})

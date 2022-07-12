@@ -5,8 +5,6 @@ namespace("networkscene", "alloverse")
 
 local tablex = require "pl.tablex"
 local pretty = require "pl.pretty"
-local alloBasicShader = require "shader/alloBasicShader"
-local alloPbrShader = require "shader/alloPbrShader"
 local Asset = require("lib.alloui.lua.alloui.asset")
 local Store = require("lib.lovr-store")
 
@@ -49,9 +47,6 @@ function GraphicsEng:onLoad()
 
     self.font = lovr.graphics.newFont(39)
     self.font:setPixelDensity(39)
-    
-    self.basicShader = alloBasicShader
-    self.pbrShader = alloPbrShader
     
     graphics.setBackgroundColor(.05, .05, .05)
     
@@ -364,6 +359,8 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
             object.hasTransparency = component.hasTransparency or material_alpha < 1
             object.hasReflection = true
             object.material = {
+                colorswapFrom = component.colorswapFrom,
+                colorswapTo = component.colorswapTo,
                 color = component.color,
                 metalness = component.metalness or 0,
                 roughness = component.roughness or 1,
