@@ -473,6 +473,16 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
         }
     end
 
+    if (not component_key or component_key == "skeleton") and entity.components.skeleton then
+        object.skeleton = {nodes = {}}
+        for key, node in pairs(entity.components.skeleton.nodes) do
+            object.skeleton.nodes[key] = {
+                matrix = lovr.math.newMat4(unpack(node.matrix)),
+                alpha = node.alpha or 1.0
+            }
+        end
+    end
+
     -- if (not component_key or component_key == "transform") and entity.components.transform then
     --     -- local component = entity.components.transform
     -- end
@@ -502,6 +512,21 @@ function draw_object(object, renderObject, context)
                 end
             end
             model:animate(name, lovr.timer.getTime())
+        end
+
+        local skel = object.skeleton
+        if skel and model:getNodeCount() > 0 then
+            -- reset all poses, in case the new skeleton
+            -- has removed nodes to pose
+            model:pose()
+            -- then go through each node and pose it
+            for name, node in pairs(skel.nodes) do
+                local x, y, z, sx, sy, sz, a, ax, ay, az = node.matrix:unpack()
+                local ok, _ = pcall(model.pose, model, name, x, y, z, a, ax, ay, az, node.alpha or 1.0)
+                if not ok then
+                    print("Warning: Model for entity", object.entity.id, "has no mesh node called", name)
+                end
+            end
         end
         
         model:draw()
