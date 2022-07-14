@@ -514,11 +514,11 @@ function draw_object(object, renderObject, context)
             model:animate(name, lovr.timer.getTime())
         end
 
+        -- reset all poses, in case the new skeleton
+        -- has removed nodes to pose
+        model:pose()
         local skel = object.skeleton
         if skel and model:getNodeCount() > 0 then
-            -- reset all poses, in case the new skeleton
-            -- has removed nodes to pose
-            model:pose()
             -- then go through each node and pose it
             for name, node in pairs(skel.nodes) do
                 local x, y, z, sx, sy, sz, a, ax, ay, az = node.matrix:unpack()
