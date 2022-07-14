@@ -74,6 +74,7 @@ function Shader:generate(options)
             lights = options.lights,
             debug = options.debug,
             colorswap = options.colorswap,
+            animated = true
         }
     })
     shader:sendBlock('Lights', self.lightsBlock)
