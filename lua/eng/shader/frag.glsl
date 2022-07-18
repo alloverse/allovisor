@@ -27,8 +27,12 @@ uniform samplerCube alloEnvironmentMapCube;
 uniform vec4 alloAmbientLightColor;
 
 #ifdef FLAG_colorswap
-uniform vec4 colorswapFrom;
-uniform vec4 colorswapTo;
+uniform vec4 colorswapFrom1;
+uniform vec4 colorswapTo1;
+uniform vec4 colorswapFrom2;
+uniform vec4 colorswapTo2;
+uniform vec4 colorswapFrom3;
+uniform vec4 colorswapTo3;
 #endif
 
 #ifdef FLAG_debug
@@ -178,9 +182,13 @@ vec4 color(vec4 graphicsColor, sampler2D image, vec2 uv) {
     diffuseColor = diffuseColor * lovrGraphicsColor * lovrVertexColor * lovrDiffuseColor;
 
     #ifdef FLAG_colorswap
-        if (diffuseColor == colorswapFrom) {
-            diffuseColor = colorswapTo;
-        }
+        if (diffuseColor == colorswapFrom1) {
+            diffuseColor = colorswapTo1;
+        } else if (diffuseColor == colorswapFrom2) {
+            diffuseColor = colorswapTo2;
+        } else if (diffuseColor == colorswapFrom3) {
+            diffuseColor = colorswapTo3;
+        } 
     #endif
 
     
