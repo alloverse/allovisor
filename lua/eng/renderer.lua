@@ -573,6 +573,7 @@ function Renderer:drawObject(object, context)
     --     end
     -- end
     
+    local postDraw = nil
 
     -- unrolled shader setup function
     local shader = lovr.graphics.getShader()
@@ -608,6 +609,41 @@ function Renderer:drawObject(object, context)
             send(shader, "alloEnvironmentMapType", 2);
             send(shader, "alloEnvironmentMapSpherical", envMap)
         end
+
+        if is_desktop and object.source.debug then
+            local debug = object.source.debug
+            
+            local function applyDebug(debug)
+                send(shader, "draw_albedo", debug.draw_albedo or 1)
+                send(shader, "draw_metalness", debug.draw_metalness or 1)
+                send(shader, "draw_roughness", debug.draw_roughness or 1)
+                send(shader, "draw_diffuseEnv", debug.draw_diffuseEnv or 1)
+                send(shader, "draw_specularEnv", debug.draw_specularEnv or 1)
+                send(shader, "draw_diffuseLight", debug.draw_diffuseLight or 1)
+                send(shader, "draw_specularLight", debug.draw_specularLight or 1)
+                send(shader, "draw_occlusion", debug.draw_occlusion or 1)
+                send(shader, "draw_lights", debug.draw_lights or 1)
+                send(shader, "draw_ambient", debug.draw_ambient or 1)
+                send(shader, "draw_emissive", debug.draw_emissive or 1)
+                send(shader, "draw_tonemap", debug.draw_tonemap or 1)
+                send(shader, "draw_normalMap", debug.draw_normalMap or 1)
+                send(shader, "only_albedo", debug.only_albedo or 0)
+                send(shader, "only_metalness", debug.only_metalness or 0)
+                send(shader, "only_roughness", debug.only_roughness or 0)
+                send(shader, "only_diffuseEnv", debug.only_diffuseEnv or 0)
+                send(shader, "only_specularEnv", debug.only_specularEnv or 0)
+                send(shader, "only_diffuseLight", debug.only_diffuseLight or 0)
+                send(shader, "only_specularLight", debug.only_specularLight or 0)
+                send(shader, "only_occlusion", debug.only_occlusion or 0)
+                send(shader, "only_lights", debug.only_lights or 0)
+                send(shader, "only_ambient", debug.only_ambient or 0)
+                send(shader, "only_emissive", debug.only_emissive or 0)
+                send(shader, "only_tonemap", debug.only_tonemap or 0)
+                send(shader, "only_normalMap", debug.only_normalMap or 0)
+            end
+            applyDebug(debug)
+            postDraw = function() applyDebug({}) end
+        end
     end
 
     context.stats.drawnObjects = context.stats.drawnObjects + 1
@@ -638,6 +674,11 @@ function Renderer:drawObject(object, context)
         lovr.graphics.box("line", 0,0,0, text.boxSize.x, text.boxSize.y,0)
     end
     lovr.graphics.pop()
+
+
+    if postDraw then 
+        postDraw()
+    end
     
     if context.drawAABB then
         local bb = object.AABB
@@ -660,7 +701,6 @@ function Renderer:drawObject(object, context)
         lovr.graphics.transform(object.transform)
         lovr.graphics.box("line", x,y,z, math.abs(w), math.abs(h), math.abs(d))
         lovr.graphics.pop()
-
     end
 end
 

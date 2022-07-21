@@ -483,6 +483,10 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
         end
     end
 
+    if (not component_key or component_key == "debug") and entity.components.debug then
+        object.debug = entity.components.debug
+    end
+
     -- if (not component_key or component_key == "transform") and entity.components.transform then
     --     -- local component = entity.components.transform
     -- end
