@@ -312,17 +312,18 @@ function Renderer:prepareObjects(context)
             -- TODO: smarts based on changes in material
             if object.material then
                 local material = renderObject.material
-                if type(object.material.colorswapFrom) == "table" then
-                    if type(object.material.colorswapFrom[1]) == "table" then
-                        material.colorswapFrom1 = object.material.colorswapFrom[1]
-                        material.colorswapTo1 = object.material.colorswapTo[1]
-                        material.colorswapFrom2 = object.material.colorswapFrom[2]
-                        material.colorswapTo2 = object.material.colorswapTo[2]
-                        material.colorswapFrom3 = object.material.colorswapFrom[3]
-                        material.colorswapTo3 = object.material.colorswapTo[3]
-                    else
-                        material.colorswapFrom1 = object.material.colorswapFrom
-                        material.colorswapTo1 = object.material.colorswapTo
+                if type(object.material.colorswap) == "table" then
+                    if #object.material.colorswap > 0 then
+                        material.colorswapFrom1 = object.material.colorswap[1][1]
+                        material.colorswapTo1 = object.material.colorswap[1][2]
+                    end
+                    if #object.material.colorswap > 1 then
+                        material.colorswapFrom2 = object.material.colorswap[2][1]
+                        material.colorswapTo2   = object.material.colorswap[2][2]
+                    end
+                    if #object.material.colorswap > 2 then
+                        material.colorswapFrom3 = object.material.colorswap[3][1]
+                        material.colorswapTo3   = object.material.colorswap[3][2]
                     end
                 end
                 material.color = object.material.color

@@ -359,8 +359,7 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
             object.hasTransparency = component.hasTransparency or material_alpha < 1
             object.hasReflection = true
             object.material = {
-                colorswapFrom = component.colorswapFrom,
-                colorswapTo = component.colorswapTo,
+                colorswap = component.colorswap or {},
                 color = component.color,
                 metalness = component.metalness or 0,
                 roughness = component.roughness or 1,
