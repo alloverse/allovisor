@@ -17,6 +17,7 @@ local ui = require("alloui.ui")
 local Asset = require("lib.alloui.lua.alloui.asset")
 local AlloAvatar = require("lib.alloavatar")
 local StandardWidgets = require("lib.standard_widgets")
+local ffi = require("ffi")
 
 local engines = {
   SoundEng = require "eng.sound_eng",
@@ -157,6 +158,10 @@ function NetworkScene:onInteraction(interaction, body, receiver, sender)
 
     ent.root:route("onNetConnected", self, self.url, place_name)
     lovr.onNetConnected(self, self.url, place_name)
+  elseif body[1] == "teleport" then
+    local m = lovr.math.mat4(unpack(body[2]))
+    self:teleportTo(m)
+    interaction:respond("teleport", "ok")
   end
 end   
 
@@ -175,16 +180,24 @@ function NetworkScene:getHead()
 end
 
 function NetworkScene:moveToOrigin()
-  self.client:sendInteraction({
-    type = "request",
-    receiver_entity_id = "place",
-    body = {"change_components", self.avatar_id, "add_or_change", {
-      transform= {
-        matrix={lovr.math.mat4():unpack(true)}
-      }
-    }, "remove", {}}
-  })
+  self:teleportTo(lovr.math.mat4())
+end
+
+function NetworkScene:teleportTo(m)
+  print("Teleporting to", m:unpack())
+  -- set the pose in alloui
+  self.avatarView.bounds.pose.transform = m
+  self.avatarView:setBounds()
+
+  -- also set it in client state, so that...
+  local state = self.client.handle.alloclient_get_state(self.client._client)
+  local allom = ffi.new("allo_m4x4", {m:unpack(true)})
+  local ent = self.client.handle.state_get_entity(state, self.avatarView.entity.id)
+  self.client.handle.entity_set_transform(ent, allom)
+
+  -- it's picked up by simulateRootPose in updateIntent
   self.engines.pose.yaw = 0.0
+  self.engines.pose:updateIntent(0)
 end
 
 function NetworkScene:onDisconnect(code, message)
