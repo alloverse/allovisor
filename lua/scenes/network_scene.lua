@@ -161,7 +161,7 @@ function NetworkScene:onInteraction(interaction, body, receiver, sender)
   elseif body[1] == "teleport" then
     local m = lovr.math.mat4(unpack(body[2]))
     self:teleportTo(m)
-    interaction:respond("teleport", "ok")
+    interaction:respond({"teleport", "ok"})
   end
 end   
 
