@@ -180,6 +180,7 @@ function NetworkScene:getHead()
 end
 
 function NetworkScene:moveToOrigin()
+  self.engines.pose.yaw = 0.0
   self:teleportTo(lovr.math.mat4())
 end
 
@@ -194,9 +195,9 @@ function NetworkScene:teleportTo(m)
   local allom = ffi.new("allo_m4x4", {m:unpack(true)})
   local ent = self.client.handle.state_get_entity(state, self.avatarView.entity.id)
   self.client.handle.entity_set_transform(ent, allom)
+  -- todo: set yaw, or make updateIntent ignore it, maybe by setting an ivar
 
   -- it's picked up by simulateRootPose in updateIntent
-  self.engines.pose.yaw = 0.0
   self.engines.pose:updateIntent(0)
 end
 
