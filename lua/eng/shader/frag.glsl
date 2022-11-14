@@ -173,20 +173,22 @@ vec4 color(vec4 graphicsColor, sampler2D image, vec2 uv) {
 
     // mapped values
     vec4 diffuseColor = vec4(1);
+    vec4 texColor;
     if (alloDiffuseTextureSet == 0) {
-        diffuseColor = texture(lovrDiffuseTexture, uv);
+        texColor = texture(lovrDiffuseTexture, uv);
     } else {
-        diffuseColor = texture(alloDiffuseTexture, uv);
+        texColor = texture(alloDiffuseTexture, uv);
     }
 
-    diffuseColor = diffuseColor * lovrGraphicsColor * lovrVertexColor * lovrDiffuseColor;
+    diffuseColor = texColor * lovrGraphicsColor * lovrVertexColor * lovrDiffuseColor;
 
     #ifdef FLAG_colorswap
-        if (diffuseColor == colorswapFrom1) {
+        vec4 compareColor = texColor*lovrDiffuseColor;
+        if (compareColor == colorswapFrom1) {
             diffuseColor = colorswapTo1;
-        } else if (diffuseColor == colorswapFrom2) {
+        } else if (compareColor == colorswapFrom2) {
             diffuseColor = colorswapTo2;
-        } else if (diffuseColor == colorswapFrom3) {
+        } else if (compareColor == colorswapFrom3) {
             diffuseColor = colorswapTo3;
         } 
     #endif
