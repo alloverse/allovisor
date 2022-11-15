@@ -159,11 +159,17 @@ function PoseEng:getPose(device)
       pose:translate(0, 1.65, 0)
       pose:rotate(self.mousePitch, 1,0,0)
     elseif device == "torso" then
-      pose:translate(self:getPose("head"):mul(lovr.math.vec3())):translate(0, -0.485, 0.04)
+      local head = self:getPose("head")
+      pose
+        :translate(head:mul(lovr.math.vec3()))
+        :translate(0, -0.485, 0.04)
     elseif device == "hand/left" then
       local head = self:getPose("head")
       local invHead = lovr.math.mat4(head):invert()
+      local torso = self:getPose("torso")
       pose
+        :mul(torso)
+        :translate(0,-1.15,0)
         :mul(head)
         :rotate(self.mousePitch, 1,0,0)  
         :mul(invHead)
@@ -184,7 +190,11 @@ function PoseEng:getPose(device)
         local avatarFromHand = avatarFromWorld * worldFromHand
         pose:set(avatarFromHand)
       else
-        pose:rotate(-3.1416/2, 1,0,0):translate(0,0,-0.35)
+        local torso = self:getPose("torso")
+        pose
+          :mul(torso)
+          :rotate(-3.1416/2, 1,0,0)
+          :translate(0,0.04,-1.55)
       end
     end
   end
