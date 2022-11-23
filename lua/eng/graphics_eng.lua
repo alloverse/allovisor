@@ -86,6 +86,13 @@ function GraphicsEng:aabbForModel(model, transform)
     }
 end
 
+function GraphicsEng:aabbForSize(size)
+  return {
+    min = newVec4( -size[1]/2, -size[2]/2, -size[3]/2, 1 ),
+    max = newVec4( size[1]/2, size[2]/2, size[3]/2, 1 )
+}
+end
+
 --- Called each frame to draw the world
 -- Called by Ent
 -- @see Ent
@@ -311,6 +318,12 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
         self.renderObjects[entityId] = object
     end
 
+    if entity.components.transform and entity.components.transform.size then
+      object.size = entity.components.transform.size
+    else
+      object.size = {0.05, 0.05, 0.05}
+    end
+
     if (not component_key or component_key == "geometry") and entity.components.geometry then
         local component = entity.components.geometry
         if removed then 
@@ -318,11 +331,15 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
             object.AABB = nil
         elseif component.type == "inline" then
             local asset = Asset.Geometry(component)
-            object.lovr.model = self.hardcoded_models.loading
-            object.AABB = self:aabbForModel(object.lovr.model, entity.components.transform:getMatrix())
+            
+            object.isLoading = true
+            object.AABB = self:aabbForSize(object.size)
+
             self.parent.engines.assets:loadCustomModel(asset, function (model)
                 if not object == self.renderObjects[entityId] then return end
                 if not (entity and entity.components and entity.components.transform) then return end
+
+                object.isLoading = false
                 if model then
                     object.lovr.model = model
                     object.AABB = self:aabbForModel(object.lovr.model, entity.components.transform:getMatrix())
@@ -333,11 +350,12 @@ function GraphicsEng:buildObject(entity, component_key, old_component, removed)
             end)
             
         elseif component.name then
-            object.lovr.model = self.hardcoded_models.loading
-            object.AABB = self:aabbForModel(object.lovr.model, entity.components.transform:getMatrix())
+            object.isLoading = true
+            object.AABB = self:aabbForSize(object.size)
             self.parent.engines.assets:loadModel(component.name, function(model)
                 if not object == self.renderObjects[entityId] then return end
                 if not (entity and entity.components and entity.components.transform) then return end
+                object.isLoading = false
                 if model then
                     object.lovr.model = model
                     object.AABB = self:aabbForModel(object.lovr.model, entity.components.transform:getMatrix())

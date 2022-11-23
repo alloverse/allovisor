@@ -670,6 +670,10 @@ function Renderer:drawObject(object, context)
 
     object.source:draw(object, context)
 
+    if object.source.isLoading then
+      lovr.graphics.box("line", 0,0,0, unpack(object.source.size))
+    end
+
     if context.drawTextBoxes and object.source.hasText then
         local text = object.source.text
         lovr.graphics.box("line", 0,0,0, text.boxSize.x, text.boxSize.y,0)
