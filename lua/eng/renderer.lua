@@ -2,6 +2,7 @@
 -- Handles drawing of objects
 -- @classmod Renderer
 
+alloLoadingCubeShader = require "../shader/alloLoadingCubeShader"
 
 local class = require('pl.class')
 local pp = require('pl.pretty').dump
@@ -34,6 +35,7 @@ function Renderer:_init()
     self.shader = self.shaderObj:generate({lights = true, debug = is_desktop or false, colorswap = true})
     self.cubemapShader = self.shaderObj:generate({stereo = false, lights = false})
     self.colorSwapShader = self.shaderObj:generate({lights = true, debug = is_desktop or false, colorswap = true})
+    self.loadingCubeShader = alloLoadingCubeShader
 
     self.standardShaders = {
         self.shader, 
@@ -671,7 +673,11 @@ function Renderer:drawObject(object, context)
     object.source:draw(object, context)
 
     if object.source.isLoading then
+      lovr.graphics.box("fill", 0,0,0, unpack(object.source.size))
+      lovr.graphics.setShader(self.loadingCubeShader)
+      self.loadingCubeShader:send("time", lovr.timer.getTime())
       lovr.graphics.box("line", 0,0,0, unpack(object.source.size))
+      lovr.graphics.setShader()
     end
 
     if context.drawTextBoxes and object.source.hasText then
