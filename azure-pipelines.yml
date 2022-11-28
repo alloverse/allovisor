@@ -136,11 +136,10 @@ jobs:
   - script: |
       echo Moving key passwords into place...
       ln -s $(keyPasswords.secureFilePath) $(Build.Repository.LocalPath)/keys.properties
-  - script: ls -laR /Users/runner/Library/Android
   - task: CMake@1
     inputs:
       workingDirectory: 'build'
-      cmakeArgs: "-DCMAKE_TOOLCHAIN_FILE=/Users/runner/Library/Android/sdk/ndk-bundle/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a -DANDROID_NATIVE_API_LEVEL=26 -DANDROID_BUILD_TOOLS_VERSION=29.0.2 -DANDROID_SDK=/Users/runner/Library/Android/sdk -DJAVA_HOME=\"/Applications/Android Studio.app/Contents/jre/jdk/Contents/Home\" -DANDROID_KEYSTORE=$(Build.Repository.LocalPath)/android.release.keystore -DANDROID_KEYSTORE_PASS=\"pass:$(RELEASE_STORE_PASSWORD)\" -DANDROID_KEY_PASS=\"pass:$(RELEASE_KEY_PASSWORD)\" -DANDROID_VARIANT=quest .."
+      cmakeArgs: "-DCMAKE_TOOLCHAIN_FILE=/Users/runner/Library/Android/sdk/ndk/21.0.6113669/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a -DANDROID_NATIVE_API_LEVEL=26 -DANDROID_BUILD_TOOLS_VERSION=29.0.2 -DANDROID_SDK=/Users/runner/Library/Android/sdk -DJAVA_HOME=\"/Applications/Android Studio.app/Contents/jre/jdk/Contents/Home\" -DANDROID_KEYSTORE=$(Build.Repository.LocalPath)/android.release.keystore -DANDROID_KEYSTORE_PASS=\"pass:$(RELEASE_STORE_PASSWORD)\" -DANDROID_KEY_PASS=\"pass:$(RELEASE_KEY_PASSWORD)\" -DANDROID_VARIANT=quest .."
   - script: env VERBOSE=1 make Alloverse
     workingDirectory: build
     displayName: "Make"
