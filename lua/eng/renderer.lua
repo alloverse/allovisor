@@ -562,6 +562,12 @@ function Renderer:shouldGenerateCubemap(object, context)
         context.frame.cubemapDepth < context.frame.cubemapLimit.maxDepth
 end
 
+function GammaToLinear(color)
+    if not color then return {0,0,0,0} end
+    local r, g, b = lovr.math.gammaToLinear(color[1], color[2], color[3])
+    return {r, g, b, color[4]}
+end
+
 function Renderer:drawObject(object, context)
     -- local useTransparency = object.hasTransparency and not context.skipTransparency
     -- local useRefraction = object.hasRefraction and not context.skipRefraction
@@ -585,11 +591,11 @@ function Renderer:drawObject(object, context)
         
         local material = object.material
         send(shader, "colorswapFrom1", material.colorswapFrom1 or {0,0,0,0})
-        send(shader, "colorswapTo1", material.colorswapTo1 or {0,0,0,0})
+        send(shader, "colorswapTo1", GammaToLinear(material.colorswapTo1))
         send(shader, "colorswapFrom2", material.colorswapFrom2 or {0,0,0,0})
-        send(shader, "colorswapTo2", material.colorswapTo2 or {0,0,0,0})
+        send(shader, "colorswapTo2", GammaToLinear(material.colorswapTo2))
         send(shader, "colorswapFrom3", material.colorswapFrom3 or {0,0,0,0})
-        send(shader, "colorswapTo3", material.colorswapTo3 or {0,0,0,0})
+        send(shader, "colorswapTo3", GammaToLinear(material.colorswapTo3))
         send(shader, "alloMetalness", material.metalness or 1)
         send(shader, "alloRoughness", material.roughness or 1)
         send(shader, "alloUVScale", material.uvScale or {1, 1, 1})
