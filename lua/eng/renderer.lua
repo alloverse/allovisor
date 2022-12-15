@@ -679,7 +679,6 @@ function Renderer:drawObject(object, context)
     object.source:draw(object, context)
 
     if object.source.isLoading then
-      lovr.graphics.box("fill", 0,0,0, unpack(object.source.size))
       lovr.graphics.setShader(self.loadingCubeShader)
       self.loadingCubeShader:send("time", lovr.timer.getTime())
       lovr.graphics.box("line", 0,0,0, unpack(object.source.size))
