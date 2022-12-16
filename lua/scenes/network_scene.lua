@@ -159,7 +159,7 @@ function NetworkScene:onInteraction(interaction, body, receiver, sender)
     ent.root:route("onNetConnected", self, self.url, place_name)
     lovr.onNetConnected(self, self.url, place_name)
   elseif body[1] == "teleport" then
-    local m = lovr.math.mat4(unpack(body[2]))
+    local m = lovr.math.newMat4(unpack(body[2]))
     self:teleportTo(m)
     interaction:respond({"teleport", "ok"})
   end
@@ -187,7 +187,7 @@ end
 function NetworkScene:teleportTo(m)
   print("Teleporting to", m:unpack())
   -- set the pose in alloui
-  self.avatarView.bounds.pose.transform = m
+  self.avatarView.bounds.pose.transform = lovr.math.newMat4(m)
   self.avatarView:setBounds()
 
   -- also set it in client state, so that...
