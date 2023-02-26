@@ -121,7 +121,7 @@ function StandardWidgets:addMuteWidget(avatar, netscene, cb)
 end
 
 function StandardWidgets:addHelpWidget(avatar, netscene, cb)
-    local widget = ui.Button(
+    local widget = ui.Button.Cube(
         ui.Bounds(0, 0.00, 0.00,   0.02, 0.02, 0.010)
     )
     widget.label.text = "Help"

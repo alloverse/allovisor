@@ -114,7 +114,7 @@ function AlloAvatar:addWristWidget(widgetEntity, callback)
     
     local lastWidget = otherWidgets[#otherWidgets]
     local lastPos = mat4.new(lastWidget and lastWidget.components.transform.matrix or mat4.translate(mat4.new(), mat4.new(), vec3.new(0.03, 0, 0)))
-    local newPos = mat4.translate(mat4.new(), lastPos, vec3.new(-0.03, 0, 0))
+    local newPos = mat4.translate(mat4.new(), lastPos, vec3.new(-0.06, 0, 0))
 
     newPos._m = nil -- so that it becomes a normal array that can be passed as json
     local changes = {
