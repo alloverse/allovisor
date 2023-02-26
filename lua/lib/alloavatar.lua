@@ -40,6 +40,7 @@ function AlloAvatar:_init(bounds, displayName, avatarName, net, isCamera)
     self.net = net
     if not isCamera then
         self.leftHand = self:addSubview(AlloBodyPart(nil, avatarName, "hand/left", "left-hand"))
+        self.leftHand.invisible = lovr.headset == nil
         self.rightHand = self:addSubview(AlloBodyPart(nil, avatarName, "hand/right", "right-hand"))
         self.torso = self:addSubview(AlloBodyPart(nil, avatarName, "torso", "torso"))
         self.torso.displayName = displayName
@@ -168,6 +169,10 @@ function AlloBodyPart:specification()
             },
         },
     })
+
+    if self.invisible then
+        spec.children[1].geometry = nil
+    end
     
     if self.partName == "torso" then
         table.insert(spec.children, self:nameTagSpec())
