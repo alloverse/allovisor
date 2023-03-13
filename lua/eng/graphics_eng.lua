@@ -522,6 +522,10 @@ end
 function draw_object(object, renderObject, context)
     local model = object.lovr.model
     if model then 
+        -- reset all poses, in case the new skeleton
+        -- has removed nodes to pose
+        model:pose()
+
         -- Is this reeeeally the right place to handle animations at all?
         -- TODO: some hack so this it only run for entities that needs it
         local animationCount = model.animate and model:getAnimationCount()
@@ -535,9 +539,7 @@ function draw_object(object, renderObject, context)
             model:animate(name, lovr.timer.getTime())
         end
 
-        -- reset all poses, in case the new skeleton
-        -- has removed nodes to pose
-        model:pose()
+        
         local skel = object.skeleton
         if skel and model:getNodeCount() > 0 then
             -- then go through each node and pose it
