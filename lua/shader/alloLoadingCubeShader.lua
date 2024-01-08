@@ -16,7 +16,7 @@ local alloLoadingCubeShader = lovr.graphics.newShader(
         1, 
         1, 
         1, 
-        graphicsColor.a * sin(time * 4 + uv.y) / 2 + 0.5
+        graphicsColor.a * sin(time * 4.0 + uv.y) / 2.0 + 0.5
       );
     }
   ]],
