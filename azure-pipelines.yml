@@ -11,7 +11,7 @@ variables:
 jobs:
 - job: Mac
   pool:
-    vmImage: 'macOS-10.15'
+    vmImage: 'macOS-11'
   steps:
   - script: sudo xcode-select -s /Applications/Xcode_12.2.app
     displayName: "Select Xcode 12.2"
@@ -113,7 +113,7 @@ jobs:
 
 - job: OculusQuest
   pool:
-    vmImage: 'macOS-10.15'
+    vmImage: 'macOS-11'
   steps:
   - script: 'sdkmanager --install "ndk;21.0.6113669" 2>&1 | head'
     displayName: "Install NDK"
