@@ -113,7 +113,17 @@ export JAVA_HOME=your_path_to_java8
 Sample CMake invocation for Quest on Linux:
 
 ```
-cmake -DCMAKE_TOOLCHAIN_FILE=$ANDROID_HOME/ndk/21.3.6528147/build/cmake/android.toolchain.cmake -DANDROID_ABI="arm64-v8a" -DANDROID_NATIVE_API_LEVEL=26 -DANDROID_BUILD_TOOLS_VERSION="30.0.4" -DANDROID_SDK=$ANDROID_HOME -DANDROID_KEYSTORE=/path_to/alloverse.keystore -DANDROID_KEYSTORE_PASS="pass:123456" -DJAVA_HOME="$JAVA_HOME" -DANDROID_VARIANT="quest" ..
+cmake \
+  -DCMAKE_TOOLCHAIN_FILE=$ANDROID_HOME/ndk/21.3.6528147/build/cmake/android.toolchain.cmake \
+  -DANDROID_ABI="arm64-v8a" \
+  -DANDROID_NATIVE_API_LEVEL=26 \
+  -DANDROID_BUILD_TOOLS_VERSION="30.0.4" \
+  -DANDROID_SDK=$ANDROID_HOME \
+  -DANDROID_KEYSTORE=/path_to/alloverse.keystore \
+  -DANDROID_KEYSTORE_PASS="pass:123456" \
+  -DJAVA_HOME="$JAVA_HOME" \
+  -DANDROID_VARIANT="quest" \
+  ..
 ```
 
 * You need to match the ndk version with whatever you have locally
