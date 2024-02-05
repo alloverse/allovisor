@@ -118,7 +118,17 @@ jobs:
   - script: 'sdkmanager --install "ndk;21.4.7075529" 2>&1 | head'
     displayName: "Install NDK 21.4.7075529"
     env:
-      PATH: "/Users/runner/Library/Android/sdk/cmake/3.6.4111459/bin:/Applications/Android Studio.app/Contents/jre/jdk/Contents/Home/bin:~/Library/Android/sdk/platform-tools:~/Library/Android/sdk/tools/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin"
+      PATH: "/Users/runner/Library/Android/sdk/cmake/3.6.4111459/bin:/Applications/Android Studio.app/Contents/jre/Contents/Home/bin:~/Library/Android/sdk/platform-tools:~/Library/Android/sdk/tools/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin"
+      ANDROID_HOME: "~/Library/Android/sdk"
+  - script: 'sdkmanager --install "platforms;android-29" 2>&1 | head'
+    displayName: "Install SDK 29"
+    env:
+      PATH: "/Users/runner/Library/Android/sdk/cmake/3.6.4111459/bin:/Applications/Android Studio.app/Contents/jre/Contents/Home/bin:~/Library/Android/sdk/platform-tools:~/Library/Android/sdk/tools/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin"
+      ANDROID_HOME: "~/Library/Android/sdk"
+  - script: 'sdkmanager --install "build-tools;30.0.3" 2>&1 | head'
+    displayName: "Install build-tools 30.0.3"
+    env:
+      PATH: "/Users/runner/Library/Android/sdk/cmake/3.6.4111459/bin:/Applications/Android Studio.app/Contents/jre/Contents/Home/bin:~/Library/Android/sdk/platform-tools:~/Library/Android/sdk/tools/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin"
       ANDROID_HOME: "~/Library/Android/sdk"
   - task: DownloadSecureFile@1
     name: releaseKeys
@@ -139,7 +149,7 @@ jobs:
   - task: CMake@1
     inputs:
       workingDirectory: 'build'
-      cmakeArgs: "-DCMAKE_TOOLCHAIN_FILE=/Users/runner/Library/Android/sdk/ndk/21.4.7075529/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a -DANDROID_NATIVE_API_LEVEL=29 -DANDROID_BUILD_TOOLS_VERSION=30.0.4 -DANDROID_SDK=/Users/runner/Library/Android/sdk -DJAVA_HOME=\"/Applications/Android Studio.app/Contents/jre/jdk/Contents/Home\" -DANDROID_KEYSTORE=$(Build.Repository.LocalPath)/android.release.keystore -DANDROID_KEYSTORE_PASS=\"pass:$(RELEASE_STORE_PASSWORD)\" -DANDROID_KEY_PASS=\"pass:$(RELEASE_KEY_PASSWORD)\" -DANDROID_VARIANT=quest .."
+      cmakeArgs: "-DCMAKE_TOOLCHAIN_FILE=/Users/runner/Library/Android/sdk/ndk/21.4.7075529/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a -DANDROID_NATIVE_API_LEVEL=29 -DANDROID_BUILD_TOOLS_VERSION=30.0.4 -DANDROID_SDK=/Users/runner/Library/Android/sdk -DJAVA_HOME=\"/Applications/Android Studio.app/Contents/jre/Contents/Home\" -DANDROID_KEYSTORE=$(Build.Repository.LocalPath)/android.release.keystore -DANDROID_KEYSTORE_PASS=\"pass:$(RELEASE_STORE_PASSWORD)\" -DANDROID_KEY_PASS=\"pass:$(RELEASE_KEY_PASSWORD)\" -DANDROID_VARIANT=quest .."
   - script: env VERBOSE=1 make Alloverse
     workingDirectory: build
     displayName: "Make"
@@ -184,7 +194,7 @@ jobs:
 #   - script: 'sdkmanager --install "ndk;21.0.6113669" 2>&1 | head'
 #     displayName: "Install NDK"
 #     env:
-#       PATH: "/Users/runner/Library/Android/sdk/cmake/3.6.4111459/bin:/Applications/Android Studio.app/Contents/jre/jdk/Contents/Home/bin:~/Library/Android/sdk/platform-tools:~/Library/Android/sdk/tools/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin"
+#       PATH: "/Users/runner/Library/Android/sdk/cmake/3.6.4111459/bin:/Applications/Android Studio.app/Contents/jre/Contents/Home/bin:~/Library/Android/sdk/platform-tools:~/Library/Android/sdk/tools/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/bin"
 #       ANDROID_HOME: "~/Library/Android/sdk"
 #   - task: DownloadSecureFile@1
 #     name: releaseKeys
@@ -205,7 +215,7 @@ jobs:
 #   - task: CMake@1
 #     inputs:
 #       workingDirectory: 'build'
-#       cmakeArgs: "-DCMAKE_TOOLCHAIN_FILE=/Users/runner/Library/Android/sdk/ndk-bundle/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a -DANDROID_NATIVE_API_LEVEL=27 -DANDROID_BUILD_TOOLS_VERSION=29.0.2 -DANDROID_SDK=/Users/runner/Library/Android/sdk -DJAVA_HOME=/Applications/Android\ Studio.app/Contents/jre/jdk/Contents/Home -DANDROID_KEYSTORE=$(Build.Repository.LocalPath)/android.release.keystore -DANDROID_KEYSTORE_PASS=\"pass:$(RELEASE_STORE_PASSWORD)\" -DANDROID_KEY_PASS=\"pass:$(RELEASE_KEY_PASSWORD)\" -DANDROID_VARIANT=pico .."
+#       cmakeArgs: "-DCMAKE_TOOLCHAIN_FILE=/Users/runner/Library/Android/sdk/ndk-bundle/build/cmake/android.toolchain.cmake -DANDROID_ABI=arm64-v8a -DANDROID_NATIVE_API_LEVEL=27 -DANDROID_BUILD_TOOLS_VERSION=29.0.2 -DANDROID_SDK=/Users/runner/Library/Android/sdk -DJAVA_HOME=/Applications/Android\ Studio.app/Contents/jre/Contents/Home -DANDROID_KEYSTORE=$(Build.Repository.LocalPath)/android.release.keystore -DANDROID_KEYSTORE_PASS=\"pass:$(RELEASE_STORE_PASSWORD)\" -DANDROID_KEY_PASS=\"pass:$(RELEASE_KEY_PASSWORD)\" -DANDROID_VARIANT=pico .."
 #   - script: env VERBOSE=1 make Alloverse
 #     workingDirectory: build
 #     displayName: "Make"

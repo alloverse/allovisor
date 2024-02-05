@@ -93,7 +93,7 @@ This only works from a Mac or Linux machine.
 3. Open the Android Studio's SDK manager and make sure the following is installed:
     - "Android 10.0" (API level 29), for targeting Oculus Quest.
     - "Android 8.1" (API level 27), for targeting Pico. 
-    - "NDK (side-by-side)", from the SDK-Tools tab.
+    - "NDK (side-by-side)" (version 21.4.7075529), from the SDK-Tools tab.
 4. [Enable developer mode on your Quest](https://developer.oculus.com/documentation/quest/latest/concepts/mobile-device-setup-quest/).
 5. Add the android tools to your PATH
 ```
@@ -114,10 +114,10 @@ Sample CMake invocation for Quest on Linux:
 
 ```
 cmake \
-  -DCMAKE_TOOLCHAIN_FILE=$ANDROID_HOME/ndk/21.3.6528147/build/cmake/android.toolchain.cmake \
+  -DCMAKE_TOOLCHAIN_FILE=$ANDROID_HOME/ndk/21.4.7075529/build/cmake/android.toolchain.cmake \
   -DANDROID_ABI="arm64-v8a" \
   -DANDROID_NATIVE_API_LEVEL=26 \
-  -DANDROID_BUILD_TOOLS_VERSION="30.0.4" \
+  -DANDROID_BUILD_TOOLS_VERSION="30.0.3" \
   -DANDROID_SDK=$ANDROID_HOME \
   -DANDROID_KEYSTORE=/path_to/alloverse.keystore \
   -DANDROID_KEYSTORE_PASS="pass:123456" \
@@ -126,7 +126,7 @@ cmake \
   ..
 ```
 
-* You need to match the ndk version with whatever you have locally
+* You need to match the ndk version with whatever you have locally (21.4.7075529 verified to work)
 * Same for build tools
 * same for JAVA_HOME
 
